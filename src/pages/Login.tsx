@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Container, TextField, Button, Typography, Box, Checkbox, Link, Alert, Snackbar } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'; // Import useLocation
 import { useAuth } from '../contexts/AuthContext';
 
 // 迁移 original-html/Login.html 设计稿，使用 MUI 组件还原设计，并集成 Firebase Auth 登录功能
@@ -11,13 +11,18 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation(); // Get location object
+  // Determine the 'from' path for redirection, default to '/topic'
+  const from = location.state?.from?.pathname || '/topic';
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // Clear previous errors
     try {
       await login(email, password);
-      // 登录成功后跳转至 /topic
-      navigate('/topic');
+      // 登录成功后跳转至 'from' (original page) or default '/topic'
+      navigate(from, { replace: true }); // Use replace to avoid login page in history
     } catch (err) {
       // 处理错误，例如显示 Snackbar 或 Alert
       setError(err instanceof Error ? err.message : 'An error occurred during login.');

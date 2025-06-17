@@ -7,19 +7,23 @@ import { auth } from '../services/firebase';
 // 定义 AuthContext 类型
 interface AuthContextType {
   user: User | null;
+  loading: boolean; // Added loading state
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  getIdToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true); // Initialize loading to true
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      setLoading(false); // Set loading to false once auth state is determined
     });
     return () => unsubscribe();
   }, []);
@@ -36,7 +40,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await signOut(auth);
   };
 
-  const value = { user, login, register, logout };
+  const getIdToken = async (): Promise<string | null> => {
+    if (user) {
+      try {
+        return await user.getIdToken();
+      } catch (error) {
+        console.error("Error getting ID token:", error);
+        // Optionally, handle specific errors or re-authenticate if token expired
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const value = { user, loading, login, register, logout, getIdToken }; // Added loading to context value
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
