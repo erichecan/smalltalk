@@ -2,7 +2,7 @@ import type { Message } from '../types/chat';
 
 // 使用 Gemini API
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
 export async function getAIResponse(messages: Message[], topic: string): Promise<string> {
   try {
