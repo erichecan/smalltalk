@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Spline+Sans%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#F8FCF8]">
+<div class="relative flex size-full min-h-screen flex-col bg-[#F8FCF8] justify-between group/design-root overflow-x-hidden" style='font-family: "Spline Sans", "Noto Sans", sans-serif;'>
+<header class="sticky top-0 z-10 bg-[#F8FCF8]">
+<div class="flex items-center p-4 pb-2 justify-between">
+<button class="text-[#0D1C0D] flex size-10 items-center justify-center rounded-full hover:bg-gray-200 active:bg-gray-300">
+<span class="material-icons">arrow_back_ios_new</span>
+</button>
+<h1 class="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Phrasebook</h1>
+<div class="size-10"></div>
+</div>
+<div class="px-4 py-3">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-full h-full shadow-sm">
+<div class="text-[#0D1C0D] flex bg-[#E7F3E7] items-center justify-center pl-4 rounded-l-full border-r-0">
+<span class="material-icons text-gray-500">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-full text-[#0D1C0D] focus:outline-0 focus:ring-0 border-none bg-[#E7F3E7] focus:border-none h-full placeholder:text-gray-500 px-4 text-base font-normal leading-normal" placeholder="Search phrases" value=""/>
+</div>
+</label>
+</div>
+<div class="pb-0">
+<div class="flex border-b border-[#CFE8CF] px-2 gap-1 overflow-x-auto whitespace-nowrap">
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-[#0FDB0F] text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" href="#">
+<p class="text-[#0D1C0D] text-sm font-semibold leading-normal">All</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" href="#">
+<p class="text-sm font-medium leading-normal">Greetings</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" href="#">
+<p class="text-sm font-medium leading-normal">Travel</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" href="#">
+<p class="text-sm font-medium leading-normal">Business</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" href="#">
+<p class="text-sm font-medium leading-normal">Socializing</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" href="#">
+<p class="text-sm font-medium leading-normal">Dining</p>
+</a>
+</div>
+</div>
+</header>
+<main class="flex-grow pb-24">
+<h2 class="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6">Common Phrases</h2>
+<div class="space-y-2 px-2">
+<div class="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm hover:bg-gray-50 cursor-pointer">
+<div class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
+<span class="material-icons">chat_bubble_outline</span>
+</div>
+<div class="flex-1">
+<p class="text-[#0D1C0D] text-base font-medium leading-normal">Hi, how are you?</p>
+<p class="text-gray-600 text-sm font-normal leading-normal">Hola, ¿cómo estás?</p>
+<p class="text-gray-500 text-xs italic leading-normal mt-1">"Hi, how are you doing today?"</p>
+</div>
+<button class="text-[#0FDB0F] hover:text-green-700">
+<span class="material-icons">bookmark_border</span>
+</button>
+</div>
+<div class="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm hover:bg-gray-50 cursor-pointer">
+<div class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
+<span class="material-icons">chat_bubble_outline</span>
+</div>
+<div class="flex-1">
+<p class="text-[#0D1C0D] text-base font-medium leading-normal">It's a pleasure to meet you.</p>
+<p class="text-gray-600 text-sm font-normal leading-normal">Encantado de conocerte.</p>
+<p class="text-gray-500 text-xs italic leading-normal mt-1">"It's a pleasure to meet you, John."</p>
+</div>
+<button class="text-[#0FDB0F] hover:text-green-700">
+<span class="material-icons">bookmark_border</span>
+</button>
+</div>
+<div class="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm hover:bg-gray-50 cursor-pointer">
+<div class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
+<span class="material-icons">chat_bubble_outline</span>
+</div>
+<div class="flex-1">
+<p class="text-[#0D1C0D] text-base font-medium leading-normal">Have a wonderful day!</p>
+<p class="text-gray-600 text-sm font-normal leading-normal">¡Que tengas un día maravilloso!</p>
+<p class="text-gray-500 text-xs italic leading-normal mt-1">"Thanks for your help, have a wonderful day!"</p>
+</div>
+<button class="text-[#0FDB0F] hover:text-green-700">
+<span class="material-icons">bookmark</span>
+</button>
+</div>
+<div class="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm hover:bg-gray-50 cursor-pointer">
+<div class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
+<span class="material-icons">chat_bubble_outline</span>
+</div>
+<div class="flex-1">
+<p class="text-[#0D1C0D] text-base font-medium leading-normal">Goodbye, see you soon.</p>
+<p class="text-gray-600 text-sm font-normal leading-normal">Adiós, hasta pronto.</p>
+<p class="text-gray-500 text-xs italic leading-normal mt-1">"It was nice talking. Goodbye, see you soon."</p>
+</div>
+<button class="text-[#0FDB0F] hover:text-green-700">
+<span class="material-icons">bookmark_border</span>
+</button>
+</div>
+<div class="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm hover:bg-gray-50 cursor-pointer">
+<div class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
+<span class="material-icons">chat_bubble_outline</span>
+</div>
+<div class="flex-1">
+<p class="text-[#0D1C0D] text-base font-medium leading-normal">I appreciate your help.</p>
+<p class="text-gray-600 text-sm font-normal leading-normal">Agradezco tu ayuda.</p>
+<p class="text-gray-500 text-xs italic leading-normal mt-1">"I couldn't have done it without you, I appreciate your help."</p>
+</div>
+<button class="text-[#0FDB0F] hover:text-green-700">
+<span class="material-icons">bookmark_border</span>
+</button>
+</div>
+<div class="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm hover:bg-gray-50 cursor-pointer">
+<div class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
+<span class="material-icons">chat_bubble_outline</span>
+</div>
+<div class="flex-1">
+<p class="text-[#0D1C0D] text-base font-medium leading-normal">Could you repeat that, please?</p>
+<p class="text-gray-600 text-sm font-normal leading-normal">¿Podrías repetir eso, por favor?</p>
+<p class="text-gray-500 text-xs italic leading-normal mt-1">"I didn't quite catch that. Could you repeat that, please?"</p>
+</div>
+<button class="text-[#0FDB0F] hover:text-green-700">
+<span class="material-icons">bookmark</span>
+</button>
+</div>
+</div>
+</main>
+<footer class="fixed bottom-0 left-0 right-0 bg-[#F8FCF8] border-t border-[#E7F3E7] shadow- ऊपर">
+<div class="flex justify-around items-center px-2 py-2">
+<a class="flex flex-col items-center justify-end gap-1 text-[#4B9B4B] hover:text-[#0FDB0F] p-2 rounded-lg w-1/4" href="#">
+<span class="material-icons">school</span>
+<p class="text-xs font-medium leading-normal">Learn</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-1 text-[#4B9B4B] hover:text-[#0FDB0F] p-2 rounded-lg w-1/4" href="#">
+<span class="material-icons">model_training</span>
+<p class="text-xs font-medium leading-normal">Practice</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-1 text-[#0FDB0F] bg-green-100 p-2 rounded-lg w-1/4" href="#">
+<span class="material-icons">menu_book</span>
+<p class="text-xs font-semibold leading-normal">Phrasebook</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-1 text-[#4B9B4B] hover:text-[#0FDB0F] p-2 rounded-lg w-1/4" href="#">
+<span class="material-icons">person_outline</span>
+<p class="text-xs font-medium leading-normal">Profile</p>
+</a>
+</div>
+<div class="h-safe-area-bottom bg-[#F8FCF8]"></div>
+</footer>
+</div>
+
+</body></html>

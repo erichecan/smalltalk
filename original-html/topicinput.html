@@ -1,0 +1,111 @@
+<html><head>
+    <meta charset="utf-8"/>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Poppins:wght@400;500;600;700&amp;family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet"/>
+    <title>Stitch Design</title>
+    <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+          font-family: 'Poppins', sans-serif;
+        }
+        .material-icons-outlined {
+          font-weight: normal;
+          font-style: normal;
+          font-size: 24px;
+          display: inline-block;
+          line-height: 1;
+          text-transform: none;
+          letter-spacing: normal;
+          word-wrap: normal;
+          white-space: nowrap;
+          direction: ltr;
+          -webkit-font-smoothing: antialiased;
+          text-rendering: optimizeLegibility;
+          -moz-osx-font-smoothing: grayscale;
+          font-feature-settings: 'liga';
+        }
+      </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+      </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+      </style>
+      </head>
+    <body class="bg-gradient-to-br from-mint-100 to-mint-200 text-mint-900">
+    <div class="relative flex size-full min-h-screen flex-col justify-between group/design-root overflow-x-hidden">
+    <header class="sticky top-0 z-10 bg-mint-200/80 backdrop-blur-lg">
+    <div class="flex items-center p-4 justify-end">
+    <button aria-label="Profile" class="flex items-center justify-center rounded-full h-10 w-10 text-mint-700 hover:bg-mint-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-mint-600">
+    <span class="material-icons-outlined text-2xl">account_circle</span>
+    </button>
+    </div>
+    </header>
+    <main class="flex flex-col flex-grow items-center justify-center px-4 text-center -mt-16">
+    <div class="w-full max-w-md">
+    <h1 class="text-4xl font-semibold text-mint-900 mb-10 tracking-tight" style="font-family: 'Poppins', sans-serif;">
+              What topic sparks your interest?
+            </h1>
+    <div class="relative">
+    <input class="form-input w-full h-16 pl-6 pr-16 rounded-xl text-mint-800 bg-mint-50 border-mint-300 focus:border-mint-600 focus:ring-2 focus:ring-mint-600/50 shadow-lg placeholder-mint-500 text-lg" placeholder="e.g., 'Ordering coffee' or 'Weekend plans'" style="font-family: 'Roboto', sans-serif;" type="text"/>
+    <button aria-label="Start conversation" class="absolute inset-y-0 right-0 flex items-center justify-center px-5 text-mint-700 hover:text-mint-600 transition-colors duration-150">
+    <span class="material-icons-outlined text-3xl">arrow_forward_ios</span>
+    </button>
+    </div>
+    </div>
+    </main>
+    <footer class="sticky bottom-0 bg-mint-200/80 backdrop-blur-lg border-t border-mint-300">
+    <nav class="flex justify-around items-center h-20 px-2">
+    <a class="flex flex-col items-center justify-center text-mint-700 hover:text-mint-600 transition-colors duration-150 flex-1 py-2 rounded-lg hover:bg-mint-300" href="#">
+    <span class="material-icons-outlined text-2xl">home</span>
+    <span class="text-xs font-medium tracking-wide">Home</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-mint-600 hover:text-mint-700 transition-colors duration-150 flex-1 py-2 rounded-lg hover:bg-mint-300" href="#">
+    <span class="material-icons-outlined text-2xl">explore</span>
+    <span class="text-xs font-medium tracking-wide">Explore</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-mint-600 hover:text-mint-700 transition-colors duration-150 flex-1 py-2 rounded-lg hover:bg-mint-300" href="#">
+    <span class="material-icons-outlined text-2xl">mic</span>
+    <span class="text-xs font-medium tracking-wide">Practice</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-mint-600 hover:text-mint-700 transition-colors duration-150 flex-1 py-2 rounded-lg hover:bg-mint-300" href="#">
+    <span class="material-icons-outlined text-2xl">group</span>
+    <span class="text-xs font-medium tracking-wide">Community</span>
+    </a>
+    <a class="flex flex-col items-center justify-center text-mint-600 hover:text-mint-700 transition-colors duration-150 flex-1 py-2 rounded-lg hover:bg-mint-300" href="#">
+    <span class="material-icons-outlined text-2xl">bar_chart</span>
+    <span class="text-xs font-medium tracking-wide">Progress</span>
+    </a>
+    </nav>
+    </footer>
+    </div>
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                mint: { // Further adjusted mint green palette - deeper and more saturated
+                  50: '#E0F5EF', // Lighter, slightly more saturated, for backgrounds/inputs
+                  100: '#B3E6D7', // Main background gradient start, more saturated
+                  200: '#88D7C0', // Main background gradient end, header/footer bg, more saturated
+                  300: '#5CC9AA', // Borders, subtle hover elements, richer
+                  400: '#3DBB9A', // Secondary text, icons, more vibrant
+                  500: '#2FA988', // Placeholder text, deeper
+                  600: '#219776', // Primary active elements, focused rings, stronger
+                  700: '#168665', // Primary icon color, hover states, deeper green
+                  800: '#0E6F52', // Primary text color, richer green
+                  900: '#075841', // Strongest text, headings, deepest green
+                },
+              },
+            },
+          },
+        };
+      </script>
+    </body></html>

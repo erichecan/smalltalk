@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Spline+Sans%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<title>Help &amp; FAQ</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<style>
+    .material-icons-outlined {
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      display: inline-block;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      -moz-osx-font-smoothing: grayscale;
+      font-feature-settings: 'liga';
+    }
+    .active-nav-item {
+      color: #10B981;border-top-width: 2px;
+      border-top-color: #10B981;}
+    .nav-item:hover {
+      color: #10B981;}
+    .category-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    body {
+      min-height: max(884px, 100dvh);
+      font-family: "Spline Sans", "Noto Sans", sans-serif;
+    }
+    .bg-app-green-50 { background-color: #F0FAF9; }
+    .text-app-green-600 { color: #059669; }.text-app-green-700 { color: #047857; }
+    .border-app-green-200 { border-color: #A7F3D0; }
+    .border-app-green-500 { border-color: #10B981; }
+    .focus-ring-app-green-500:focus {
+      ring-color: #10B981;
+      border-color: #10B981;
+    }
+    .bg-app-green-100 { background-color: #D1FAE5; }
+    .text-app-gray-700 { color: #374151; }
+    .text-app-gray-600 { color: #4B5563; }
+    .text-app-gray-500 { color: #6B7280; }
+    .text-app-gray-400 { color: #9CA3AF; }
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #A7F3D0;border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #10B981;}
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-app-green-50 text-app-gray-700">
+<div class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden">
+<header class="sticky top-0 z-20 bg-app-green-50/80 backdrop-blur-md shadow-sm">
+<div class="flex items-center p-4">
+<button class="text-app-green-700 flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-app-green-100 transition-colors">
+<span class="material-icons-outlined">arrow_back_ios_new</span>
+</button>
+<h1 class="text-app-green-700 text-xl font-bold leading-tight tracking-tight flex-1 text-center pr-10">Help &amp; FAQ</h1>
+</div>
+</header>
+<main class="flex-grow overflow-y-auto px-5 py-6 space-y-8">
+<div class="relative">
+<span class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-app-green-600">search</span>
+<input class="form-input w-full rounded-full border-2 border-app-green-200 bg-white py-3.5 pl-12 pr-4 text-app-gray-700 placeholder:text-app-gray-400 focus:border-app-green-500 focus:ring-2 focus:ring-app-green-500/50 transition-colors shadow-sm" placeholder="Search FAQs..." type="text"/>
+</div>
+<div>
+<h2 class="text-app-green-700 text-lg font-semibold leading-tight tracking-tight mb-4">Categories</h2>
+<div class="grid grid-cols-2 gap-4">
+<button class="category-card flex flex-col items-center justify-center gap-2 rounded-xl border border-app-green-200 bg-white p-5 text-center shadow-md hover:border-app-green-500 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-app-green-500 focus:ring-opacity-50">
+<span class="material-icons-outlined text-4xl text-app-green-600">rocket_launch</span>
+<h3 class="text-app-gray-700 text-sm font-medium leading-tight">Getting Started</h3>
+</button>
+<button class="category-card flex flex-col items-center justify-center gap-2 rounded-xl border border-app-green-200 bg-white p-5 text-center shadow-md hover:border-app-green-500 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-app-green-500 focus:ring-opacity-50">
+<span class="material-icons-outlined text-4xl text-app-green-600">settings</span>
+<h3 class="text-app-gray-700 text-sm font-medium leading-tight">Account Settings</h3>
+</button>
+<button class="category-card flex flex-col items-center justify-center gap-2 rounded-xl border border-app-green-200 bg-white p-5 text-center shadow-md hover:border-app-green-500 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-app-green-500 focus:ring-opacity-50">
+<span class="material-icons-outlined text-4xl text-app-green-600">chat_bubble_outline</span>
+<h3 class="text-app-gray-700 text-sm font-medium leading-tight">Conversations</h3>
+</button>
+<button class="category-card flex flex-col items-center justify-center gap-2 rounded-xl border border-app-green-200 bg-white p-5 text-center shadow-md hover:border-app-green-500 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-app-green-500 focus:ring-opacity-50">
+<span class="material-icons-outlined text-4xl text-app-green-600">bug_report</span>
+<h3 class="text-app-gray-700 text-sm font-medium leading-tight">Troubleshooting</h3>
+</button>
+</div>
+</div>
+<div>
+<h2 class="text-app-green-700 text-lg font-semibold leading-tight tracking-tight mb-4">Common Questions</h2>
+<div class="space-y-3">
+<details class="group rounded-xl border border-app-green-200 bg-white shadow-md open:bg-app-green-100 open:border-app-green-500 transition-colors duration-200 ease-in-out">
+<summary class="flex cursor-pointer items-center justify-between list-none p-4">
+<span class="text-sm font-medium text-app-gray-700">How do I start a new conversation?</span>
+<span class="material-icons-outlined text-app-gray-500 group-open:text-app-green-600 group-open:rotate-180 transition-transform duration-200 ease-in-out">expand_more</span>
+</summary>
+<p class="px-4 pb-4 pt-1 text-xs text-app-gray-600 leading-relaxed">Simply tap the 'New Conversation' button on the home screen and choose a topic or scenario to begin practicing your English skills!</p>
+</details>
+<details class="group rounded-xl border border-app-green-200 bg-white shadow-md open:bg-app-green-100 open:border-app-green-500 transition-colors duration-200 ease-in-out">
+<summary class="flex cursor-pointer items-center justify-between list-none p-4">
+<span class="text-sm font-medium text-app-gray-700">Can I change my account password?</span>
+<span class="material-icons-outlined text-app-gray-500 group-open:text-app-green-600 group-open:rotate-180 transition-transform duration-200 ease-in-out">expand_more</span>
+</summary>
+<p class="px-4 pb-4 pt-1 text-xs text-app-gray-600 leading-relaxed">Yes, you can change your password in the 'Account Settings' section of your profile. Look for the 'Change Password' option and follow the instructions.</p>
+</details>
+<details class="group rounded-xl border border-app-green-200 bg-white shadow-md open:bg-app-green-100 open:border-app-green-500 transition-colors duration-200 ease-in-out">
+<summary class="flex cursor-pointer items-center justify-between list-none p-4">
+<span class="text-sm font-medium text-app-gray-700">What if the app is not responding?</span>
+<span class="material-icons-outlined text-app-gray-500 group-open:text-app-green-600 group-open:rotate-180 transition-transform duration-200 ease-in-out">expand_more</span>
+</summary>
+<p class="px-4 pb-4 pt-1 text-xs text-app-gray-600 leading-relaxed">Try closing and reopening the app. If the issue persists, check your internet connection or restart your device. For more detailed steps, please visit the 'Troubleshooting' category or contact support.</p>
+</details>
+</div>
+</div>
+<div class="pt-4 pb-2">
+<h2 class="text-app-green-700 text-lg font-semibold leading-tight tracking-tight mb-4">Need More Help?</h2>
+<div class="space-y-4">
+<a class="flex items-center gap-4 rounded-xl border border-app-green-200 bg-white p-4 text-app-gray-700 hover:bg-app-green-100/50 transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-app-green-500 focus:ring-opacity-50" href="mailto:support@englishbuddy.app">
+<span class="material-icons-outlined text-app-green-600">email</span>
+<span class="text-sm font-medium flex-grow">Email Support</span>
+<span class="material-icons-outlined text-app-gray-400">chevron_right</span>
+</a>
+<a class="flex items-center gap-4 rounded-xl border border-app-green-200 bg-white p-4 text-app-gray-700 hover:bg-app-green-100/50 transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-app-green-500 focus:ring-opacity-50" href="#">
+<span class="material-icons-outlined text-app-green-600">contact_support</span>
+<span class="text-sm font-medium flex-grow">Visit Help Center Online</span>
+<span class="material-icons-outlined text-app-gray-400">chevron_right</span>
+</a>
+</div>
+</div>
+</main>
+<nav class="sticky bottom-0 z-20 border-t border-app-green-200 bg-app-green-50/90 backdrop-blur-md">
+<div class="flex justify-around items-center h-16">
+<a class="nav-item flex flex-col items-center justify-center text-app-gray-500 hover:text-app-green-600 transition-colors pt-1 w-1/5" href="#">
+<span class="material-icons-outlined text-2xl">home</span>
+<span class="text-xs font-medium">Home</span>
+</a>
+<a class="nav-item flex flex-col items-center justify-center text-app-gray-500 hover:text-app-green-600 transition-colors pt-1 w-1/5" href="#">
+<span class="material-icons-outlined text-2xl">forum</span>
+<span class="text-xs font-medium">Practice</span>
+</a>
+<a class="nav-item flex flex-col items-center justify-center text-app-gray-500 hover:text-app-green-600 transition-colors pt-1 w-1/5" href="#">
+<span class="material-icons-outlined text-2xl">emoji_events</span>
+<span class="text-xs font-medium">Rewards</span>
+</a>
+<a class="nav-item active-nav-item flex flex-col items-center justify-center text-app-green-600 pt-1 w-1/5" href="#">
+<span class="material-icons-outlined text-2xl">help_outline</span>
+<span class="text-xs font-bold">Help</span>
+</a>
+<a class="nav-item flex flex-col items-center justify-center text-app-gray-500 hover:text-app-green-600 transition-colors pt-1 w-1/5" href="#">
+<span class="material-icons-outlined text-2xl">person</span>
+<span class="text-xs font-medium">Profile</span>
+</a>
+</div>
+<div class="h-env-safe-area-bottom bg-app-green-50"></div>
+</nav>
+</div>
+
+</body></html>

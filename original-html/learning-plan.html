@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B600%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#f8fcfa]">
+<div class="relative flex size-full min-h-screen flex-col justify-between group/design-root overflow-x-hidden" style="--select-button-svg: url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(75,155,115)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e'); font-family: Inter, &quot;Noto Sans&quot;, sans-serif;">
+<div class="flex-grow">
+<header class="sticky top-0 z-10 bg-[#f8fcfa]/80 backdrop-blur-sm">
+<div class="flex items-center p-4 pb-2 justify-between">
+<button class="text-[#0d1c14] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-[#e7f3ed]">
+<span class="material-icons text-2xl">arrow_back_ios_new</span>
+</button>
+<h1 class="text-[#0d1c14] text-xl font-semibold leading-tight tracking-tight flex-1 text-center pr-10">Learning Plan</h1>
+</div>
+</header>
+<main class="px-4">
+<section class="py-5">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-[#0d1c14] text-2xl font-bold leading-tight tracking-tight">Your Schedule</h2>
+<button class="text-[#0fd070] hover:bg-[#e7f3ed] rounded-full p-2">
+<span class="material-icons text-2xl">add_circle_outline</span>
+</button>
+</div>
+<div class="bg-white rounded-xl shadow-sm p-4">
+<div class="flex items-center justify-between mb-3">
+<button class="text-[#0d1c14] hover:bg-[#e7f3ed] rounded-full p-2">
+<span class="material-icons text-2xl">chevron_left</span>
+</button>
+<p class="text-[#0d1c14] text-lg font-semibold">October 2024</p>
+<button class="text-[#0d1c14] hover:bg-[#e7f3ed] rounded-full p-2">
+<span class="material-icons text-2xl">chevron_right</span>
+</button>
+</div>
+<div class="grid grid-cols-7 gap-1 text-center mb-2">
+<p class="text-[#4b9b73] text-xs font-bold h-10 flex items-center justify-center">S</p>
+<p class="text-[#4b9b73] text-xs font-bold h-10 flex items-center justify-center">M</p>
+<p class="text-[#4b9b73] text-xs font-bold h-10 flex items-center justify-center">T</p>
+<p class="text-[#4b9b73] text-xs font-bold h-10 flex items-center justify-center">W</p>
+<p class="text-[#4b9b73] text-xs font-bold h-10 flex items-center justify-center">T</p>
+<p class="text-[#4b9b73] text-xs font-bold h-10 flex items-center justify-center">F</p>
+<p class="text-[#4b9b73] text-xs font-bold h-10 flex items-center justify-center">S</p>
+<button class="h-10 w-full text-gray-400 text-sm font-medium col-start-3">
+<div class="flex size-full items-center justify-center rounded-full">1</div>
+</button>
+<button class="h-10 w-full text-[#0d1c14] text-sm font-medium">
+<div class="flex size-full items-center justify-center rounded-full hover:bg-[#e7f3ed]">2</div>
+</button>
+<button class="h-10 w-full text-[#0d1c14] text-sm font-medium">
+<div class="flex size-full items-center justify-center rounded-full hover:bg-[#e7f3ed]">3</div>
+</button>
+<button class="h-10 w-full text-[#0d1c14] text-sm font-medium">
+<div class="flex size-full items-center justify-center rounded-full hover:bg-[#e7f3ed]">4</div>
+</button>
+<button class="h-10 w-full text-white text-sm font-medium">
+<div class="flex size-full items-center justify-center rounded-full bg-[#0fd070] shadow-md">5</div>
+</button>
+<button class="h-10 w-full text-[#0d1c14] text-sm font-medium">
+<div class="flex size-full items-center justify-center rounded-full hover:bg-[#e7f3ed]">6</div>
+</button>
+<button class="h-10 w-full text-[#0d1c14] text-sm font-medium">
+<div class="flex size-full items-center justify-center rounded-full hover:bg-[#e7f3ed]">7</div>
+</button>
+<script>
+                // Simplified example for calendar days
+                for (let i = 8; i <= 31; i++) {
+                  document.write(
+                    `<button class="h-10 w-full text-[#0d1c14] text-sm font-medium"><div class="flex size-full items-center justify-center rounded-full hover:bg-[#e7f3ed]">${i}</div></button>`
+                  );
+                }
+              </script>
+</div>
+</div>
+<div class="mt-4 space-y-3">
+<div class="bg-white p-4 rounded-xl shadow-sm">
+<div class="flex items-start gap-3">
+<div class="text-[#0fd070] flex items-center justify-center rounded-lg bg-[#e7f3ed] shrink-0 size-10 mt-1">
+<span class="material-icons text-xl">record_voice_over</span>
+</div>
+<div class="flex-grow">
+<p class="text-[#0d1c14] text-base font-semibold leading-tight">Conversation Practice: Travel</p>
+<p class="text-[#4b9b73] text-sm font-normal leading-normal">10:00 AM - 10:30 AM (30 min)</p>
+<div class="flex items-center gap-2 text-xs text-[#4b9b73] mt-1">
+<span class="material-icons-outlined text-sm">notifications_active</span>
+<span>Reminder: 15 min before</span>
+</div>
+</div>
+<button class="text-[#4b9b73] hover:text-[#0fd070] -mt-1 -mr-1">
+<span class="material-icons">more_vert</span>
+</button>
+</div>
+<div class="mt-3 flex gap-2">
+<button class="flex-1 text-center text-sm font-medium text-[#0fd070] bg-[#e7f3ed] hover:bg-[#cfe8db] py-2.5 rounded-lg transition-colors">Reschedule</button>
+<button class="flex-1 text-center text-sm font-medium text-red-600 bg-red-100 hover:bg-red-200 py-2.5 rounded-lg transition-colors">Cancel</button>
+</div>
+</div>
+<div class="bg-white p-4 rounded-xl shadow-sm">
+<div class="flex items-start gap-3">
+<div class="text-[#0fd070] flex items-center justify-center rounded-lg bg-[#e7f3ed] shrink-0 size-10 mt-1">
+<span class="material-icons text-xl">spellcheck</span>
+</div>
+<div class="flex-grow">
+<p class="text-[#0d1c14] text-base font-semibold leading-tight">Vocabulary Review: Business Terms</p>
+<p class="text-[#4b9b73] text-sm font-normal leading-normal">2:00 PM - 2:30 PM (30 min)</p>
+<div class="flex items-center gap-2 text-xs text-[#4b9b73] mt-1">
+<span class="material-icons-outlined text-sm">notifications_off</span>
+<span>Reminder: Off</span>
+</div>
+</div>
+<button class="text-[#4b9b73] hover:text-[#0fd070] -mt-1 -mr-1">
+<span class="material-icons">more_vert</span>
+</button>
+</div>
+<div class="mt-3 flex gap-2">
+<button class="flex-1 text-center text-sm font-medium text-[#0fd070] bg-[#e7f3ed] hover:bg-[#cfe8db] py-2.5 rounded-lg transition-colors">Reschedule</button>
+<button class="flex-1 text-center text-sm font-medium text-red-600 bg-red-100 hover:bg-red-200 py-2.5 rounded-lg transition-colors">Cancel</button>
+</div>
+</div>
+</div>
+</section>
+<section class="py-5">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-[#0d1c14] text-2xl font-bold leading-tight tracking-tight">Your Progress</h2>
+<button class="text-[#0fd070] hover:bg-[#e7f3ed] rounded-full p-2 text-sm font-medium flex items-center gap-1">
+<span>View All</span>
+<span class="material-icons text-xl">arrow_forward_ios</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-white p-3 rounded-xl shadow-sm">
+<div class="flex items-center gap-2 mb-1.5">
+<span class="material-icons text-[#0fd070] text-xl">chat_bubble</span>
+<p class="text-[#0d1c14] text-sm font-semibold">Conversations</p>
+</div>
+<p class="text-[#0d1c14] text-2xl font-bold">6<span class="text-base font-medium text-[#4b9b73]">/10</span></p>
+<div class="w-full bg-[#e7f3ed] rounded-full h-1.5 mt-1.5">
+<div class="bg-[#0fd070] h-1.5 rounded-full" style="width: 60%"></div>
+</div>
+</div>
+<div class="bg-white p-3 rounded-xl shadow-sm">
+<div class="flex items-center gap-2 mb-1.5">
+<span class="material-icons text-[#0fd070] text-xl">timer</span>
+<p class="text-[#0d1c14] text-sm font-semibold">Time Practiced</p>
+</div>
+<p class="text-[#0d1c14] text-2xl font-bold">135<span class="text-base font-medium text-[#4b9b73]">/300 min</span></p>
+<div class="w-full bg-[#e7f3ed] rounded-full h-1.5 mt-1.5">
+<div class="bg-[#0fd070] h-1.5 rounded-full" style="width: 45%"></div>
+</div>
+</div>
+<div class="bg-white p-3 rounded-xl shadow-sm">
+<div class="flex items-center gap-2 mb-1.5">
+<span class="material-icons text-[#0fd070] text-xl">translate</span>
+<p class="text-[#0d1c14] text-sm font-semibold">Vocabulary</p>
+</div>
+<p class="text-[#0d1c14] text-2xl font-bold">75<span class="text-base font-medium text-[#4b9b73]">/200</span></p>
+<div class="w-full bg-[#e7f3ed] rounded-full h-1.5 mt-1.5">
+<div class="bg-[#0fd070] h-1.5 rounded-full" style="width: 37.5%"></div>
+</div>
+</div>
+<div class="bg-white p-3 rounded-xl shadow-sm flex flex-col items-center justify-center">
+<span class="material-icons-outlined text-[#0fd070] text-3xl">emoji_events</span>
+<p class="text-[#0d1c14] text-sm font-semibold mt-1">Daily Streak</p>
+<p class="text-[#0d1c14] text-2xl font-bold">5 <span class="text-base font-medium text-[#4b9b73]">days</span></p>
+</div>
+</div>
+</section>
+<section class="py-5">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-[#0d1c14] text-2xl font-bold leading-tight tracking-tight">Learning Goals</h2>
+<button class="text-[#0fd070] hover:bg-[#e7f3ed] rounded-full p-2 text-sm font-medium flex items-center gap-1">
+<span class="material-icons text-xl">edit</span>
+<span>Edit Goals</span>
+</button>
+</div>
+<div class="space-y-3">
+<div class="bg-white p-4 rounded-xl shadow-sm">
+<div class="flex items-center gap-3">
+<div class="flex-shrink-0 size-10 rounded-full bg-[#e7f3ed] flex items-center justify-center">
+<span class="material-icons text-[#0fd070]">flag</span>
+</div>
+<div>
+<p class="text-xs font-medium text-[#4b9b73]">LEARNING OBJECTIVE</p>
+<p class="text-base font-semibold text-[#0d1c14]">Travel Conversations</p>
+</div>
+</div>
+</div>
+<div class="bg-white p-4 rounded-xl shadow-sm">
+<div class="flex items-center gap-3">
+<div class="flex-shrink-0 size-10 rounded-full bg-[#e7f3ed] flex items-center justify-center">
+<span class="material-icons text-[#0fd070]">leaderboard</span>
+</div>
+<div>
+<p class="text-xs font-medium text-[#4b9b73]">PROFICIENCY LEVEL</p>
+<p class="text-base font-semibold text-[#0d1c14]">Intermediate</p>
+</div>
+</div>
+</div>
+<div class="bg-white p-4 rounded-xl shadow-sm">
+<div class="flex items-center gap-3">
+<div class="flex-shrink-0 size-10 rounded-full bg-[#e7f3ed] flex items-center justify-center">
+<span class="material-icons text-[#0fd070]">event_available</span>
+</div>
+<div>
+<p class="text-xs font-medium text-[#4b9b73]">TIME-BASED GOAL</p>
+<p class="text-base font-semibold text-[#0d1c14]">Achieve by Dec 2024</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="py-5">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-[#0d1c14] text-2xl font-bold leading-tight tracking-tight">Keep Practicing</h2>
+<button class="text-[#0fd070] hover:bg-[#e7f3ed] rounded-full p-2 text-sm font-medium flex items-center gap-1">
+<span>More</span>
+<span class="material-icons text-xl">arrow_forward_ios</span>
+</button>
+</div>
+<div class="space-y-3">
+<div class="bg-white rounded-xl shadow-sm flex items-center p-3 gap-3">
+<img alt="Restaurant role-play" class="size-20 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtYyrfwxQLumzVGurEgFsT33fgIXsnhzlZ5fAnb_QZJib_YrAmhojLLC8GMwt7mgXGQ6MDfzPeQbpC32DEhiRyxfyHfJbvcaSlAThacg4tPMbNv_V5S6T45JiZ5lDmNhPtKXDkZozYAzR4l1JKl1H11XZcrXP34iZ5IYCydIrkgR0k5RyxA9Zev8aZ6Y-KHOBfVGV3w2VLmAfmN62ESbYvCvgPje8Q-WcC8GUYi1woix8_Wm1yWW_XPjWIKE3f5nci-17UALmA-7k"/>
+<div class="flex-grow">
+<p class="text-[#4b9b73] text-xs font-medium uppercase tracking-wider">Role-Play</p>
+<p class="text-[#0d1c14] text-base font-semibold leading-tight mt-0.5">Ordering Food at a Restaurant</p>
+<p class="text-[#4b9b73] text-sm font-normal leading-normal mt-0.5">Practice common phrases and interactions.</p>
+</div>
+<button class="text-[#0fd070] hover:bg-[#e7f3ed] rounded-full p-2 self-start -mr-1 -mt-1">
+<span class="material-icons text-2xl">play_circle_outline</span>
+</button>
+</div>
+<div class="bg-white rounded-xl shadow-sm flex items-center p-3 gap-3">
+<img alt="Business Idioms" class="size-20 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCceQdShZKUMMPl0vMJIBMHaoBNExeCQxB1LRBsNM8RigmfafAItfbCp_Iii1M6a4fuDeM5LcQfDBAVPGFlxBueS3b41OjbSrWu20X2KSk4xjxNn-2d9ICBrByw30CFYP_EUJbaAJZG7MdrUu-OYvRTv8UbIBB54jZlbiaSCCVnb9C0_wxv5BmPgdhniTiK9YGkYqo492xNJCBvEBC-g5xoxuCP73Py27qVT7uPucGwwZ8FTu7nA36KhQWfFqPNn2ZkUdv0M961VEs"/>
+<div class="flex-grow">
+<p class="text-[#4b9b73] text-xs font-medium uppercase tracking-wider">Vocabulary</p>
+<p class="text-[#0d1c14] text-base font-semibold leading-tight mt-0.5">Common Business Idioms</p>
+<p class="text-[#4b9b73] text-sm font-normal leading-normal mt-0.5">Learn and use idioms in context.</p>
+</div>
+<button class="text-[#0fd070] hover:bg-[#e7f3ed] rounded-full p-2 self-start -mr-1 -mt-1">
+<span class="material-icons text-2xl">play_circle_outline</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+</div>
+<footer class="sticky bottom-0 bg-[#f8fcfa]/90 backdrop-blur-sm border-t border-[#e7f3ed] pb-safe">
+<nav class="flex justify-around items-center px-2 py-2">
+<a class="flex flex-col items-center justify-end gap-0.5 text-[#4b9b73] hover:text-[#0fd070] p-2 rounded-md" href="#">
+<span class="material-icons text-2xl">home</span>
+<p class="text-xs font-medium">Home</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-0.5 text-[#0d1c14] bg-[#e7f3ed] p-2 rounded-md" href="#">
+<span class="material-icons text-2xl">school</span>
+<p class="text-xs font-bold">Learn</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-0.5 text-[#4b9b73] hover:text-[#0fd070] p-2 rounded-md" href="#">
+<span class="material-icons-outlined text-2xl">chat_bubble_outline</span>
+<p class="text-xs font-medium">Practice</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-0.5 text-[#4b9b73] hover:text-[#0fd070] p-2 rounded-md" href="#">
+<span class="material-icons-outlined text-2xl">people_outline</span>
+<p class="text-xs font-medium">Community</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-0.5 text-[#4b9b73] hover:text-[#0fd070] p-2 rounded-md" href="#">
+<span class="material-icons-outlined text-2xl">person_outline</span>
+<p class="text-xs font-medium">Profile</p>
+</a>
+</nav>
+</footer>
+</div>
+
+</body></html>

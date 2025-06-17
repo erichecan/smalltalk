@@ -1,0 +1,92 @@
+<html><head>
+    <meta charset="utf-8"/>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Spline+Sans%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <title>Stitch Design</title>
+    <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+      </style>
+      </head>
+    <body>
+    <div class="relative flex size-full min-h-screen flex-col bg-[#f8fcf8] justify-between group/design-root overflow-x-hidden" style="--checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(13,27,13)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e'); --select-button-svg: url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(76,154,76)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e'); font-family: &quot;Spline Sans&quot;, &quot;Noto Sans&quot;, sans-serif;">
+    <div class="flex flex-col px-4 pt-6">
+    <div class="flex items-center justify-end pb-2">
+    <button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-transparent text-[#0d1b0d] gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0 hover:bg-[#e7f3e7]">
+    <div class="text-[#0d1b0d]" data-icon="X" data-size="24px" data-weight="regular">
+    <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
+    <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+    </svg>
+    </div>
+    </button>
+    </div>
+    <h2 class="text-[#0d1b0d] tracking-tight text-3xl font-bold leading-tight text-center pb-6 pt-2">Create your account</h2>
+    <div class="flex flex-col gap-4">
+    <label class="flex flex-col">
+    <span class="text-sm font-medium text-[#4c9a4c] mb-1.5">Username</span>
+    <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b0d] focus:outline-0 focus:ring-2 focus:ring-[#11e311] border border-[#cfe7cf] bg-[#e7f3e7] h-14 placeholder:text-[#4c9a4c] p-4 text-base font-normal leading-normal" placeholder="Enter your username" value=""/>
+    </label>
+    <label class="flex flex-col">
+    <span class="text-sm font-medium text-[#4c9a4c] mb-1.5">Email</span>
+    <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b0d] focus:outline-0 focus:ring-2 focus:ring-[#11e311] border border-[#cfe7cf] bg-[#e7f3e7] h-14 placeholder:text-[#4c9a4c] p-4 text-base font-normal leading-normal" placeholder="Enter your email address" type="email" value=""/>
+    </label>
+    <label class="flex flex-col">
+    <span class="text-sm font-medium text-[#4c9a4c] mb-1.5">Password</span>
+    <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b0d] focus:outline-0 focus:ring-2 focus:ring-[#11e311] border border-[#cfe7cf] bg-[#e7f3e7] h-14 placeholder:text-[#4c9a4c] p-4 text-base font-normal leading-normal" placeholder="Create a password" type="password" value=""/>
+    <p class="text-xs text-[#4c9a4c] mt-1.5">Minimum 8 characters, include uppercase, lowercase, and numbers.</p>
+    </label>
+    <h3 class="text-[#0d1b0d] text-lg font-semibold pt-4 pb-1">Optional Information</h3>
+    <label class="flex flex-col">
+    <span class="text-sm font-medium text-[#4c9a4c] mb-1.5">Native Language</span>
+    <select class="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b0d] focus:outline-0 focus:ring-2 focus:ring-[#11e311] border border-[#cfe7cf] bg-[#e7f3e7] h-14 bg-[image:--select-button-svg] bg-right-2.5 bg-no-repeat appearance-none placeholder:text-[#4c9a4c] p-4 text-base font-normal leading-normal">
+    <option class="text-[#4c9a4c]" disabled="" selected="" value="">Select your native language</option>
+    <option value="english">English</option>
+    <option value="spanish">Spanish</option>
+    <option value="french">French</option>
+    <option value="german">German</option>
+    <option value="other">Other</option>
+    </select>
+    </label>
+    <label class="flex flex-col">
+    <span class="text-sm font-medium text-[#4c9a4c] mb-1.5">Learning Goals</span>
+    <select class="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b0d] focus:outline-0 focus:ring-2 focus:ring-[#11e311] border border-[#cfe7cf] bg-[#e7f3e7] h-14 bg-[image:--select-button-svg] bg-right-2.5 bg-no-repeat appearance-none placeholder:text-[#4c9a4c] p-4 text-base font-normal leading-normal">
+    <option class="text-[#4c9a4c]" disabled="" selected="" value="">What do you want to achieve?</option>
+    <option value="fluency">Fluency</option>
+    <option value="career">Career Advancement</option>
+    <option value="travel">Travel</option>
+    <option value="hobby">Hobby</option>
+    </select>
+    </label>
+    <label class="flex flex-col">
+    <span class="text-sm font-medium text-[#4c9a4c] mb-1.5">Interests</span>
+    <select class="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b0d] focus:outline-0 focus:ring-2 focus:ring-[#11e311] border border-[#cfe7cf] bg-[#e7f3e7] h-14 bg-[image:--select-button-svg] bg-right-2.5 bg-no-repeat appearance-none placeholder:text-[#4c9a4c] p-4 text-base font-normal leading-normal">
+    <option class="text-[#4c9a4c]" disabled="" selected="" value="">What are your interests?</option>
+    <option value="technology">Technology</option>
+    <option value="sports">Sports</option>
+    <option value="movies">Movies</option>
+    <option value="music">Music</option>
+    <option value="food">Food</option>
+    </select>
+    </label>
+    </div>
+    <div class="flex items-start gap-3 py-6">
+    <input class="form-checkbox mt-0.5 h-5 w-5 rounded border-[#cfe7cf] border-2 bg-transparent text-[#11e311] checked:bg-[#11e311] checked:border-[#11e311] checked:bg-[image:--checkbox-tick-svg] focus:ring-2 focus:ring-offset-0 focus:ring-[#11e311]/50 focus:border-[#11e311] focus:outline-none" id="terms" type="checkbox"/>
+    <label class="text-[#0d1b0d] text-sm font-normal leading-normal flex-1" for="terms">
+                I agree to the <a class="font-medium text-[#11e311] hover:underline" href="#">Terms of Service</a> and <a class="font-medium text-[#11e311] hover:underline" href="#">Privacy Policy</a>.
+              </label>
+    </div>
+    <button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-5 flex-1 bg-[#11e311] text-[#0d1b0d] text-lg font-bold leading-normal tracking-[0.015em] hover:bg-[#0ec20e] transition-colors duration-200">
+    <span class="truncate">Sign Up</span>
+    </button>
+    </div>
+    <div class="px-4 pb-6 pt-4">
+    <p class="text-[#4c9a4c] text-sm font-normal leading-normal text-center">
+              Already have an account? <a class="font-medium text-[#11e311] hover:underline" href="#">Sign In</a>
+    </p>
+    </div>
+    </div>
+    
+    </body></html>

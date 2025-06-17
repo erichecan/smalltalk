@@ -1,0 +1,108 @@
+<html><head>
+    <meta charset="utf-8"/>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Spline+Sans%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <title>Stitch Design</title>
+    <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+          .radio-custom:checked {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%230fdb0f' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+            border-color: #0fdb0f;
+          }
+        </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+      </style>
+      </head>
+    <body class="bg-[#f8fcf8]" style='font-family: "Spline Sans", "Noto Sans", sans-serif;'>
+    <div class="relative flex size-full min-h-screen flex-col justify-between group/design-root overflow-x-hidden">
+    <div class="flex flex-col">
+    <header class="sticky top-0 z-10 flex items-center justify-between bg-[#f8fcf8]/80 p-4 backdrop-blur-sm">
+    <button class="text-[#0d1c0d] flex size-10 items-center justify-center rounded-full hover:bg-[#e7f3e7] transition-colors">
+    <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
+    <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+    </svg>
+    </button>
+    <h2 class="text-[#0d1c0d] text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Report a Problem</h2>
+    </header>
+    <main class="flex-grow p-4 space-y-6">
+    <div>
+    <h3 class="text-[#0d1c0d] text-lg font-semibold leading-tight tracking-[-0.015em] mb-3">What type of problem are you reporting?</h3>
+    <div class="grid grid-cols-1 gap-3">
+    <label class="flex items-center gap-3 rounded-xl border border-solid border-[#cfe8cf] p-4 cursor-pointer hover:border-[#0fdb0f] transition-colors has-[:checked]:border-[#0fdb0f] has-[:checked]:bg-[#e7f3e7]">
+    <div class="flex grow flex-col"><p class="text-[#0d1c0d] text-base font-medium leading-normal">Technical Issue</p></div>
+    <input checked="" class="radio-custom h-5 w-5 shrink-0 border-2 border-[#cfe8cf] bg-transparent text-transparent focus:outline-none focus:ring-0 focus:ring-offset-0" name="problem_type" type="radio"/>
+    </label>
+    <label class="flex items-center gap-3 rounded-xl border border-solid border-[#cfe8cf] p-4 cursor-pointer hover:border-[#0fdb0f] transition-colors has-[:checked]:border-[#0fdb0f] has-[:checked]:bg-[#e7f3e7]">
+    <div class="flex grow flex-col"><p class="text-[#0d1c0d] text-base font-medium leading-normal">Content Issue</p></div>
+    <input class="radio-custom h-5 w-5 shrink-0 border-2 border-[#cfe8cf] bg-transparent text-transparent focus:outline-none focus:ring-0 focus:ring-offset-0" name="problem_type" type="radio"/>
+    </label>
+    <label class="flex items-center gap-3 rounded-xl border border-solid border-[#cfe8cf] p-4 cursor-pointer hover:border-[#0fdb0f] transition-colors has-[:checked]:border-[#0fdb0f] has-[:checked]:bg-[#e7f3e7]">
+    <div class="flex grow flex-col"><p class="text-[#0d1c0d] text-base font-medium leading-normal">User Behavior</p></div>
+    <input class="radio-custom h-5 w-5 shrink-0 border-2 border-[#cfe8cf] bg-transparent text-transparent focus:outline-none focus:ring-0 focus:ring-offset-0" name="problem_type" type="radio"/>
+    </label>
+    <label class="flex items-center gap-3 rounded-xl border border-solid border-[#cfe8cf] p-4 cursor-pointer hover:border-[#0fdb0f] transition-colors has-[:checked]:border-[#0fdb0f] has-[:checked]:bg-[#e7f3e7]">
+    <div class="flex grow flex-col"><p class="text-[#0d1c0d] text-base font-medium leading-normal">Feedback/Suggestions</p></div>
+    <input class="radio-custom h-5 w-5 shrink-0 border-2 border-[#cfe8cf] bg-transparent text-transparent focus:outline-none focus:ring-0 focus:ring-offset-0" name="problem_type" type="radio"/>
+    </label>
+    </div>
+    </div>
+    <div class="space-y-4">
+    <textarea class="form-textarea w-full resize-none rounded-xl text-[#0d1c0d] focus:outline-0 focus:ring-2 focus:ring-[#0fdb0f] border-none bg-[#e7f3e7] min-h-36 placeholder:text-[#4b9b4b] p-4 text-base font-normal leading-normal" placeholder="Describe the problem or feedback in detail"></textarea>
+    <input class="form-input w-full rounded-xl text-[#0d1c0d] focus:outline-0 focus:ring-2 focus:ring-[#0fdb0f] border-none bg-[#e7f3e7] h-14 placeholder:text-[#4b9b4b] p-4 text-base font-normal leading-normal" placeholder="Email address (optional)" type="email" value=""/>
+    <label class="flex items-center justify-center gap-2 w-full rounded-xl border-2 border-dashed border-[#cfe8cf] bg-[#e7f3e7]/50 p-4 text-[#0d1c0d] hover:border-[#0fdb0f] transition-colors cursor-pointer" for="file-upload">
+    <svg fill="currentColor" height="20px" viewBox="0 0 256 256" width="20px" xmlns="http://www.w3.org/2000/svg">
+    <path d="M208,88H176V56a8,8,0,0,0-8-8H88a8,8,0,0,0-8,8V88H48a8,8,0,0,0-8,8V192a8,8,0,0,0,8,8H80v24a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V200h32a8,8,0,0,0,8-8V96A8,8,0,0,0,208,88ZM96,64H160V88H96ZM160,216H96V184h64Zm40-24H176V168a8,8,0,0,0-8-8H88a8,8,0,0,0-8,8v24H56V104H200Zm-44-70.63a8,8,0,0,1,8.53-2.05l24,10A8,8,0,0,1,184,128a8,8,0,0,1-4.54,7.29l-24,10A8,8,0,0,1,152,144a8,8,0,0,1-4.53-14.05L156,128l-8.53-3.56A8,8,0,0,1,156,121.37Z"></path>
+    </svg>
+    <span class="text-sm font-medium">Attach Screenshot (Optional)</span>
+    <input class="sr-only" id="file-upload" name="file-upload" type="file"/>
+    </label>
+    </div>
+    <button class="flex w-full min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-4 bg-[#0fdb0f] text-[#0d1c0d] text-base font-bold leading-normal tracking-[0.015em] hover:bg-[#0cb50c] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0fdb0f] focus:ring-offset-2 focus:ring-offset-[#f8fcf8]">
+    <span class="truncate">Submit Report</span>
+    </button>
+    </main>
+    </div>
+    <footer class="sticky bottom-0 border-t border-[#e7f3e7] bg-[#f8fcf8]/80 backdrop-blur-sm">
+    <nav class="flex gap-2 px-4 pb-3 pt-2">
+    <a class="flex flex-1 flex-col items-center justify-end gap-1 text-[#4b9b4b] hover:text-[#0fdb0f] transition-colors" href="#">
+    <div class="flex h-8 w-8 items-center justify-center">
+    <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
+    <path d="M251.76,88.94l-120-64a8,8,0,0,0-7.52,0l-120,64a8,8,0,0,0,0,14.12L32,117.87v48.42a15.91,15.91,0,0,0,4.06,10.65C49.16,191.53,78.51,216,128,216a130,130,0,0,0,48-8.76V240a8,8,0,0,0,16,0V199.51a115.63,115.63,0,0,0,27.94-22.57A15.91,15.91,0,0,0,224,166.29V117.87l27.76-14.81a8,8,0,0,0,0-14.12ZM128,200c-43.27,0-68.72-21.14-80-33.71V126.4l76.24,40.66a8,8,0,0,0,7.52,0L176,143.47v46.34C163.4,195.69,147.52,200,128,200Zm80-33.75a97.83,97.83,0,0,1-16,14.25V134.93l16-8.53ZM188,118.94l-.22-.13-56-29.87a8,8,0,0,0-7.52,14.12L171,128l-43,22.93L25,96,128,41.07,231,96Z"></path>
+    </svg>
+    </div>
+    <p class="text-xs font-medium leading-normal tracking-[0.015em]">Learn</p>
+    </a>
+    <a class="flex flex-1 flex-col items-center justify-end gap-1 text-[#4b9b4b] hover:text-[#0fdb0f] transition-colors" href="#">
+    <div class="flex h-8 w-8 items-center justify-center">
+    <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
+    <path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"></path>
+    </svg>
+    </div>
+    <p class="text-xs font-medium leading-normal tracking-[0.015em]">Practice</p>
+    </a>
+    <a class="flex flex-1 flex-col items-center justify-end gap-1 text-[#4b9b4b] hover:text-[#0fdb0f] transition-colors" href="#">
+    <div class="flex h-8 w-8 items-center justify-center">
+    <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
+    <path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1-7.37-4.89,8,8,0,0,1,0-6.22A8,8,0,0,1,192,112a24,24,0,1,0-23.24-30,8,8,0,1,1-15.5-4A40,40,0,1,1,219,117.51a67.94,67.94,0,0,1,27.43,21.68A8,8,0,0,1,244.8,150.4ZM190.92,212a8,8,0,1,1-13.84,8,57,57,0,0,0-98.16,0,8,8,0,1,1-13.84-8,72.06,72.06,0,0,1,33.74-29.92,48,48,0,1,1,58.36,0A72.06,72.06,0,0,1,190.92,212ZM128,176a32,32,0,1,0-32-32A32,32,0,0,0,128,176ZM72,120a8,8,0,0,0-8-8A24,24,0,1,1,87.24,82a8,8,0,1,0,15.5-4A40,40,0,1,0,37,117.51,67.94,67.94,0,0,0,9.6,139.19a8,8,0,1,0,12.8,9.61A51.6,51.6,0,0,1,64,128,8,8,0,0,0,72,120Z"></path>
+    </svg>
+    </div>
+    <p class="text-xs font-medium leading-normal tracking-[0.015em]">Compete</p>
+    </a>
+    <a class="flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-[#0d1c0d] hover:text-[#0fdb0f] transition-colors" href="#">
+    <div class="flex h-8 w-8 items-center justify-center">
+    <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
+    <path d="M230.93,220a8,8,0,0,1-6.93,4H32a8,8,0,0,1-6.92-12c15.23-26.33,38.7-45.21,66.09-54.16a72,72,0,1,1,73.66,0c27.39,8.95,50.86,27.83,66.09,54.16A8,8,0,0,1,230.93,220Z"></path>
+    </svg>
+    </div>
+    <p class="text-xs font-medium leading-normal tracking-[0.015em]">Profile</p>
+    </a>
+    </nav>
+    <div class="h-safe-bottom bg-[#f8fcf8]/80"></div>
+    </footer>
+    </div>
+    
+    </body></html>

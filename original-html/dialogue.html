@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B600%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    .chat-bubble-ai {
+      border-top-left-radius: 0.75rem;
+      border-top-right-radius: 0.75rem;
+      border-bottom-right-radius: 0.75rem;
+      border-bottom-left-radius: 0;
+    }
+    .chat-bubble-user {
+      border-top-left-radius: 0.75rem;
+      border-top-right-radius: 0.75rem;
+      border-bottom-left-radius: 0.75rem;
+      border-bottom-right-radius: 0;
+    }
+    .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#f9fbfa]" style='font-family: Inter, "Noto Sans", sans-serif;'>
+<div class="relative flex size-full min-h-screen flex-col justify-between group/design-root overflow-x-hidden">
+<div class="flex-grow">
+<header class="sticky top-0 z-10 bg-[#f9fbfa]/80 backdrop-blur-md">
+<div class="flex items-center p-4 pb-3 justify-between border-b border-slate-200">
+<button class="text-[#111814] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-200 transition-colors">
+<span class="material-icons-outlined">arrow_back_ios_new</span>
+</button>
+<h1 class="text-[#111814] text-xl font-semibold leading-tight tracking-tight flex-1 text-center">Ordering Coffee</h1>
+<button class="text-[#111814] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-200 transition-colors">
+<span class="material-icons-outlined">bookmark_border</span>
+</button>
+</div>
+</header>
+<main class="p-4 space-y-6 pb-24">
+<div class="flex items-end gap-2.5">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 h-8 shrink-0 border border-slate-200" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAjJAvUoBTqbvgy2Ovk-P8p-T5XSQJe9gnnAHwhExWXiw5gm6q2iFOcaoryXUBesDj9a24Rqi5y_XmtyDJlA8Op05yIyEbkcGOayuXYiHUpz2AnRm0IhHcSa06jSNsYkgPYmVea2KcahR32N8AdDnOy5myFx3ltwGg5kGYkVoHCjnj7yBhgdjnk6mK8Zw5Vu45Ho9ViZI_DId6T5gD65nJ_goL7dxCmV5nqyuqGU6tdNoSkOFsTdRH9V1JwmEMgW7Y054IG333kOIw");'></div>
+<div class="flex flex-col gap-1 items-start max-w-[80%]">
+<p class="text-[#5f8673] text-xs font-medium">AI Tutor</p>
+<p class="text-base font-normal leading-relaxed flex rounded-xl px-3.5 py-2.5 bg-[#eaf0ed] text-[#111814] chat-bubble-ai">
+              Welcome to our coffee shop! What can I get for you today?
+            </p>
+</div>
+</div>
+<div class="flex items-end gap-2.5 justify-end">
+<div class="flex flex-col gap-1 items-end max-w-[80%]">
+<p class="text-[#5f8673] text-xs font-medium">You</p>
+<p class="text-base font-normal leading-relaxed flex rounded-xl px-3.5 py-2.5 bg-[#c7e9d8] text-[#111814] chat-bubble-user">Hi, I'd like a latte, please.</p>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 h-8 shrink-0 border border-slate-200" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAmQSMnIoHxwrI5vMh_gYiZLNj4ZT2iEs3ThcWXsfZoEU4plGOwGIccDyLI3axRt7F44nBAQXMGPAs4eH04T7Za2BXsL_3Xdx3yoYTZn2jF7dcaEnD2EOd6ZXQPeEgX7sz7doT88Pp4KCrgUKWLLWjr04sSh6h2HWxP_31efkZ6S5BLsxqzDlF0TLG1-aKAP0KODqJQDJk_ph7mI5o70r-6Jq2iAsokCq326SDLvtcRf7u6bgZkYe_-2--LDChcLSrDMLGH0GVEqUY");'></div>
+</div>
+<div class="flex items-end gap-2.5">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 h-8 shrink-0 border border-slate-200" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBiApecKsnSZxOODmztZgg0YgXQOEoAIbg8bna-x3u0K1GvCg4Zanmh8QKfKSa1GrE8oBtpmY_9ebCCCaRO-a53E_oJPBTO8lU0HZiHT_A40N2HXAVISjI6StPVnKj6kOcoVsolLSc_3wvS7e3RkcZ1zRNOsOOoU0GQVyFm062bXcRGiFl6gnu_fpPOop5Z8mp2R4h5BRKm6k9dlOBYMraynAbp_D0zQ09Ra5cXBadAsqX4crnOLxhoqRs0J16RleC0BoVIr7kIU3o");'></div>
+<div class="flex flex-col gap-1 items-start max-w-[80%]">
+<p class="text-[#5f8673] text-xs font-medium">AI Tutor</p>
+<p class="text-base font-normal leading-relaxed flex rounded-xl px-3.5 py-2.5 bg-[#eaf0ed] text-[#111814] chat-bubble-ai">
+              Sure, what size would you like?
+            </p>
+</div>
+</div>
+<div class="flex items-end gap-2.5 justify-end">
+<div class="flex flex-col gap-1 items-end max-w-[80%]">
+<p class="text-[#5f8673] text-xs font-medium">You</p>
+<p class="text-base font-normal leading-relaxed flex rounded-xl px-3.5 py-2.5 bg-[#c7e9d8] text-[#111814] chat-bubble-user">Medium, please.</p>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 h-8 shrink-0 border border-slate-200" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDcDOwoDMQMkX8LyTAsbyyu52q-zGtH6BNUXjTP3UHkZjuOS_J-0kR41WOHHwM_qzKtzMQSMOvXu0Wp1kpjFQOqzR6h5mkhpjrWPJQuGpYC5ORLfhcY4pIrE6uQOmGpdFSi1zCpdxHFYomw-PbwrslOA_U7mHLHwYg3z1W_wBOuQDAdV0yBin4wvFQHPnyUGcnGwhLigI1AVpOwc5K9oIzpilKjLsF8LYRmtapaYn2g7Fe_u1OOHGwDWziDzPMwNk_ZdYEcclTNggc");'></div>
+</div>
+<div class="flex items-end gap-2.5">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 h-8 shrink-0 border border-slate-200" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDT_SUSHKSqQdqq_4Hp1qoXpe3JNdqI4Pxsxj1hYzQhrDIupUs_mfqKwdATMyIgtIVyuJaxxEUL4TOyWg_FB4vsOB3vPzTOa0lzBm0N2qfjKAYaFTx5NakQQXwmnHbL-OfM4_HUHapRTbU6roeXWavGi-2DX_-zD3AaufdLWOBrqMyJ3Jyl_xq_hoRRVXeIMiXNHObYUdWIdb97c7yIgLz1gR0bEbdqeYBHb0vgABQ-Lzqmag5ZDF1DiABMagevos6ZuOzFPXd1cvw");'></div>
+<div class="flex flex-col gap-1 items-start max-w-[80%]">
+<p class="text-[#5f8673] text-xs font-medium">AI Tutor</p>
+<p class="text-base font-normal leading-relaxed flex rounded-xl px-3.5 py-2.5 bg-[#eaf0ed] text-[#111814] chat-bubble-ai">
+              Alright, anything else?
+            </p>
+</div>
+</div>
+<div class="flex items-end gap-2.5 justify-end">
+<div class="flex flex-col gap-1 items-end max-w-[80%]">
+<p class="text-[#5f8673] text-xs font-medium">You</p>
+<p class="text-base font-normal leading-relaxed flex rounded-xl px-3.5 py-2.5 bg-[#c7e9d8] text-[#111814] chat-bubble-user">No, that's all. Thank you.</p>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 h-8 shrink-0 border border-slate-200" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCKkEAlSWyrJ-5tMmzCGUUiDfDT86r_uUZ1JYYRe4xf_RA0ZzRjv8v2oa9zjduawF9X2Kf4ZhvWYP57VN4Z-_90Oeu9IMFzm9dK2I-aRedByDDnTu0fryPc9xbF5yTMdINjv8OAtLdr88Eeg4tA-oH7giFZduyieWhYSHVi0iUIUZ2pmTeOheC4pO8cQM9hEeZUm3Drg7O3vBTz6SWm-jkS6208Ybm659yOXP14FuF44y26pN9Vgeazv0cilNzVR7q4TIzDzYh42wY");'></div>
+</div>
+<div class="flex items-end gap-2.5">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 h-8 shrink-0 border border-slate-200" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDt-GhU8FdwKrp3OVsY6bJx_cJddJ6xl5d_gsU3fCv46dozhz45PdNj3gQfjX0qlbYSuj-DZPx4pwyhs29LKX7oPCE0DXd5bhNmAto7HM9_7Sa8r4UGldz8W81nOHramUy8qorocqdt0TGhSUy0zq_c-8EaYbxpJ0LSmPzAkQlfIf5HyW87Y2LriLW4P4SCg3IEcElrzQzyCcBHZR9b8H4LlZNgTceuKATz_P5UR2pgz4r7VC0UjATYdiw-Fe-pbde3EqNc5NoI4sc");'></div>
+<div class="flex flex-col gap-1 items-start max-w-[80%]">
+<p class="text-[#5f8673] text-xs font-medium">AI Tutor</p>
+<p class="text-base font-normal leading-relaxed flex rounded-xl px-3.5 py-2.5 bg-[#eaf0ed] text-[#111814] chat-bubble-ai">
+             Your total is $3.50. How would you like to pay?
+            </p>
+</div>
+</div>
+</main>
+</div>
+<footer class="fixed bottom-0 left-0 right-0 bg-[#f9fbfa]/80 backdrop-blur-md border-t border-slate-200">
+<div class="px-4 py-3">
+<div class="flex items-center gap-2.5">
+<input class="flex-1 rounded-full border border-slate-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#c7e9d8] focus:border-[#c7e9d8] outline-none" placeholder="Type your message..." type="text"/>
+<button class="flex items-center justify-center size-10 rounded-full bg-[#c7e9d8] text-[#111814] hover:bg-[#b3d8c7] transition-colors">
+<span class="material-icons-outlined text-xl">mic</span>
+</button>
+<button class="flex items-center justify-center size-10 rounded-full bg-slate-200 text-slate-700 hover:bg-slate-300 transition-colors">
+<span class="material-icons-outlined text-xl">send</span>
+</button>
+</div>
+</div>
+<nav class="flex justify-around border-t border-slate-200 bg-[#f9fbfa] pb-3 pt-2">
+<a class="flex flex-col items-center justify-end gap-0.5 text-[#5f8673] hover:text-[#111814] transition-colors" href="#">
+<span class="material-icons-outlined text-2xl">home</span>
+<p class="text-xs font-medium">Home</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-0.5 text-[#5f8673] hover:text-[#111814] transition-colors" href="#">
+<span class="material-icons-outlined text-2xl">school</span>
+<p class="text-xs font-medium">Learn</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-0.5 text-[#111814] font-semibold" href="#">
+<span class="material-icons-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<p class="text-xs">Practice</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-0.5 text-[#5f8673] hover:text-[#111814] transition-colors" href="#">
+<span class="material-icons-outlined text-2xl">group</span>
+<p class="text-xs font-medium">Community</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-0.5 text-[#5f8673] hover:text-[#111814] transition-colors" href="#">
+<span class="material-icons-outlined text-2xl">person</span>
+<p class="text-xs font-medium">Profile</p>
+</a>
+</nav>
+<div class="h-env(safe-area-inset-bottom) bg-[#f9fbfa]"></div> 
+</footer>
+</div>
+
+</body></html>

@@ -1,0 +1,180 @@
+<html><head>
+    <meta charset="utf-8"/>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B600%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <title>Stitch Design</title>
+    <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+          .tab-active {
+            @apply border-b-2 border-[#34D399] text-[#34D399];
+          }
+          .tab-inactive {
+            @apply text-gray-500;
+          }
+        }
+      </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+      </style>
+      </head>
+    <body class="bg-[#F9FAFB]">
+    <div class="relative flex size-full min-h-screen flex-col justify-between group/design-root overflow-x-hidden" style='font-family: Inter, "Noto Sans", sans-serif;'>
+    <div class="flex-grow">
+    <header class="sticky top-0 z-10 bg-[#F9FAFB] shadow-sm">
+    <div class="flex items-center p-4">
+    <button class="text-[#1F2937] p-2 rounded-full hover:bg-gray-100">
+    <span class="material-icons">arrow_back_ios_new</span>
+    </button>
+    <h1 class="text-[#1F2937] text-xl font-semibold leading-tight tracking-tight flex-1 text-center pr-10">Learning History</h1>
+    </div>
+    <div class="flex justify-around border-b border-gray-200 px-4">
+    <button class="py-3 px-1 text-sm font-medium tab-active">All</button>
+    <button class="py-3 px-1 text-sm font-medium tab-inactive">Conversations</button>
+    <button class="py-3 px-1 text-sm font-medium tab-inactive">Vocabulary</button>
+    <button class="py-3 px-1 text-sm font-medium tab-inactive">Progress</button>
+    </div>
+    </header>
+    <main class="pb-20">
+    <section class="px-4 pt-6" id="conversation-history">
+    <div class="flex justify-between items-center mb-4">
+    <h2 class="text-[#1F2937] text-lg font-semibold leading-tight tracking-tight">Conversation History</h2>
+    <button class="text-sm font-medium text-[#34D399] hover:text-[#2aa77e]">See All</button>
+    </div>
+    <div class="space-y-3">
+    <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+    <div class="text-white flex items-center justify-center rounded-full bg-[#34D399] shrink-0 size-12">
+    <span class="material-icons">chat_bubble_outline</span>
+    </div>
+    <div class="flex-grow">
+    <p class="text-[#1F2937] text-base font-medium leading-normal line-clamp-1">Conversation with Alex</p>
+    <p class="text-gray-500 text-sm font-normal leading-normal line-clamp-1">Topic: Ordering Food</p>
+    </div>
+    <div class="shrink-0 text-right">
+    <p class="text-gray-500 text-xs font-normal leading-normal">2 days ago</p>
+    <span class="material-icons text-gray-400 text-lg">chevron_right</span>
+    </div>
+    </div>
+    <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+    <div class="text-white flex items-center justify-center rounded-full bg-[#34D399] shrink-0 size-12">
+    <span class="material-icons">chat_bubble_outline</span>
+    </div>
+    <div class="flex-grow">
+    <p class="text-[#1F2937] text-base font-medium leading-normal line-clamp-1">Conversation with Sarah</p>
+    <p class="text-gray-500 text-sm font-normal leading-normal line-clamp-1">Topic: Travel Plans</p>
+    </div>
+    <div class="shrink-0 text-right">
+    <p class="text-gray-500 text-xs font-normal leading-normal">1 week ago</p>
+    <span class="material-icons text-gray-400 text-lg">chevron_right</span>
+    </div>
+    </div>
+    <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+    <div class="text-white flex items-center justify-center rounded-full bg-[#34D399] shrink-0 size-12">
+    <span class="material-icons">chat_bubble_outline</span>
+    </div>
+    <div class="flex-grow">
+    <p class="text-[#1F2937] text-base font-medium leading-normal line-clamp-1">Conversation with David</p>
+    <p class="text-gray-500 text-sm font-normal leading-normal line-clamp-1">Topic: Business Meeting</p>
+    </div>
+    <div class="shrink-0 text-right">
+    <p class="text-gray-500 text-xs font-normal leading-normal">2 weeks ago</p>
+    <span class="material-icons text-gray-400 text-lg">chevron_right</span>
+    </div>
+    </div>
+    </div>
+    </section>
+    <section class="px-4 pt-8" id="saved-items">
+    <div class="flex justify-between items-center mb-4">
+    <h2 class="text-[#1F2937] text-lg font-semibold leading-tight tracking-tight">Saved Items</h2>
+    <button class="text-sm font-medium text-[#34D399] hover:text-[#2aa77e]">See All</button>
+    </div>
+    <div class="space-y-3">
+    <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+    <div class="text-white flex items-center justify-center rounded-full bg-[#FB923C] shrink-0 size-12">
+    <span class="material-icons">bookmark_border</span>
+    </div>
+    <div class="flex-grow">
+    <p class="text-[#1F2937] text-base font-medium leading-normal line-clamp-1">Useful Phrases</p>
+    <p class="text-gray-500 text-sm font-normal leading-normal line-clamp-1">Category: Greetings</p>
+    </div>
+    <div class="shrink-0 text-right">
+    <p class="text-[#1F2937] text-base font-medium leading-normal">15</p>
+    <span class="material-icons text-gray-400 text-lg">chevron_right</span>
+    </div>
+    </div>
+    <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+    <div class="text-white flex items-center justify-center rounded-full bg-[#FB923C] shrink-0 size-12">
+    <span class="material-icons">bookmark_border</span>
+    </div>
+    <div class="flex-grow">
+    <p class="text-[#1F2937] text-base font-medium leading-normal line-clamp-1">Vocabulary</p>
+    <p class="text-gray-500 text-sm font-normal leading-normal line-clamp-1">Category: Travel</p>
+    </div>
+    <div class="shrink-0 text-right">
+    <p class="text-[#1F2937] text-base font-medium leading-normal">20</p>
+    <span class="material-icons text-gray-400 text-lg">chevron_right</span>
+    </div>
+    </div>
+    </div>
+    </section>
+    <section class="px-4 pt-8" id="progress-tracking">
+    <div class="flex justify-between items-center mb-4">
+    <h2 class="text-[#1F2937] text-lg font-semibold leading-tight tracking-tight">Progress Tracking</h2>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+    <div>
+    <p class="text-[#1F2937] text-base font-medium leading-normal">Learning Time</p>
+    <p class="text-gray-500 text-sm font-normal leading-normal">Last 30 Days</p>
+    </div>
+    <p class="text-[#1F2937] text-2xl font-bold leading-tight">30 <span class="text-lg font-medium text-gray-500">hours</span></p>
+    </div>
+    <div class="grid grid-cols-4 gap-3 items-end justify-items-center pt-6 pb-2 min-h-[180px]">
+    <div class="flex flex-col items-center w-full">
+    <div class="bg-[#CBEBDA] w-full rounded-t-md" style="height: 60px;"></div>
+    <p class="text-gray-500 text-xs font-medium mt-1">W1</p>
+    </div>
+    <div class="flex flex-col items-center w-full">
+    <div class="bg-[#CBEBDA] w-full rounded-t-md" style="height: 30px;"></div>
+    <p class="text-gray-500 text-xs font-medium mt-1">W2</p>
+    </div>
+    <div class="flex flex-col items-center w-full">
+    <div class="bg-[#CBEBDA] w-full rounded-t-md" style="height: 45px;"></div>
+    <p class="text-gray-500 text-xs font-medium mt-1">W3</p>
+    </div>
+    <div class="flex flex-col items-center w-full">
+    <div class="bg-[#34D399] w-full rounded-t-md" style="height: 75px;"></div>
+    <p class="text-gray-500 text-xs font-medium mt-1">W4</p>
+    </div>
+    </div>
+    </div>
+    </section>
+    </main>
+    </div>
+    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-top">
+    <nav class="flex justify-around items-center h-16">
+    <a class="flex flex-col items-center text-[#34D399] hover:text-[#2aa77e] p-2" href="#">
+    <span class="material-icons">home</span>
+    <span class="text-xs">Home</span>
+    </a>
+    <a class="flex flex-col items-center text-gray-500 hover:text-[#34D399] p-2" href="#">
+    <span class="material-icons">chat_bubble_outline</span>
+    <span class="text-xs">Practice</span>
+    </a>
+    <a class="flex flex-col items-center text-gray-500 hover:text-[#34D399] p-2" href="#">
+    <span class="material-icons">bookmark_border</span>
+    <span class="text-xs">Saved</span>
+    </a>
+    <a class="flex flex-col items-center text-gray-500 hover:text-[#34D399] p-2" href="#">
+    <span class="material-icons">person_outline</span>
+    <span class="text-xs">Profile</span>
+    </a>
+    </nav>
+    </footer>
+    </div>
+    
+    </body></html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Spline+Sans%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#f8fcf8]">
+<div class="relative flex size-full min-h-screen flex-col justify-between group/design-root overflow-x-hidden" style="--checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(13,28,13)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e'); font-family: &quot;Spline Sans&quot;, &quot;Noto Sans&quot;, sans-serif;">
+<div class="flex-grow">
+<header class="sticky top-0 z-10 bg-[#f8fcf8]/80 backdrop-blur-sm">
+<div class="flex items-center p-4 pb-3">
+<button class="text-[#0d1c0d] flex size-10 items-center justify-center rounded-full hover:bg-[#e7f3e7] transition-colors">
+<span class="material-icons text-2xl">arrow_back_ios_new</span>
+</button>
+<h2 class="text-[#0d1c0d] text-xl font-bold leading-tight tracking-tight flex-1 text-center pr-10">Customize AI</h2>
+</div>
+</header>
+<main class="px-4 pb-6">
+<section class="mb-6">
+<h3 class="text-[#0d1c0d] text-lg font-semibold leading-tight tracking-tight mb-3">Personality</h3>
+<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+<label class="text-sm font-medium leading-normal flex items-center justify-center rounded-xl border border-[#cfe8cf] px-4 py-3 text-[#0d1c0d] has-[:checked]:border-2 has-[:checked]:border-[#0fdb0f] has-[:checked]:bg-[#e7f3e7] relative cursor-pointer transition-all">
+                Friendly
+                <input checked="" class="invisible absolute" name="personality" type="radio"/>
+</label>
+<label class="text-sm font-medium leading-normal flex items-center justify-center rounded-xl border border-[#cfe8cf] px-4 py-3 text-[#0d1c0d] has-[:checked]:border-2 has-[:checked]:border-[#0fdb0f] has-[:checked]:bg-[#e7f3e7] relative cursor-pointer transition-all">
+                Formal
+                <input class="invisible absolute" name="personality" type="radio"/>
+</label>
+<label class="text-sm font-medium leading-normal flex items-center justify-center rounded-xl border border-[#cfe8cf] px-4 py-3 text-[#0d1c0d] has-[:checked]:border-2 has-[:checked]:border-[#0fdb0f] has-[:checked]:bg-[#e7f3e7] relative cursor-pointer transition-all">
+                Humorous
+                <input class="invisible absolute" name="personality" type="radio"/>
+</label>
+<label class="text-sm font-medium leading-normal flex items-center justify-center rounded-xl border border-[#cfe8cf] px-4 py-3 text-[#0d1c0d] has-[:checked]:border-2 has-[:checked]:border-[#0fdb0f] has-[:checked]:bg-[#e7f3e7] relative cursor-pointer transition-all">
+                Custom
+                <input class="invisible absolute" name="personality" type="radio"/>
+</label>
+</div>
+</section>
+<section class="mb-6">
+<h3 class="text-[#0d1c0d] text-lg font-semibold leading-tight tracking-tight mb-3">Formality Level</h3>
+<div class="bg-white rounded-xl border border-[#cfe8cf] p-4 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<p class="text-[#0d1c0d] text-base font-medium leading-normal">Formality</p>
+<p class="text-[#4b9b4b] text-sm font-medium leading-normal">Medium</p>
+</div>
+<input class="w-full h-2 bg-[#cfe8cf] rounded-lg appearance-none cursor-pointer accent-[#0fdb0f]" max="3" min="1" type="range" value="2"/>
+<div class="flex justify-between text-xs text-[#4b9b4b] mt-1">
+<span>Low</span>
+<span>Medium</span>
+<span>High</span>
+</div>
+</div>
+</section>
+<section class="mb-6">
+<h3 class="text-[#0d1c0d] text-lg font-semibold leading-tight tracking-tight mb-3">Response Speed &amp; Complexity</h3>
+<div class="space-y-4">
+<div class="bg-white rounded-xl border border-[#cfe8cf] p-4 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<p class="text-[#0d1c0d] text-base font-medium leading-normal">Speed</p>
+<p class="text-[#4b9b4b] text-sm font-medium leading-normal">Medium</p>
+</div>
+<input class="w-full h-2 bg-[#cfe8cf] rounded-lg appearance-none cursor-pointer accent-[#0fdb0f]" max="3" min="1" type="range" value="2"/>
+<div class="flex justify-between text-xs text-[#4b9b4b] mt-1">
+<span>Slow</span>
+<span>Medium</span>
+<span>Fast</span>
+</div>
+</div>
+<div class="bg-white rounded-xl border border-[#cfe8cf] p-4 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<p class="text-[#0d1c0d] text-base font-medium leading-normal">Complexity</p>
+<p class="text-[#4b9b4b] text-sm font-medium leading-normal">Medium</p>
+</div>
+<input class="w-full h-2 bg-[#cfe8cf] rounded-lg appearance-none cursor-pointer accent-[#0fdb0f]" max="3" min="1" type="range" value="2"/>
+<div class="flex justify-between text-xs text-[#4b9b4b] mt-1">
+<span>Simple</span>
+<span>Medium</span>
+<span>Advanced</span>
+</div>
+</div>
+</div>
+</section>
+<section class="mb-6">
+<h3 class="text-[#0d1c0d] text-lg font-semibold leading-tight tracking-tight mb-3">Areas of Focus</h3>
+<div class="bg-white rounded-xl border border-[#cfe8cf] p-4 shadow-sm space-y-3">
+<label class="flex items-center gap-x-3">
+<input class="h-5 w-5 rounded border-[#cfe8cf] border-2 bg-transparent text-[#0fdb0f] checked:bg-[#0fdb0f] checked:border-[#0fdb0f] checked:bg-[image:--checkbox-tick-svg] focus:ring-2 focus:ring-offset-0 focus:ring-[#0fdb0f]/50 focus:border-[#0fdb0f] focus:outline-none" type="checkbox"/>
+<p class="text-[#0d1c0d] text-base font-normal leading-normal">Vocabulary</p>
+</label>
+<label class="flex items-center gap-x-3">
+<input class="h-5 w-5 rounded border-[#cfe8cf] border-2 bg-transparent text-[#0fdb0f] checked:bg-[#0fdb0f] checked:border-[#0fdb0f] checked:bg-[image:--checkbox-tick-svg] focus:ring-2 focus:ring-offset-0 focus:ring-[#0fdb0f]/50 focus:border-[#0fdb0f] focus:outline-none" type="checkbox"/>
+<p class="text-[#0d1c0d] text-base font-normal leading-normal">Pronunciation</p>
+</label>
+<label class="flex items-center gap-x-3">
+<input class="h-5 w-5 rounded border-[#cfe8cf] border-2 bg-transparent text-[#0fdb0f] checked:bg-[#0fdb0f] checked:border-[#0fdb0f] checked:bg-[image:--checkbox-tick-svg] focus:ring-2 focus:ring-offset-0 focus:ring-[#0fdb0f]/50 focus:border-[#0fdb0f] focus:outline-none" type="checkbox"/>
+<p class="text-[#0d1c0d] text-base font-normal leading-normal">Grammar</p>
+</label>
+</div>
+</section>
+<section>
+<h3 class="text-[#0d1c0d] text-lg font-semibold leading-tight tracking-tight mb-3">Background/Context</h3>
+<div class="bg-white rounded-xl border border-[#cfe8cf] p-4 shadow-sm">
+<input class="form-input block w-full rounded-lg text-[#0d1c0d] focus:outline-0 focus:ring-2 focus:ring-[#0fdb0f]/50 border-[#cfe8cf] bg-transparent focus:border-[#0fdb0f] h-12 placeholder:text-[#708a70] p-3 text-base font-normal leading-normal" placeholder="e.g., Travel, Business, Everyday Life" value=""/>
+</div>
+</section>
+</main>
+</div>
+<footer class="sticky bottom-0 bg-[#f8fcf8]/80 backdrop-blur-sm border-t border-[#e7f3e7] p-4">
+<button class="flex w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-6 mx-auto bg-[#0fdb0f] text-[#0d1c0d] text-base font-bold leading-normal tracking-wide hover:bg-[#0cc20c] transition-colors">
+<span class="truncate">Save Changes</span>
+</button>
+</footer>
+</div>
+
+</body></html>
