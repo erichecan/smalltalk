@@ -23,8 +23,11 @@ export default function Dialogue() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
+  // 只在用户发送消息时滚动到底部
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0 && messages[messages.length - 1].sender === 'user') {
+      scrollToBottom();
+    }
   }, [messages, scrollToBottom]);
 
   // Parse AI response into multiple messages
