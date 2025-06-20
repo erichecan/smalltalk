@@ -11,7 +11,7 @@
     "react",
     "typescript",
     "firebase",
-    "openai"
+    "gemini"
   ],
   "author": "SmallTalk Team",
   "license": "MIT",

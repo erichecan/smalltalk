@@ -9,7 +9,7 @@ This guide provides step-by-step instructions for deploying the SmallTalk applic
 - npm or yarn
 - Git
 - Firebase account
-- OpenAI API key
+- Google Gemini API key
 
 ### Local Development
 ```bash
@@ -95,20 +95,20 @@ VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 VITE_FIREBASE_APP_ID=1:123456789:web:abcdef123456
 
-# OpenAI Configuration
-VITE_OPENAI_API_KEY=sk-your_openai_api_key_here
+# Gemini Configuration
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ### Setting Environment Variables
 
 #### Firebase Hosting
 ```bash
-firebase functions:config:set openai.api_key="your_openai_api_key"
+firebase functions:config:set gemini.api_key="your_gemini_api_key"
 ```
 
 #### Vercel
 ```bash
-vercel env add VITE_OPENAI_API_KEY
+vercel env add VITE_GEMINI_API_KEY
 vercel env add VITE_FIREBASE_API_KEY
 # ... add all other variables
 ```
@@ -179,7 +179,7 @@ const analytics = getAnalytics(app);
 ### Pre-deployment Checklist
 - [ ] All environment variables are set
 - [ ] Firebase project is configured
-- [ ] OpenAI API key is valid
+- [ ] Gemini API key is valid
 - [ ] Build completes successfully
 - [ ] All features work in development
 - [ ] Cross-browser testing completed
@@ -224,14 +224,14 @@ npm run preview
 ### Debug Commands
 ```bash
 # Check environment variables
-echo $VITE_OPENAI_API_KEY
+echo $VITE_GEMINI_API_KEY
 
 # Verify Firebase configuration
 firebase projects:list
 
 # Test API connectivity
-curl -H "Authorization: Bearer $VITE_OPENAI_API_KEY" \
-  https://api.openai.com/v1/models
+curl -H "x-goog-api-key: $VITE_GEMINI_API_KEY" \
+  https://generativelanguage.googleapis.com/v1/models/gemini-pro
 ```
 
 ## 📈 Post-Deployment
