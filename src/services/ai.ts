@@ -122,6 +122,8 @@ Remember: The goal is to help users practice natural English conversation and fe
     }
 
     console.log('Sending request to Gemini API:', JSON.stringify(requestBody, null, 2));
+    console.log('Gemini API Key:', GEMINI_API_KEY);
+    console.log('Gemini API URL:', GEMINI_API_URL);
 
     // 使用重试机制发送请求
     console.log('Sending request to Gemini API with retry mechanism');
@@ -163,6 +165,7 @@ Remember: The goal is to help users practice natural English conversation and fe
     const result = data.candidates[0].content.parts[0].text.trim();
     const endTime = Date.now();
     console.log(`AI response generated successfully in ${endTime - startTime}ms`);
+    console.log('Raw API response:', result);
     return result;
   } catch (error) {
     const endTime = Date.now();

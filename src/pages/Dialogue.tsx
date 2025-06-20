@@ -13,6 +13,7 @@ export default function Dialogue() {
   const location = useLocation();
   const navigate = useNavigate();
   const topic = location.state?.topic || '';
+  const initialMessages = location.state?.initialMessages || '';
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -42,26 +43,48 @@ export default function Dialogue() {
           text: `Topic: ${topic}`
         }]);
         
-        // 获取AI对主题的响应
-        const response = await getAIResponse(topic, '');
-        const conversations = parseAIResponse(response);
-        
-        // 使用固定的浅绿色背景
-        const aiBubbleColor = '#E8F5E9';
-        
-        const initialMessages = conversations.map((text, index) => {
-          // 在句和问句之间添加换行
-          const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
+        // 检查是否有从TopicInput传来的初始消息
+        if (initialMessages) {
+          const conversations = parseAIResponse(initialMessages);
           
-          return {
-            id: index + 2, // 从2开始，因为第一条是用户消息
-            sender: 'ai',
-            text: formattedText,
-            bubbleColor: aiBubbleColor
-          };
-        });
-        
-        setMessages(prev => [...prev, ...initialMessages]);
+          // 使用固定的浅绿色背景
+          const aiBubbleColor = '#E8F5E9';
+          
+          const aiMessages = conversations.map((text, index) => {
+            // 在句和问句之间添加换行
+            const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
+            
+            return {
+              id: index + 2, // 从2开始，因为第一条是用户消息
+              sender: 'ai',
+              text: formattedText,
+              bubbleColor: aiBubbleColor
+            };
+          });
+          
+          setMessages(prev => [...prev, ...aiMessages]);
+        } else {
+          // 如果没有初始消息，则获取AI对主题的响应
+          const response = await getAIResponse([], topic);
+          const conversations = parseAIResponse(response);
+          
+          // 使用固定的浅绿色背景
+          const aiBubbleColor = '#E8F5E9';
+          
+          const aiMessages = conversations.map((text, index) => {
+            // 在句和问句之间添加换行
+            const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
+            
+            return {
+              id: index + 2, // 从2开始，因为第一条是用户消息
+              sender: 'ai',
+              text: formattedText,
+              bubbleColor: aiBubbleColor
+            };
+          });
+          
+          setMessages(prev => [...prev, ...aiMessages]);
+        }
       } catch (error) {
         console.error('Error initializing conversation:', error);
         setMessages([{
@@ -77,7 +100,7 @@ export default function Dialogue() {
     if (topic) {
       initializeConversation();
     }
-  }, [topic]);
+  }, [topic, initialMessages]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copySnackbar, setCopySnackbar] = useState(false);
@@ -148,24 +171,42 @@ export default function Dialogue() {
 
   return (
     <Container sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f8fcf8', p: 0 }}>
-      {/* 顶部话题栏 */}
+      {/* 顶部话题栏 - 微信风格 */}
       <Box sx={{ 
         bgcolor: '#CAECCA', 
-        py: 2, 
-        px: 3, 
-        borderBottomLeftRadius: 16, 
-        borderBottomRightRadius: 16, 
-        boxShadow: 1,
+        py: 1.5, 
+        px: 2, 
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
         display: 'flex',
-        alignItems: 'center'
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        width: '100%'
       }}>
         <IconButton 
-          onClick={() => navigate('/topic-input')} 
-          sx={{ mr: 1, color: '#0d1b0d' }}
+          onClick={() => navigate('/topic')} 
+          sx={{ 
+            position: 'absolute', 
+            left: 8, 
+            color: '#0d1b0d' 
+          }}
         >
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>{topic}</Typography>
+        <Typography 
+          variant="subtitle1" 
+          sx={{ 
+            color: '#0d1b0d', 
+            fontWeight: 'bold',
+            textAlign: 'center',
+            maxWidth: '70%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {topic}
+        </Typography>
       </Box>
       {/* 消息列表 */}
       <Box sx={{ flex: 1, overflowY: 'auto', px: 2, py: 3, position: 'relative' }}>

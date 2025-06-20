@@ -1,20 +1,36 @@
 import { useState } from 'react';
-import { Container, TextField, Button, Typography, Box, Alert, Snackbar } from '@mui/material';
+import { Container, TextField, Button, Typography, Box, Alert, Snackbar, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { getAIResponse } from '../services/ai';
 
 export default function TopicInput() {
   const [topic, setTopic] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) {
       setError('Please enter a topic.');
       return;
     }
-    // 跳转到 /dialogue，并传递话题参数
-    navigate('/dialogue', { state: { topic } });
+
+    setLoading(true);
+    try {
+      // 调用 AI 获取初始对话
+      const initialMessages = await getAIResponse([], topic);
+      // 跳转到 /dialogue，并传递话题和初始消息
+      navigate('/dialogue', { 
+        state: { 
+          topic,
+          initialMessages 
+        } 
+      });
+    } catch (err) {
+      setError('Failed to generate conversation. Please try again.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -30,7 +46,33 @@ export default function TopicInput() {
             onChange={(e) => setTopic(e.target.value)}
             sx={{ mb: 2, borderRadius: 2, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
           />
-          <Button type="submit" variant="contained" fullWidth sx={{ bgcolor: '#CAECCA', color: '#111811', borderRadius: 28, py: 1.5, fontWeight: 'bold', mb: 2 }}>Start Conversation</Button>
+          <Button 
+            type="submit" 
+            variant="contained" 
+            fullWidth 
+            disabled={loading}
+            sx={{ 
+              bgcolor: '#CAECCA', 
+              color: '#111811', 
+              borderRadius: 28, 
+              py: 1.5, 
+              fontWeight: 'bold', 
+              mb: 2,
+              '&:disabled': {
+                bgcolor: '#e0e0e0',
+                color: '#666'
+              }
+            }}
+          >
+            {loading ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                Generating Conversation...
+              </>
+            ) : (
+              'Start Conversation'
+            )}
+          </Button>
         </form>
       </Box>
       {error && (
