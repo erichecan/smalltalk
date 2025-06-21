@@ -34,7 +34,7 @@ export default function TopicInput() {
   };
 
   return (
-    <Container sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: '#f8fcf8', p: 2 }}>
+    <Container sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: '#f8fcf8', p: 2, py: 4, height: '100%' }}>
       <Box sx={{ width: '100%', maxWidth: 480, textAlign: 'center' }}>
         <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#0d1b0d', mb: 3 }}>What do you want to talk about?</Typography>
         <form onSubmit={handleSubmit}>
