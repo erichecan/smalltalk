@@ -22,7 +22,7 @@ export default function Dialogue() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useAuth();
 
-  // 新增：未登录用户只返回一轮AI对话
+  // 新增：未登录用户只返回一轮AI
   const isGuest = !isAuthenticated;
   // 新增：未登录用户是否已体验过一轮
   const guestHasInteracted = useMemo(() => {
@@ -74,104 +74,21 @@ export default function Dialogue() {
       try {
         if (isHistory && initialMessages) {
           // 历史模式：直接展示历史消息，不请求AI
-          // 确保所有AI消息都有正确的bubbleColor
-          const processedMessages = initialMessages.map((msg: Message) => {
-            if (msg.sender === 'ai' && !msg.bubbleColor) {
-              return { ...msg, bubbleColor: '#E8F5E9' };
-            }
-            return msg;
-          });
-          setMessages(processedMessages);
+          setMessages(initialMessages);
           setIsInitializing(false);
           return;
         }
-
-        setMessages([{
-          id: 1,
-          sender: 'user',
-          text: `Topic: ${topic}`
-        }]);
-        if (initialMessages) {
-          const conversations = parseAIResponse(initialMessages);
-          const aiBubbleColor = '#E8F5E9';
-          
-          // 未登录用户只显示第一条AI回复
-          if (isGuest) {
-            const firstConversation = conversations[0] || '';
-            const formattedText = firstConversation.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
-            const aiMessage: Message = {
-              id: 2,
-              sender: 'ai',
-              text: formattedText,
-              bubbleColor: aiBubbleColor
-            };
-            setMessages([{
-              id: 1,
-              sender: 'user',
-              text: `Topic: ${topic}`
-            }, aiMessage]);
-          } else {
-            // 已登录用户显示所有AI回复
-            const aiMessages: Message[] = conversations.map((text, index) => {
-              const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
-              return {
-                id: index + 2,
-                sender: 'ai',
-                text: formattedText,
-                bubbleColor: aiBubbleColor
-              };
-            });
-            setMessages([{
-              id: 1,
-              sender: 'user',
-              text: `Topic: ${topic}`
-            }, ...aiMessages]);
-          }
-        } else {
-          const response = await getAIResponse([], topic);
-          const conversations = parseAIResponse(response);
-          const aiBubbleColor = '#E8F5E9';
-          
-          // 未登录用户只显示第一条AI回复
-          if (isGuest) {
-            const firstConversation = conversations[0] || '';
-            const formattedText = firstConversation.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
-            const aiMessage: Message = {
-              id: 2,
-              sender: 'ai',
-              text: formattedText,
-              bubbleColor: aiBubbleColor
-            };
-            setMessages([{
-              id: 1,
-              sender: 'user',
-              text: `Topic: ${topic}`
-            }, aiMessage]);
-          } else {
-            // 已登录用户显示所有AI回复
-            const aiMessages: Message[] = conversations.map((text, index) => {
-              const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
-              return {
-                id: index + 2,
-                sender: 'ai',
-                text: formattedText,
-                bubbleColor: aiBubbleColor
-              };
-            });
-            setMessages([{
-              id: 1,
-              sender: 'user',
-              text: `Topic: ${topic}`
-            }, ...aiMessages]);
-          }
+        // 新增：如果有 initialMessages（数组），直接用它初始化
+        if (Array.isArray(initialMessages) && initialMessages.length > 0) {
+          setMessages(initialMessages);
+          setIsInitializing(false);
+          return;
         }
+        // 兼容老逻辑
+        setMessages([]);
       } catch (error) {
         console.error('Error initializing conversation:', error);
-        setMessages([{
-          id: 1,
-          sender: 'ai',
-          text: 'I apologize, but I encountered an error while generating the initial conversation. Please try again.'
-        }]);
+        setMessages([]);
       } finally {
         setIsInitializing(false);
       }
@@ -236,25 +153,21 @@ export default function Dialogue() {
         setIsLoading(false);
         return;
       }
-      // 已登录用户多轮
+      // 历史回看继续对话：isHistory为true时也允许多轮
       const aiResponse = await getAIResponse(newMessages, topic);
-      const conversations = parseAIResponse(aiResponse);
       const aiBubbleColor = '#E8F5E9';
-      let updatedMessages = [...newMessages];
-      conversations.forEach((text) => {
-        const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
-        const aiMessage: Message = {
-          id: updatedMessages.length + 1,
-          sender: 'ai',
-          text: formattedText,
-          bubbleColor: aiBubbleColor
-        };
-        updatedMessages.push(aiMessage);
-      });
+      const aiMessage: Message = {
+        id: newMessages.length + 1,
+        sender: 'ai',
+        text: aiResponse,
+        bubbleColor: aiBubbleColor
+      };
+      const updatedMessages = [...newMessages, aiMessage];
       setMessages(updatedMessages);
-      // 只 update，不再新建历史
+      // update历史（无论isHistory是否为true）
       if (conversationId) {
-        await updateConversationHistory(conversationId, updatedMessages);
+        const plainMessages = updatedMessages.map(m => ({ ...m }));
+        await updateConversationHistory(conversationId, plainMessages);
       }
     } catch (err) {
       const errorMessage: Message = {

@@ -75,7 +75,10 @@ export default function TopicInput() {
       navigate('/dialogue', { 
         state: { 
           topic: trimmed,
-          initialMessages,
+          initialMessages: [
+            { id: 1, sender: 'user', text: trimmed },
+            ...aiMessages
+          ],
           conversationId
         } 
       });
