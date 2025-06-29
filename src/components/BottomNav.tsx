@@ -7,9 +7,10 @@ import {
   useTheme
 } from '@mui/material';
 import {
-  History,
-  Book,
-  Person,
+  School,
+  FitnessCenter,
+  ChatBubbleOutline,
+  PersonOutline,
 } from '@mui/icons-material';
 import type { ReactElement } from 'react';
 import type { IconProps } from '@mui/material/Icon';
@@ -25,28 +26,28 @@ export interface NavItem {
 export const navigationItems: NavItem[] = [
   {
     label: '历史',
-    icon: <History />,
+    icon: <School />,
     path: '/history',
   },
   {
     label: '练习',
-    icon: <Book />,
+    icon: <FitnessCenter />,
     path: '/practice',
   },
   {
     label: '词汇',
-    icon: <Book />,
+    icon: <ChatBubbleOutline />,
     path: '/vocabulary',
   },
   {
     label: '我的',
-    icon: <Person />,
+    icon: <PersonOutline />,
     path: '/my',
   },
 ];
 
 // 不显示底部导航的路由
-const hideOnPaths = ['/login', '/register', '/', '/topic'];
+const hideOnPaths = ['/login', '/register', '/', '/topic', '/dialogue', '/settings'];
 
 const BottomNav = () => {
   const theme = useTheme();
@@ -78,9 +79,11 @@ const BottomNav = () => {
         right: 0,
         paddingBottom: 'env(safe-area-inset-bottom)',
         zIndex: theme.zIndex.appBar,
-        borderTop: `1px solid ${theme.palette.divider}`,
+        borderTop: '1px solid #f1f5f9',
+        bgcolor: 'white',
+        boxShadow: '0 -1px 2px 0 rgba(0, 0, 0, 0.05)',
       }}
-      elevation={3}
+      elevation={0}
     >
       <BottomNavigation
         value={value}
@@ -92,7 +95,23 @@ const BottomNav = () => {
         }}
         showLabels
         sx={{
-          backgroundColor: theme.palette.background.paper,
+          backgroundColor: 'transparent',
+          '& .MuiBottomNavigationAction-root': {
+            color: '#6b7280',
+            '&.Mui-selected': {
+              color: '#0ecd6a',
+              bgcolor: 'rgba(14, 205, 106, 0.1)',
+            },
+            '&:hover': {
+              bgcolor: 'rgba(156, 163, 175, 0.1)',
+            },
+          },
+          '& .MuiBottomNavigationAction-label': {
+            fontSize: '0.75rem',
+            fontWeight: 500,
+            textTransform: 'none',
+            letterSpacing: '0.025em',
+          },
         }}
       >
         {navigationItems.map((item) => (
@@ -102,7 +121,7 @@ const BottomNav = () => {
             icon={item.icon}
             sx={{
               minWidth: 'auto',
-              padding: '6px 0',
+              padding: '8px 0',
               '& .MuiBottomNavigationAction-label': {
                 fontSize: '0.75rem',
               },

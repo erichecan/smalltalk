@@ -40,46 +40,15 @@ export async function getAIResponse(messages: Message[], topic: string): Promise
   console.log(`Getting AI response for ${messages.length} messages on topic: "${topic}"`);
   const startTime = Date.now();
   try {
-    // 构造 Gemini 对话历史
-    const systemPrompt = `You are a friendly English conversation partner helping with daily small talk. The current topic is: ${topic}.
-
-Your task is to generate 5 natural conversation pairs (question and response) related to this topic, suitable for casual daily interactions between friends or colleagues. Each conversation should feel like it's happening in common social situations like:
-- Waiting for the elevator
-- Standing in line at a coffee shop
-- Morning greetings at work
-- Casual lunch break chat
-- After-work social time
-
-Requirements:
-1. Generate exactly 5 different question-response pairs
-2. Use a conversational, friendly tone (not too formal, not too casual)
-3. Make responses sound natural, like real people talking
-4. Include some common expressions and light idioms where appropriate
-5. Each pair should explore a different aspect of the topic
-6. Keep responses concise and engaging
-
-Format your response in this exact structure:
-[CONV1]
-Q: (first question)
-A: (natural response)
-
-[CONV2]
-Q: (second question)
-A: (natural response)
-
-[CONV3]
-Q: (third question)
-A: (natural response)
-
-[CONV4]
-Q: (fourth question)
-A: (natural response)
-
-[CONV5]
-Q: (fifth question)
-A: (natural response)
-
-Remember: The goal is to help users practice natural English conversation and feel confident in everyday small talk situations.`;
+    let systemPrompt = '';
+    if (messages.length === 0) {
+      // 首次：生成5轮
+      systemPrompt = `You are a friendly English conversation partner helping with daily small talk. The current topic is: ${topic}.
+\nYour task is to generate 5 natural conversation pairs (question and response) related to this topic, suitable for casual daily interactions between friends or colleagues. Each conversation should feel like it's happening in common social situations like:\n- Waiting for the elevator\n- Standing in line at a coffee shop\n- Morning greetings at work\n- Casual lunch break chat\n- After-work social time\n\nRequirements:\n1. Generate exactly 5 different question-response pairs\n2. Use a conversational, friendly tone (not too formal, not too casual)\n3. Make responses sound natural, like real people talking\n4. Include some common expressions and light idioms where appropriate\n5. Each pair should explore a different aspect of the topic\n6. Keep responses concise and engaging\n\nFormat your response in this exact structure:\n[CONV1]\nQ: (first question)\nA: (natural response)\n\n[CONV2]\nQ: (second question)\nA: (natural response)\n\n[CONV3]\nQ: (third question)\nA: (natural response)\n\n[CONV4]\nQ: (fourth question)\nA: (natural response)\n\n[CONV5]\nQ: (fifth question)\nA: (natural response)\n\nRemember: The goal is to help users practice natural English conversation and feel confident in everyday small talk situations.`;
+    } else {
+      // 多轮：只生成一句AI回复
+      systemPrompt = `You are a friendly English conversation partner helping with daily small talk. The current topic is: ${topic}.\nYour task is to reply to the user's latest message in a natural, friendly, and concise way, as if you are continuing a real conversation. Only return ONE reply, do not generate multiple pairs. Do not repeat previous content.`;
+    }
 
     // 构建请求体
     const requestBody: {

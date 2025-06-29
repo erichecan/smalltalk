@@ -6,7 +6,9 @@
   ],
   "compilerOptions": {
     "jsx": "react-jsx",
-    "types": ["jest", "@testing-library/jest-dom"],
-    "allowImportingTsExtensions": true
+    "types": ["jest", "@testing-library/jest-dom", "node"],
+    "allowImportingTsExtensions": true,
+    "module": "ESNext",
+    "esModuleInterop": true
   }
 }

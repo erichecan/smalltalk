@@ -41,35 +41,6 @@ export default function Dialogue() {
     }
   }, [messages, scrollToBottom]);
 
-  // Parse AI response into multiple messages
-  const parseAIResponse = (text: string): string[] => {
-    const conversations = text.match(/\[CONV\d+\]([\s\S]*?)(?=\[CONV\d+\]|$)/g) || [];
-    return conversations.map(conv => conv.replace(/\[CONV\d+\]/, '').trim());
-  };
-
-  // 保存历史到 Supabase
-  const saveHistoryToCloud = useCallback(async (currentMessages: Message[]) => {
-    // 只在已登录、非历史模式、AI有新回复且消息数大于1时才保存
-    const hasAIReply = currentMessages.some(m => m.sender === 'ai');
-    if (
-      isAuthenticated &&
-      !isHistory &&
-      currentMessages.length > 1 &&
-      hasAIReply &&
-      user?.id
-    ) {
-      try {
-        await saveConversationHistory({
-          user_id: user.id,
-          topic,
-          messages: currentMessages,
-        });
-      } catch (e) {
-        // 可选：console.warn('保存历史失败', e);
-      }
-    }
-  }, [user, topic, isHistory, isAuthenticated]);
-
   // 新增：监听消息变化，自动保存到历史记录
   useEffect(() => {
     const updateHistory = async () => {

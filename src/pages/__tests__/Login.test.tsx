@@ -1,9 +1,11 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
-jest.mock('../../services/supabase');
-import Login from '../Login.tsx';
-import { AuthProvider } from '../../contexts/AuthContext.tsx';
 import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from '../../contexts/AuthContext';
+import Login from '../Login';
+
+// Mock Supabase to avoid ESM import issues in Jest
+jest.mock('../../services/supabase');
 
 describe('Login Page', () => {
   function setup() {
