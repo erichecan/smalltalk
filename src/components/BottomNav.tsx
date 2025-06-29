@@ -7,11 +7,9 @@ import {
   useTheme
 } from '@mui/material';
 import {
-  Chat as ChatIcon,
-  School as PracticeIcon,
-  MenuBook as VocabularyIcon,
-  Person as PersonIcon,
-  History as HistoryIcon,
+  History,
+  Book,
+  Person,
 } from '@mui/icons-material';
 import type { ReactElement } from 'react';
 import type { IconProps } from '@mui/material/Icon';
@@ -27,22 +25,22 @@ export interface NavItem {
 export const navigationItems: NavItem[] = [
   {
     label: '历史',
-    icon: <HistoryIcon />,
+    icon: <History />,
     path: '/history',
   },
   {
     label: '练习',
-    icon: <PracticeIcon />,
+    icon: <Book />,
     path: '/practice',
   },
   {
     label: '词汇',
-    icon: <VocabularyIcon />,
+    icon: <Book />,
     path: '/vocabulary',
   },
   {
     label: '我的',
-    icon: <PersonIcon />,
+    icon: <Person />,
     path: '/my',
   },
 ];
@@ -86,9 +84,11 @@ const BottomNav = () => {
     >
       <BottomNavigation
         value={value}
-        onChange={(event, newValue) => {
-          setValue(newValue);
-          navigate(navigationItems[newValue].path);
+        onChange={(_event, newValue) => {
+          if (newValue !== null) {
+            setValue(newValue);
+            navigate(navigationItems[newValue].path);
+          }
         }}
         showLabels
         sx={{

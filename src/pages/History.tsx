@@ -24,7 +24,7 @@ export default function History() {
 
   // 加载历史数据
   const loadHistory = async (page: number) => {
-    if (!user?.uid) {
+    if (!user?.id) {
       setLoading(false);
       return;
     }
@@ -32,7 +32,7 @@ export default function History() {
     try {
       setLoading(true);
       setError(null);
-      const { data, error: supabaseError, count } = await getConversationHistory(user.uid, page, pageSize);
+      const { data, error: supabaseError, count } = await getConversationHistory(user.id, page, pageSize);
       
       if (supabaseError) {
         throw new Error(supabaseError.message);
@@ -55,7 +55,7 @@ export default function History() {
   }, [user, currentPage]);
 
   // 处理分页变化
-  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, page: number) => {
     setCurrentPage(page);
   };
 

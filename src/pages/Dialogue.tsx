@@ -1,8 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Container, Box, Typography, TextField, Button, Paper, Stack, Alert, CircularProgress, Avatar, IconButton, Fade, Tooltip, Snackbar } from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ClearIcon from '@mui/icons-material/Clear';
 import HistoryIcon from '@mui/icons-material/History';
@@ -10,7 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import type { Message } from '../types/chat';
 import { getAIResponse } from '../services/ai';
 import { useAuth } from '../contexts/AuthContext';
-import { saveConversationHistory } from '../services/historyService';
+import { saveConversationHistory, updateConversationHistory } from '../services/historyService';
 
 export default function Dialogue() {
   const location = useLocation();
@@ -18,11 +15,12 @@ export default function Dialogue() {
   const topic = location.state?.topic || '';
   const initialMessages = location.state?.initialMessages || '';
   const isHistory = location.state?.isHistory || false;
+  const conversationId = location.state?.conversationId;
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -43,10 +41,10 @@ export default function Dialogue() {
 
   // 保存历史到 Supabase
   const saveHistoryToCloud = useCallback(async (currentMessages: Message[]) => {
-    if (user && user.uid && topic && currentMessages.length > 0) {
+    if (user && user.id && topic && currentMessages.length > 0) {
       try {
         await saveConversationHistory({
-          user_id: user.uid,
+          user_id: user.id,
           topic,
           messages: currentMessages,
         });
@@ -134,6 +132,11 @@ export default function Dialogue() {
   const [isLoading, setIsLoading] = useState(false);
   const [copySnackbar, setCopySnackbar] = useState(false);
 
+  // 新增：未登录用户只返回一轮AI对话
+  const isGuest = !isAuthenticated;
+  // 新增：未登录用户是否已体验过一轮
+  const guestHasInteracted = isGuest && messages.some(m => m.sender === 'ai');
+
   if (!topic) {
     // 如果没有话题，自动跳转到 /topic
     useEffect(() => {
@@ -154,6 +157,10 @@ export default function Dialogue() {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+    if (guestHasInteracted) {
+      setError('请登录后体验多轮对话');
+      return;
+    }
 
     const userMessage: Message = {
       id: messages.length + 1,
@@ -168,6 +175,21 @@ export default function Dialogue() {
     setError(null);
 
     try {
+      // 未登录用户只返回一轮
+      if (isGuest) {
+        const aiResponse = await getAIResponse(newMessages, topic);
+        const aiBubbleColor = '#E8F5E9';
+        const aiMessage: Message = {
+          id: newMessages.length + 1,
+          sender: 'ai',
+          text: aiResponse,
+          bubbleColor: aiBubbleColor
+        };
+        setMessages([...newMessages, aiMessage]);
+        setIsLoading(false);
+        return;
+      }
+      // 已登录用户多轮
       const aiResponse = await getAIResponse(newMessages, topic);
       const conversations = parseAIResponse(aiResponse);
       const aiBubbleColor = '#E8F5E9';
@@ -184,6 +206,9 @@ export default function Dialogue() {
       });
       setMessages(updatedMessages);
       saveHistoryToCloud(updatedMessages);
+      if (conversationId) {
+        await updateConversationHistory(conversationId, updatedMessages);
+      }
     } catch (err) {
       const errorMessage: Message = {
         id: messages.length + 2,
@@ -326,6 +351,14 @@ export default function Dialogue() {
               </Box>
             </Fade>
           ))}
+          {/* 未登录时底部登录引导 */}
+          {isGuest && (
+            <Box sx={{ textAlign: 'center', mt: 4 }}>
+              <Button variant="contained" color="primary" onClick={() => navigate('/login')}>
+                登录查看更多对话
+              </Button>
+            </Box>
+          )}
           {isLoading && (
             <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
               <Paper sx={{
@@ -372,7 +405,7 @@ export default function Dialogue() {
             size="small"
             multiline
             maxRows={4}
-            disabled={isLoading}
+            disabled={isLoading || (isGuest && guestHasInteracted)}
             fullWidth
             sx={{ 
               borderRadius: 2, 
@@ -401,7 +434,7 @@ export default function Dialogue() {
         <Button 
           type="submit" 
           variant="contained" 
-          disabled={isLoading || !input.trim()}
+          disabled={isLoading || !input.trim() || (isGuest && guestHasInteracted)}
           sx={{ 
             bgcolor: '#CAECCA', 
             color: '#111811', 
@@ -417,6 +450,11 @@ export default function Dialogue() {
           Send
         </Button>
       </Box>
+      {isGuest && guestHasInteracted && (
+        <Alert severity="info" sx={{ mt: 2 }}>
+          登录可继续多轮对话，体验完整 AI 互动！
+        </Alert>
+      )}
       <Snackbar
         open={copySnackbar}
         autoHideDuration={2000}

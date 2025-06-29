@@ -1,17 +1,41 @@
-import React from 'react';
+import { Box, Typography, Container, Paper, Button, Grid } from '@mui/material';
 
 export default function Practice() {
   return (
-    <div style={{ padding: 24 }}>
-      <h1>Practice Exercises</h1>
-      {/* 这里是原型内容的简化占位，后续可根据需求细化为组件 */}
-      <ul>
-        <li>Quizzes - Test your understanding with multiple-choice or true/false questions.</li>
-        <li>Fill-in-the-Blanks - Complete sentences with missing words or phrases.</li>
-        <li>Matching - Match vocabulary/phrases with their definitions or examples.</li>
-        <li>Pronunciation Practice - Practice speaking and receive feedback on your pronunciation.</li>
-        <li>Sentence Construction - Build sentences using provided words or phrases.</li>
-      </ul>
-    </div>
+    <Container maxWidth="md">
+      <Box sx={{ py: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          练习
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3, textAlign: 'center' }}>
+              <Typography variant="h6" gutterBottom>
+                对话练习
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                与AI进行实时对话练习，提升口语表达能力
+              </Typography>
+              <Button variant="contained" href="/topic">
+                开始练习
+              </Button>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3, textAlign: 'center' }}>
+              <Typography variant="h6" gutterBottom>
+                词汇练习
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                通过游戏化方式学习新词汇
+              </Typography>
+              <Button variant="outlined" href="/vocabulary">
+                查看词汇
+              </Button>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Box>
+    </Container>
   );
 } 

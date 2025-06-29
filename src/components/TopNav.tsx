@@ -7,7 +7,7 @@ import {
   useTheme,
   Box,
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Person as PersonIcon } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
 // 不显示返回箭头的路由
@@ -80,10 +80,12 @@ const TopNav = () => {
                 height: 32,
                 bgcolor: isAuthenticated ? 'primary.main' : 'grey.300',
               }}
-              src={user?.avatar}
+              src={user?.avatar ? user.avatar : undefined}
             >
-              {/* 如果没有头像，显示默认图标 */}
-              {!user?.avatar && (isAuthenticated ? user?.name?.[0] : '?')}
+              {/* 如果没有头像，显示默认人型图标 */}
+              {isAuthenticated
+                ? (user?.avatar ? null : user?.name?.[0])
+                : <PersonIcon sx={{ color: '#888' }} />}
             </Avatar>
           </IconButton>
         </Box>

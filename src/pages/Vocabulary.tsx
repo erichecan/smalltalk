@@ -1,18 +1,40 @@
-import React from 'react';
+import { Box, Typography, Container, Paper, List, ListItem, ListItemText, Chip } from '@mui/material';
 
 export default function Vocabulary() {
+  const sampleWords = [
+    { word: 'Greeting', meaning: '问候', difficulty: 'Easy' },
+    { word: 'Conversation', meaning: '对话', difficulty: 'Medium' },
+    { word: 'Expression', meaning: '表达', difficulty: 'Medium' },
+    { word: 'Pronunciation', meaning: '发音', difficulty: 'Hard' },
+  ];
+
   return (
-    <div style={{ padding: 24 }}>
-      <h1>Vocabulary & Phrases</h1>
-      {/* 这里是原型内容的简化占位，后续可根据需求细化为组件 */}
-      <ul>
-        <li>Joy - A feeling of great pleasure and happiness. "Her eyes sparkled with joy."</li>
-        <li>Compliment - To express admiration or approval. "He paid her a lovely compliment on her dress."</li>
-        <li>Cheer up - To make someone feel less sad or disappointed. "I tried to cheer him up after he lost the game."</li>
-        <li>Get along - To have a friendly relationship with someone. "Do you and your sister get along?"</li>
-        <li>Astonished - To be very surprised or shocked. "I was astonished by the news."</li>
-        <li>Thrilled - To be very happy and excited. "She was thrilled with her exam results."</li>
-      </ul>
-    </div>
+    <Container maxWidth="md">
+      <Box sx={{ py: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          词汇库
+        </Typography>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            今日推荐词汇
+          </Typography>
+          <List>
+            {sampleWords.map((item, index) => (
+              <ListItem key={index} divider>
+                <ListItemText
+                  primary={item.word}
+                  secondary={item.meaning}
+                />
+                <Chip 
+                  label={item.difficulty} 
+                  color={item.difficulty === 'Easy' ? 'success' : item.difficulty === 'Medium' ? 'warning' : 'error'}
+                  size="small"
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Paper>
+      </Box>
+    </Container>
   );
 } 

@@ -1,14 +1,22 @@
-import React from 'react';
+import { Box, Typography, Container, Paper, Button } from '@mui/material';
 
 const TestPage = () => {
   return (
-    <div style={{
-      color: 'red',
-      fontSize: '24px',
-      padding: '20px'
-    }}>
-      测试页面 - 如果看到这段红色文字说明路由工作正常
-    </div>
+    <Container maxWidth="sm">
+      <Box sx={{ py: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          测试页面
+        </Typography>
+        <Paper sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant="body1" paragraph>
+            这是一个测试页面，用于验证路由和组件功能。
+          </Typography>
+          <Button variant="contained" href="/topic">
+            返回首页
+          </Button>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 

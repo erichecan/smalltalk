@@ -1,7 +1,7 @@
 import type { Message } from '../types/chat';
+import { GEMINI_API_KEY } from '../env';
 
-// 使用 Gemini API
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+// 使用统一的环境变量适配器
 // 使用更稳定的 gemini-1.5-flash 模型
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 
@@ -82,15 +82,26 @@ A: (natural response)
 Remember: The goal is to help users practice natural English conversation and feel confident in everyday small talk situations.`;
 
     // 构建请求体
-      const requestBody = {
-        contents: [],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 1000
-        }
+    const requestBody: {
+      contents: Array<{
+        role: string;
+        parts: Array<{ text: string }>;
+      }>;
+      generationConfig: {
+        temperature: number;
+        topK: number;
+        topP: number;
+        maxOutputTokens: number;
       };
+    } = {
+      contents: [],
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 1000
+      }
+    };
 
     // 使用系统提示和用户第一条消息来构建初始对话
     // 这种方式更符合 Gemini API 的预期格式
@@ -173,9 +184,9 @@ Remember: The goal is to help users practice natural English conversation and fe
     
     // 记录更详细的错误信息
     if (error instanceof Response || (error && typeof error === 'object' && 'status' in error)) {
-      console.error(`API responded with status: ${error.status}`);
+      console.error(`API responded with status: ${(error as any).status}`);
       try {
-        const errorText = await error.text();
+        const errorText = await (error as Response).text();
         console.error('Error response body:', errorText);
       } catch (e) {
         console.error('Could not read error response body');

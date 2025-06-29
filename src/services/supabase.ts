@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../env';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY!;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey); 
+// 使用统一的环境变量适配器
+export const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!); 

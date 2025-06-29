@@ -39,4 +39,11 @@ export async function getConversationById(id: string) {
     .select('*')
     .eq('id', id)
     .single();
+}
+
+export async function updateConversationHistory(id: string, messages: any) {
+  return supabase
+    .from('conversation_history')
+    .update({ messages })
+    .eq('id', id);
 } 

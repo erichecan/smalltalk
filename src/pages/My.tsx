@@ -1,15 +1,48 @@
-import React from 'react';
+import { Box, Typography, Container, Paper, List, ListItem, ListItemText, Divider } from '@mui/material';
+import { Button } from '@mui/material';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function My() {
+  const { user, isAuthenticated } = useAuth();
+
   return (
-    <div style={{ padding: 24 }}>
-      <h1>My / Community</h1>
-      {/* 这里是原型内容的简化占位，后续可根据需求细化为组件 */}
-      <ul>
-        <li>动态/社区内容展示（如 For You、Following、Groups）</li>
-        <li>个人信息、成就、排行榜、订阅、好友、设置、帮助等二级入口</li>
-        <li>右上角有消息、通知入口</li>
-      </ul>
-    </div>
+    <Container maxWidth="sm">
+      <Box sx={{ py: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          我的
+        </Typography>
+        <Paper sx={{ p: 3 }}>
+          {isAuthenticated ? (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                欢迎，{user?.name || user?.email}
+              </Typography>
+              <List>
+                <ListItem>
+                  <ListItemText primary="个人资料" />
+                </ListItem>
+                <Divider />
+                <ListItem>
+                  <ListItemText primary="学习设置" />
+                </ListItem>
+                <Divider />
+                <ListItem>
+                  <ListItemText primary="帮助与反馈" />
+                </ListItem>
+              </List>
+            </Box>
+          ) : (
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h6" gutterBottom>
+                请先登录
+              </Typography>
+              <Button variant="contained" href="/login">
+                去登录
+              </Button>
+            </Box>
+          )}
+        </Paper>
+      </Box>
+    </Container>
   );
 } 
