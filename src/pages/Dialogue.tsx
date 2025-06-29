@@ -5,6 +5,7 @@ import SmartToyIcon from '@mui/icons-material/SmartToy';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ClearIcon from '@mui/icons-material/Clear';
+import HistoryIcon from '@mui/icons-material/History';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Message } from '../types/chat';
 import { getAIResponse } from '../services/ai';
@@ -186,15 +187,16 @@ export default function Dialogue() {
         position: 'relative',
         width: '100%'
       }}>
+        {/* 左上角 History 按钮 */}
         <IconButton 
-          onClick={() => navigate('/topic')} 
+          onClick={() => navigate('/history')} 
           sx={{ 
             position: 'absolute', 
             left: 8, 
             color: '#0d1b0d' 
           }}
         >
-          <ArrowBackIcon />
+          <HistoryIcon />
         </IconButton>
         <Typography 
           variant="subtitle1" 
