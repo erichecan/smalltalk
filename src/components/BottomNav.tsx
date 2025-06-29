@@ -27,7 +27,7 @@ export const navigationItems: NavItem[] = [
   {
     label: '对话',
     icon: <ChatIcon />,
-    path: '/dialogue',
+    path: '/topic',
   },
   {
     label: '练习',

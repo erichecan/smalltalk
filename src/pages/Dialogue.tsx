@@ -110,7 +110,10 @@ export default function Dialogue() {
   const [copySnackbar, setCopySnackbar] = useState(false);
 
   if (!topic) {
-    navigate('/topic-input');
+    // 如果没有话题，自动跳转到 /topic
+    useEffect(() => {
+      navigate('/topic');
+    }, [navigate]);
     return null;
   }
 
