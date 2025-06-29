@@ -9,16 +9,20 @@ import HistoryIcon from '@mui/icons-material/History';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Message } from '../types/chat';
 import { getAIResponse } from '../services/ai';
+import { useAuth } from '../contexts/AuthContext';
+import { saveConversationHistory } from '../services/historyService';
 
 export default function Dialogue() {
   const location = useLocation();
   const navigate = useNavigate();
   const topic = location.state?.topic || '';
   const initialMessages = location.state?.initialMessages || '';
+  const isHistory = location.state?.isHistory || false;
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -37,57 +41,79 @@ export default function Dialogue() {
     return conversations.map(conv => conv.replace(/\[CONV\d+\]/, '').trim());
   };
 
+  // 保存历史到 Supabase
+  const saveHistoryToCloud = useCallback(async (currentMessages: Message[]) => {
+    if (user && user.uid && topic && currentMessages.length > 0) {
+      try {
+        await saveConversationHistory({
+          user_id: user.uid,
+          topic,
+          messages: currentMessages,
+        });
+      } catch (e) {
+        // 可选：console.warn('保存历史失败', e);
+      }
+    }
+  }, [user, topic]);
+
+  // 初始化对话后保存历史
+  useEffect(() => {
+    if (!isInitializing && messages.length > 0) {
+      saveHistoryToCloud(messages);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInitializing]);
+
   useEffect(() => {
     const initializeConversation = async () => {
       try {
-        // 立即显示用户输入的主题作为第一条消息
+        if (isHistory && initialMessages) {
+          // 历史模式：直接展示历史消息，不请求AI
+          setMessages(initialMessages);
+          setIsInitializing(false);
+          return;
+        }
+
         setMessages([{
           id: 1,
           sender: 'user',
           text: `Topic: ${topic}`
         }]);
-        
-        // 检查是否有从TopicInput传来的初始消息
         if (initialMessages) {
           const conversations = parseAIResponse(initialMessages);
-          
-          // 使用固定的浅绿色背景
           const aiBubbleColor = '#E8F5E9';
-          
-          const aiMessages = conversations.map((text, index) => {
-            // 在句和问句之间添加换行
+          const aiMessages: Message[] = conversations.map((text, index) => {
             const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
-            
             return {
-              id: index + 2, // 从2开始，因为第一条是用户消息
+              id: index + 2,
               sender: 'ai',
               text: formattedText,
               bubbleColor: aiBubbleColor
             };
           });
-          
-          setMessages(prev => [...prev, ...aiMessages]);
+          setMessages([{
+            id: 1,
+            sender: 'user',
+            text: `Topic: ${topic}`
+          }, ...aiMessages]);
         } else {
-          // 如果没有初始消息，则获取AI对主题的响应
           const response = await getAIResponse([], topic);
           const conversations = parseAIResponse(response);
-          
-          // 使用固定的浅绿色背景
           const aiBubbleColor = '#E8F5E9';
-          
-          const aiMessages = conversations.map((text, index) => {
-            // 在句和问句之间添加换行
+          const aiMessages: Message[] = conversations.map((text, index) => {
             const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
-            
             return {
-              id: index + 2, // 从2开始，因为第一条是用户消息
+              id: index + 2,
               sender: 'ai',
               text: formattedText,
               bubbleColor: aiBubbleColor
             };
           });
-          
-          setMessages(prev => [...prev, ...aiMessages]);
+          setMessages([{
+            id: 1,
+            sender: 'user',
+            text: `Topic: ${topic}`
+          }, ...aiMessages]);
         }
       } catch (error) {
         console.error('Error initializing conversation:', error);
@@ -100,11 +126,10 @@ export default function Dialogue() {
         setIsInitializing(false);
       }
     };
-
     if (topic) {
       initializeConversation();
     }
-  }, [topic, initialMessages]);
+  }, [topic, initialMessages, isHistory]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copySnackbar, setCopySnackbar] = useState(false);
@@ -136,41 +161,37 @@ export default function Dialogue() {
       text: input.trim()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
     setError(null);
 
     try {
-      const aiResponse = await getAIResponse([...messages, userMessage], topic);
+      const aiResponse = await getAIResponse(newMessages, topic);
       const conversations = parseAIResponse(aiResponse);
-      
-      // 使用固定的浅绿色背景
       const aiBubbleColor = '#E8F5E9';
-      
-      let newMessages = [...messages, userMessage];
+      let updatedMessages = [...newMessages];
       conversations.forEach((text) => {
-        // 在句和问句之间添加换行
         const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
-        
         const aiMessage: Message = {
-          id: newMessages.length + 1,
+          id: updatedMessages.length + 1,
           sender: 'ai',
           text: formattedText,
           bubbleColor: aiBubbleColor
         };
-        newMessages.push(aiMessage);
+        updatedMessages.push(aiMessage);
       });
-      
-      setMessages(newMessages);
+      setMessages(updatedMessages);
+      saveHistoryToCloud(updatedMessages);
     } catch (err) {
       const errorMessage: Message = {
         id: messages.length + 2,
         sender: 'ai',
         text: err instanceof Error ? err.message : 'Failed to get AI response. Please try again.',
-        bubbleColor: '#FFEBEE' // 错误消息使用红色背景
+        bubbleColor: '#FFEBEE'
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages([...messages, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -214,6 +235,20 @@ export default function Dialogue() {
           }}
         >
           {topic}
+          {isHistory && (
+            <Typography 
+              component="span" 
+              variant="caption" 
+              sx={{ 
+                display: 'block', 
+                color: '#5D895D', 
+                fontSize: '0.7rem',
+                fontWeight: 'normal'
+              }}
+            >
+              (History)
+            </Typography>
+          )}
         </Typography>
       </Box>
       {/* 消息列表 */}
