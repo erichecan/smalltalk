@@ -48,7 +48,15 @@ export default function Dialogue() {
 
   // 保存历史到 Supabase
   const saveHistoryToCloud = useCallback(async (currentMessages: Message[]) => {
-    if (user && user.id && topic && currentMessages.length > 0) {
+    // 只在已登录、非历史模式、AI有新回复且消息数大于1时才保存
+    const hasAIReply = currentMessages.some(m => m.sender === 'ai');
+    if (
+      isAuthenticated &&
+      !isHistory &&
+      currentMessages.length > 1 &&
+      hasAIReply &&
+      user?.id
+    ) {
       try {
         await saveConversationHistory({
           user_id: user.id,
@@ -59,22 +67,21 @@ export default function Dialogue() {
         // 可选：console.warn('保存历史失败', e);
       }
     }
-  }, [user, topic]);
-
-  // 初始化对话后保存历史
-  useEffect(() => {
-    if (!isInitializing && messages.length > 0) {
-      saveHistoryToCloud(messages);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInitializing]);
+  }, [user, topic, isHistory, isAuthenticated]);
 
   useEffect(() => {
     const initializeConversation = async () => {
       try {
         if (isHistory && initialMessages) {
           // 历史模式：直接展示历史消息，不请求AI
-          setMessages(initialMessages);
+          // 确保所有AI消息都有正确的bubbleColor
+          const processedMessages = initialMessages.map((msg: Message) => {
+            if (msg.sender === 'ai' && !msg.bubbleColor) {
+              return { ...msg, bubbleColor: '#E8F5E9' };
+            }
+            return msg;
+          });
+          setMessages(processedMessages);
           setIsInitializing(false);
           return;
         }
@@ -245,7 +252,7 @@ export default function Dialogue() {
         updatedMessages.push(aiMessage);
       });
       setMessages(updatedMessages);
-      saveHistoryToCloud(updatedMessages);
+      // 只 update，不再新建历史
       if (conversationId) {
         await updateConversationHistory(conversationId, updatedMessages);
       }

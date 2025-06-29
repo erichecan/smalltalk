@@ -34,6 +34,17 @@ export default function TopicInput() {
     try {
       // 调用 AI 获取初始对话
       const initialMessages = await getAIResponse([], trimmed);
+      // 拆分AI回复为5条
+      const parseAIResponse = (text: string): string[] => {
+        const conversations = text.match(/\[CONV\d+\]([\s\S]*?)(?=\[CONV\d+\]|$)/g) || [];
+        return conversations.map(conv => conv.replace(/\[CONV\d+\]/, '').trim());
+      };
+      const aiMessages = parseAIResponse(initialMessages).map((text, idx) => ({
+        id: idx + 2,
+        sender: 'ai',
+        text,
+        bubbleColor: '#E8F5E9'
+      }));
       if (!user || !user.id) {
         // 未登录：只返回AI回复，不保存历史
         navigate('/dialogue', {
@@ -46,12 +57,13 @@ export default function TopicInput() {
         setLoading(false);
         return;
       }
-      // 已登录：保存历史
+      // 已登录：保存历史，包含用户输入和AI回复
       const saveRes = await saveConversationHistory({
         user_id: user.id,
         topic: trimmed,
         messages: [
-          { id: 1, sender: 'ai', text: initialMessages }
+          { id: 1, sender: 'user', text: trimmed },
+          ...aiMessages
         ]
       });
       if (saveRes.error) {
@@ -85,7 +97,19 @@ export default function TopicInput() {
               variant="outlined"
               fullWidth
               value={topic}
-              onChange={(e) => setTopic(e.target.value)}
+              onChange={(e) => {
+                setTopic(e.target.value);
+                // 输入合规时清除 error
+                const trimmed = e.target.value.trim();
+                if (
+                  error &&
+                  trimmed.length >= 5 &&
+                  !/^\d+$/.test(trimmed) &&
+                  !/^[\p{P}\p{S}\s]+$/u.test(trimmed)
+                ) {
+                  setError(null);
+                }
+              }}
               sx={{ mb: 2, borderRadius: 2, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
             <Button 
