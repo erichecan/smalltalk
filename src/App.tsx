@@ -14,6 +14,9 @@ const Profile = lazy(() => import('./pages/Profile'));
 const Settings = lazy(() => import('./pages/Settings'));
 const History = lazy(() => import('./pages/History'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const Practice = lazy(() => import('./pages/Practice'));
+const Vocabulary = lazy(() => import('./pages/Vocabulary'));
+const My = lazy(() => import('./pages/My'));
 
 // 后续实现 MUI 主题，这里先使用默认主题
 import { createTheme } from '@mui/material/styles';
@@ -52,6 +55,9 @@ function App() {
                   } 
                 />
                 <Route path="/dialogue" element={<Dialogue />} />
+                <Route path="/practice" element={<Practice />} />
+                <Route path="/vocabulary" element={<Vocabulary />} />
+                <Route path="/my" element={<My />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/history" element={<History />} />
