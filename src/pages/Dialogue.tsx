@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Container, Box, Typography, TextField, Button, Paper, Stack, Alert, CircularProgress, Avatar, IconButton, Fade, Tooltip, Snackbar } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -21,6 +21,13 @@ export default function Dialogue() {
   const [isInitializing, setIsInitializing] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useAuth();
+
+  // 新增：未登录用户只返回一轮AI对话
+  const isGuest = !isAuthenticated;
+  // 新增：未登录用户是否已体验过一轮
+  const guestHasInteracted = useMemo(() => {
+    return isGuest && messages.some(m => m.sender === 'ai');
+  }, [isGuest, messages]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -80,38 +87,76 @@ export default function Dialogue() {
         if (initialMessages) {
           const conversations = parseAIResponse(initialMessages);
           const aiBubbleColor = '#E8F5E9';
-          const aiMessages: Message[] = conversations.map((text, index) => {
-            const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
-            return {
-              id: index + 2,
+          
+          // 未登录用户只显示第一条AI回复
+          if (isGuest) {
+            const firstConversation = conversations[0] || '';
+            const formattedText = firstConversation.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
+            const aiMessage: Message = {
+              id: 2,
               sender: 'ai',
               text: formattedText,
               bubbleColor: aiBubbleColor
             };
-          });
-          setMessages([{
-            id: 1,
-            sender: 'user',
-            text: `Topic: ${topic}`
-          }, ...aiMessages]);
+            setMessages([{
+              id: 1,
+              sender: 'user',
+              text: `Topic: ${topic}`
+            }, aiMessage]);
+          } else {
+            // 已登录用户显示所有AI回复
+            const aiMessages: Message[] = conversations.map((text, index) => {
+              const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
+              return {
+                id: index + 2,
+                sender: 'ai',
+                text: formattedText,
+                bubbleColor: aiBubbleColor
+              };
+            });
+            setMessages([{
+              id: 1,
+              sender: 'user',
+              text: `Topic: ${topic}`
+            }, ...aiMessages]);
+          }
         } else {
           const response = await getAIResponse([], topic);
           const conversations = parseAIResponse(response);
           const aiBubbleColor = '#E8F5E9';
-          const aiMessages: Message[] = conversations.map((text, index) => {
-            const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
-            return {
-              id: index + 2,
+          
+          // 未登录用户只显示第一条AI回复
+          if (isGuest) {
+            const firstConversation = conversations[0] || '';
+            const formattedText = firstConversation.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
+            const aiMessage: Message = {
+              id: 2,
               sender: 'ai',
               text: formattedText,
               bubbleColor: aiBubbleColor
             };
-          });
-          setMessages([{
-            id: 1,
-            sender: 'user',
-            text: `Topic: ${topic}`
-          }, ...aiMessages]);
+            setMessages([{
+              id: 1,
+              sender: 'user',
+              text: `Topic: ${topic}`
+            }, aiMessage]);
+          } else {
+            // 已登录用户显示所有AI回复
+            const aiMessages: Message[] = conversations.map((text, index) => {
+              const formattedText = text.replace(/([^.!?]+[.!?])(\s+)([^.!?]+[.!?])/g, '$1\n\n$3');
+              return {
+                id: index + 2,
+                sender: 'ai',
+                text: formattedText,
+                bubbleColor: aiBubbleColor
+              };
+            });
+            setMessages([{
+              id: 1,
+              sender: 'user',
+              text: `Topic: ${topic}`
+            }, ...aiMessages]);
+          }
         }
       } catch (error) {
         console.error('Error initializing conversation:', error);
@@ -131,11 +176,6 @@ export default function Dialogue() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copySnackbar, setCopySnackbar] = useState(false);
-
-  // 新增：未登录用户只返回一轮AI对话
-  const isGuest = !isAuthenticated;
-  // 新增：未登录用户是否已体验过一轮
-  const guestHasInteracted = isGuest && messages.some(m => m.sender === 'ai');
 
   if (!topic) {
     // 如果没有话题，自动跳转到 /topic
@@ -288,95 +328,179 @@ export default function Dialogue() {
             <CircularProgress sx={{ color: '#4c9a4c' }} />
           </Box>
         ) : (
-          <Stack spacing={2}>
-          {messages.map((msg) => (
-            <Fade key={msg.id} in={true} timeout={400}>
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-                alignItems: 'flex-end',
-                gap: 1
-              }}>
-                {msg.sender === 'ai' && (
-                  <Avatar 
-                    src="/src/assets/images/ai_avatar.png"
-                    sx={{ 
-                      width: 32, 
-                      height: 32
-                    }}
-                  />
-                )}
-                <Paper sx={{
-                  px: 2, py: 1, maxWidth: 320,
-                  bgcolor: msg.sender === 'user' ? '#CAECCA' : (msg.bubbleColor || '#fff'),
-                  color: '#0d1b0d',
-                  borderRadius: msg.sender === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                  boxShadow: 1,
-                  position: 'relative',
-                  '&:hover .copy-button': {
-                    opacity: 1,
-                  }
+          <>
+            <Stack spacing={2}>
+            {messages.map((msg) => (
+              <Fade key={msg.id} in={true} timeout={400}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                  alignItems: 'flex-end',
+                  gap: 1
                 }}>
-                  <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>{msg.text}</Typography>
-                  <Tooltip title="复制">
-                    <IconButton
-                      className="copy-button"
-                      size="small"
-                      onClick={() => handleCopyMessage(msg.text)}
-                      sx={{
-                        position: 'absolute',
-                        right: 4,
-                        top: 4,
-                        opacity: 0,
-                        transition: 'opacity 0.2s',
-                        color: '#666',
-                        '&:hover': {
-                          color: '#333',
-                        }
+                  {msg.sender === 'ai' && (
+                    <Avatar 
+                      src="/src/assets/images/ai_avatar.png"
+                      sx={{ 
+                        width: 32, 
+                        height: 32
                       }}
-                    >
-                      <ContentCopyIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                    />
+                  )}
+                  <Paper sx={{
+                    px: 2, py: 1, maxWidth: 320,
+                    bgcolor: msg.sender === 'user' ? '#CAECCA' : (msg.bubbleColor || '#fff'),
+                    color: '#0d1b0d',
+                    borderRadius: msg.sender === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                    boxShadow: 1,
+                    position: 'relative',
+                    '&:hover .copy-button': {
+                      opacity: 1,
+                    }
+                  }}>
+                    <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>{msg.text}</Typography>
+                    <Tooltip title="复制">
+                      <IconButton
+                        className="copy-button"
+                        size="small"
+                        onClick={() => handleCopyMessage(msg.text)}
+                        sx={{
+                          position: 'absolute',
+                          right: 4,
+                          top: 4,
+                          opacity: 0,
+                          transition: 'opacity 0.2s',
+                          color: '#666',
+                          '&:hover': {
+                            color: '#333',
+                          }
+                        }}
+                      >
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Paper>
+                  {msg.sender === 'user' && (
+                    <Avatar 
+                      src="/src/assets/images/user_avatar.png"
+                      sx={{ 
+                        width: 32, 
+                        height: 32
+                      }}
+                    />
+                  )}
+                </Box>
+              </Fade>
+            ))}
+            {isLoading && (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <Paper sx={{
+                  px: 2, py: 1,
+                  bgcolor: '#fff',
+                  color: '#0d1b0d',
+                  borderRadius: '18px 18px 18px 4px',
+                  boxShadow: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}>
+                  <CircularProgress size={16} sx={{ color: '#4c9a4c' }} />
+                  <Typography variant="body2" sx={{ color: '#5D895D' }}>AI is typing...</Typography>
                 </Paper>
-                {msg.sender === 'user' && (
-                  <Avatar 
-                    src="/src/assets/images/user_avatar.png"
-                    sx={{ 
-                      width: 32, 
-                      height: 32
-                    }}
-                  />
-                )}
               </Box>
-            </Fade>
-          ))}
-          {/* 未登录时底部登录引导 */}
-          {isGuest && (
-            <Box sx={{ textAlign: 'center', mt: 4 }}>
-              <Button variant="contained" color="primary" onClick={() => navigate('/login')}>
-                登录查看更多对话
-              </Button>
-            </Box>
-          )}
-          {isLoading && (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <Paper sx={{
-                px: 2, py: 1,
-                bgcolor: '#fff',
-                color: '#0d1b0d',
-                borderRadius: '18px 18px 18px 4px',
-                boxShadow: 1,
+            )}
+            </Stack>
+            
+            {/* 未登录用户的模糊遮罩效果 */}
+            {isGuest && (
+              <Box sx={{ 
+                position: 'relative',
+                mt: 2,
+                height: 200,
+                background: 'linear-gradient(180deg, rgba(248,252,248,0) 0%, rgba(248,252,248,0.8) 50%, rgba(248,252,248,1) 100%)',
+                borderRadius: 2,
                 display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
                 alignItems: 'center',
-                gap: 1
+                backdropFilter: 'blur(4px)',
+                border: '1px solid rgba(202,236,202,0.3)'
               }}>
-                <CircularProgress size={16} sx={{ color: '#4c9a4c' }} />
-                <Typography variant="body2" sx={{ color: '#5D895D' }}>AI is typing...</Typography>
-              </Paper>
-            </Box>
-          )}
-        </Stack>
+                {/* 模拟更多对话内容的模糊预览 */}
+                <Box sx={{ 
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  opacity: 0.3,
+                  pointerEvents: 'none'
+                }}>
+                  {[1, 2, 3].map((i) => (
+                    <Box key={i} sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'flex-start',
+                      alignItems: 'flex-end',
+                      gap: 1,
+                      mb: 2,
+                      opacity: 0.6
+                    }}>
+                      <Avatar 
+                        src="/src/assets/images/ai_avatar.png"
+                        sx={{ width: 24, height: 24, opacity: 0.5 }}
+                      />
+                      <Box sx={{
+                        width: 200 + Math.random() * 100,
+                        height: 20 + Math.random() * 30,
+                        bgcolor: '#E8F5E9',
+                        borderRadius: '12px 12px 12px 4px',
+                        opacity: 0.4
+                      }} />
+                    </Box>
+                  ))}
+                </Box>
+                
+                {/* 登录引导 */}
+                <Box sx={{ 
+                  position: 'relative',
+                  zIndex: 1,
+                  textAlign: 'center',
+                  p: 3
+                }}>
+                  <Typography variant="h6" sx={{ 
+                    color: '#0d1b0d', 
+                    fontWeight: 'bold',
+                    mb: 1
+                  }}>
+                    还有更多精彩对话
+                  </Typography>
+                  <Typography variant="body2" sx={{ 
+                    color: '#5D895D',
+                    mb: 2
+                  }}>
+                    登录后体验完整的多轮AI对话
+                  </Typography>
+                  <Button 
+                    variant="contained" 
+                    onClick={() => navigate('/login')}
+                    sx={{ 
+                      bgcolor: '#CAECCA', 
+                      color: '#111811', 
+                      borderRadius: 20,
+                      fontWeight: 'bold',
+                      px: 3,
+                      py: 1,
+                      '&:hover': {
+                        bgcolor: '#b8e0b8'
+                      }
+                    }}
+                  >
+                    立即登录
+                  </Button>
+                </Box>
+              </Box>
+            )}
+          </>
         )}
         <div ref={messagesEndRef} />
       </Box>
