@@ -42,8 +42,25 @@ export async function getConversationById(id: string) {
 }
 
 export async function updateConversationHistory(id: string, messages: any) {
-  return supabase
+  console.log('[DEBUG] updateConversationHistory called with:', id, messages);
+  const res = await supabase
     .from('conversation_history')
     .update({ messages })
     .eq('id', id);
+  console.log('[DEBUG] updateConversationHistory result:', res);
+  return res;
+}
+
+export async function deleteConversationHistory(id: string) {
+  return supabase
+    .from('conversation_history')
+    .delete()
+    .eq('id', id);
+}
+
+export async function deleteMultipleConversations(ids: string[]) {
+  return supabase
+    .from('conversation_history')
+    .delete()
+    .in('id', ids);
 } 

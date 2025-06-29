@@ -71,7 +71,8 @@ export default function TopicInput() {
         setLoading(false);
         return;
       }
-      const conversationId = saveRes.data && (saveRes.data as any[]).length > 0 ? (saveRes.data as any[])[0].id : undefined;
+      // 修复：正确获取conversationId
+      const conversationId = saveRes.data ? (saveRes.data as any[])[0]?.id : undefined;
       navigate('/dialogue', { 
         state: { 
           topic: trimmed,

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Container, Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Paper, Button, CircularProgress, Pagination, Alert } from '@mui/material';
+import { Container, Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Paper, Button, CircularProgress, Pagination, Alert, Checkbox, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getConversationHistory } from '../services/historyService';
+import { getConversationHistory, deleteConversationHistory, deleteMultipleConversations } from '../services/historyService';
 import type { Message } from '../types/chat';
 
 interface ConversationHistory {
@@ -21,6 +22,12 @@ export default function History() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 10;
+  
+  // 删除功能状态
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   // 加载历史数据
   const loadHistory = async (page: number) => {
@@ -65,7 +72,8 @@ export default function History() {
       state: {
         topic: conversation.topic,
         initialMessages: conversation.messages,
-        isHistory: true // 标记这是历史数据，不需要重新请求AI
+        isHistory: true, // 标记这是历史数据，不需要重新请求AI
+        conversationId: conversation.id // 添加conversationId，确保能正确更新历史记录
       }
     });
   };
@@ -94,14 +102,80 @@ export default function History() {
     }
   };
 
+  // 处理选择变化
+  const handleSelectItem = (id: string) => {
+    setSelectedItems(prev => 
+      prev.includes(id) 
+        ? prev.filter(item => item !== id)
+        : [...prev, id]
+    );
+  };
+
+  // 处理全选
+  const handleSelectAll = () => {
+    if (selectedItems.length === history.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(history.map(item => item.id));
+    }
+  };
+
+  // 处理单条删除
+  const handleDeleteItem = (id: string) => {
+    setItemToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  // 处理批量删除
+  const handleBatchDelete = () => {
+    if (selectedItems.length > 0) {
+      setDeleteDialogOpen(true);
+    }
+  };
+
+  // 执行删除
+  const executeDelete = async () => {
+    setDeleteLoading(true);
+    try {
+      if (itemToDelete) {
+        // 单条删除
+        await deleteConversationHistory(itemToDelete);
+        setHistory(prev => prev.filter(item => item.id !== itemToDelete));
+      } else if (selectedItems.length > 0) {
+        // 批量删除
+        await deleteMultipleConversations(selectedItems);
+        setHistory(prev => prev.filter(item => !selectedItems.includes(item.id)));
+        setSelectedItems([]);
+      }
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
+    } catch (err) {
+      setError('删除失败，请重试');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   return (
     <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0 }}>
       {/* 顶部标题栏 */}
       <Box sx={{ bgcolor: '#CAECCA', py: 2, px: 3, borderBottomLeftRadius: 16, borderBottomRightRadius: 16, boxShadow: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>Conversation History</Typography>
-        <Button variant="contained" sx={{ bgcolor: '#0ecd6a', color: '#fff', borderRadius: 20, ml: 2, fontWeight: 'bold', boxShadow: 1 }} onClick={() => navigate('/topic')}>
-          发起新对话
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          {selectedItems.length > 0 && (
+            <Button 
+              variant="outlined" 
+              color="error" 
+              onClick={handleBatchDelete}
+              sx={{ borderRadius: 20, fontWeight: 'bold' }}
+            >
+              删除选中 ({selectedItems.length})
+            </Button>
+          )}
+          <Button variant="contained" sx={{ bgcolor: '#0ecd6a', color: '#fff', borderRadius: 20, fontWeight: 'bold', boxShadow: 1 }} onClick={() => navigate('/topic')}>
+            发起新对话
+          </Button>
+        </Box>
       </Box>
 
       {/* 历史对话列表 */}
@@ -123,21 +197,40 @@ export default function History() {
         ) : (
           <>
             <Paper sx={{ p: 2, borderRadius: 3, boxShadow: 1, mb: 2 }}>
+              {/* 全选栏 */}
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, px: 1 }}>
+                <Checkbox
+                  checked={selectedItems.length === history.length && history.length > 0}
+                  indeterminate={selectedItems.length > 0 && selectedItems.length < history.length}
+                  onChange={handleSelectAll}
+                  sx={{ color: '#5D895D', '&.Mui-checked': { color: '#4c9a4c' } }}
+                />
+                <Typography variant="body2" sx={{ color: '#5D895D', ml: 1 }}>
+                  {selectedItems.length > 0 ? `已选择 ${selectedItems.length} 项` : '全选'}
+                </Typography>
+              </Box>
+              
               <List>
                 {history.map((conversation) => (
                   <ListItem 
                     key={conversation.id} 
-                    onClick={() => handleHistoryClick(conversation)}
                     sx={{ 
                       cursor: 'pointer',
                       borderRadius: 2,
                       mb: 1,
+                      bgcolor: selectedItems.includes(conversation.id) ? '#f0f8f0' : 'transparent',
                       '&:hover': {
-                        bgcolor: '#f0f8f0',
+                        bgcolor: selectedItems.includes(conversation.id) ? '#e8f5e8' : '#f0f8f0',
                         transition: 'background-color 0.2s'
                       }
                     }}
                   >
+                    <Checkbox
+                      checked={selectedItems.includes(conversation.id)}
+                      onChange={() => handleSelectItem(conversation.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      sx={{ color: '#5D895D', '&.Mui-checked': { color: '#4c9a4c' } }}
+                    />
                     <ListItemAvatar>
                       <Avatar sx={{ bgcolor: '#CAECCA', color: '#0d1b0d' }}>
                         {conversation.topic[0].toUpperCase()}
@@ -159,7 +252,23 @@ export default function History() {
                           </Typography>
                         </Box>
                       }
+                      onClick={() => handleHistoryClick(conversation)}
                     />
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteItem(conversation.id);
+                      }}
+                      sx={{ 
+                        color: '#ff6b6b',
+                        '&:hover': { 
+                          bgcolor: '#ffe6e6',
+                          color: '#ff5252'
+                        }
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
                   </ListItem>
                 ))}
               </List>
@@ -191,6 +300,41 @@ export default function History() {
           </>
         )}
       </Box>
+
+      {/* 删除确认对话框 */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>
+          确认删除
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            {itemToDelete 
+              ? '确定要删除这条对话记录吗？此操作无法撤销。'
+              : `确定要删除选中的 ${selectedItems.length} 条对话记录吗？此操作无法撤销。`
+            }
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button 
+            onClick={() => {
+              setDeleteDialogOpen(false);
+              setItemToDelete(null);
+            }}
+            sx={{ color: '#5D895D' }}
+          >
+            取消
+          </Button>
+          <Button 
+            onClick={executeDelete}
+            disabled={deleteLoading}
+            color="error"
+            variant="contained"
+            sx={{ borderRadius: 20 }}
+          >
+            {deleteLoading ? '删除中...' : '确认删除'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 } 

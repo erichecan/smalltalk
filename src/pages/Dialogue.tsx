@@ -19,6 +19,7 @@ export default function Dialogue() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(conversationId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useAuth();
 
@@ -68,6 +69,34 @@ export default function Dialogue() {
       }
     }
   }, [user, topic, isHistory, isAuthenticated]);
+
+  // 新增：监听消息变化，自动保存到历史记录
+  useEffect(() => {
+    const updateHistory = async () => {
+      if (
+        isAuthenticated &&
+        messages.length > 1 &&
+        user?.id &&
+        currentConversationId
+      ) {
+        try {
+          console.log('[DEBUG] updateHistory triggered:', currentConversationId, messages);
+          const res = await updateConversationHistory(currentConversationId, messages);
+          if (res.error) {
+            console.error('[DEBUG] 更新历史失败', res.error);
+          } else {
+            console.log('[DEBUG] 历史更新成功', res);
+          }
+        } catch (e) {
+          console.warn('[DEBUG] 更新历史记录异常', e);
+        }
+      }
+    };
+
+    if (messages.length > 1 && currentConversationId) {
+      updateHistory();
+    }
+  }, [messages, currentConversationId, isAuthenticated, user?.id]);
 
   useEffect(() => {
     const initializeConversation = async () => {
@@ -153,7 +182,8 @@ export default function Dialogue() {
         setIsLoading(false);
         return;
       }
-      // 历史回看继续对话：isHistory为true时也允许多轮
+
+      // 已登录用户：获取AI回复
       const aiResponse = await getAIResponse(newMessages, topic);
       const aiBubbleColor = '#E8F5E9';
       const aiMessage: Message = {
@@ -164,10 +194,21 @@ export default function Dialogue() {
       };
       const updatedMessages = [...newMessages, aiMessage];
       setMessages(updatedMessages);
-      // update历史（无论isHistory是否为true）
-      if (conversationId) {
-        const plainMessages = updatedMessages.map(m => ({ ...m }));
-        await updateConversationHistory(conversationId, plainMessages);
+
+      // 如果没有conversationId，说明是新对话，需要创建历史记录
+      if (!currentConversationId && isAuthenticated && user?.id) {
+        try {
+          const saveRes = await saveConversationHistory({
+            user_id: user.id,
+            topic,
+            messages: updatedMessages,
+          });
+          if (saveRes.data && (saveRes.data as any[]).length > 0) {
+            setCurrentConversationId((saveRes.data as any[])[0].id);
+          }
+        } catch (e) {
+          console.warn('创建历史记录失败', e);
+        }
       }
     } catch (err) {
       const errorMessage: Message = {
