@@ -11,6 +11,7 @@ import {
   School as PracticeIcon,
   MenuBook as VocabularyIcon,
   Person as PersonIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import type { ReactElement } from 'react';
 import type { IconProps } from '@mui/material/Icon';
@@ -25,9 +26,9 @@ export interface NavItem {
 // 只保留4个主入口
 export const navigationItems: NavItem[] = [
   {
-    label: '对话',
-    icon: <ChatIcon />,
-    path: '/topic',
+    label: '历史',
+    icon: <HistoryIcon />,
+    path: '/history',
   },
   {
     label: '练习',

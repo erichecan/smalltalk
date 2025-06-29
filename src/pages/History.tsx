@@ -1,4 +1,4 @@
-import { Container, Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Paper } from '@mui/material';
+import { Container, Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Paper, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 const mockHistory = [
@@ -12,8 +12,11 @@ export default function History() {
   return (
     <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0 }}>
       {/* 顶部标题栏 */}
-      <Box sx={{ bgcolor: '#CAECCA', py: 2, px: 3, borderBottomLeftRadius: 16, borderBottomRightRadius: 16, boxShadow: 1 }}>
+      <Box sx={{ bgcolor: '#CAECCA', py: 2, px: 3, borderBottomLeftRadius: 16, borderBottomRightRadius: 16, boxShadow: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>Conversation History</Typography>
+        <Button variant="contained" sx={{ bgcolor: '#0ecd6a', color: '#fff', borderRadius: 20, ml: 2, fontWeight: 'bold', boxShadow: 1 }} onClick={() => navigate('/topic')}>
+          发起新对话
+        </Button>
       </Box>
       {/* 历史对话列表 */}
       <Box sx={{ px: 2, py: 3 }}>
