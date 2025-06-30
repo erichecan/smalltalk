@@ -101,6 +101,11 @@ export default function TopicInput() {
       }
       // 修复：正确获取conversationId
       const conversationId = saveRes.data ? (saveRes.data as Array<{id: string}>)[0]?.id : undefined;
+      console.log('[DEBUG] TopicInput创建历史记录成功:', {
+        saveRes: saveRes.data,
+        conversationId,
+        messagesCount: aiMessages.length + 1
+      });
       navigate('/dialogue', { 
         state: { 
           topic: trimmed,

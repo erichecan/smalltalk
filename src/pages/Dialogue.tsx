@@ -26,6 +26,17 @@ export default function Dialogue() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useAuth();
 
+  // 调试：打印conversationId的传递情况
+  useEffect(() => {
+    console.log('[DEBUG] Dialogue页面初始化参数:', {
+      topic,
+      conversationId,
+      isHistory,
+      initialMessagesLength: Array.isArray(initialMessages) ? initialMessages.length : 'not array',
+      currentConversationId
+    });
+  }, [topic, conversationId, isHistory, initialMessages, currentConversationId]);
+
   // 新增：未登录用户只返回一轮AI
   const isGuest = !isAuthenticated;
   // 新增：未登录用户是否已体验过一轮
@@ -181,20 +192,26 @@ export default function Dialogue() {
       const updatedMessages = [...newMessages, aiMessage];
       setMessages(updatedMessages);
 
-      // 如果没有conversationId，说明是新对话，需要创建历史记录
+      // 只有在真正没有conversationId的情况下才创建新的历史记录
+      // 从TopicInput或History页面跳转来的都应该有conversationId
       if (!currentConversationId && isAuthenticated && user?.id) {
         try {
+          console.log('[DEBUG] 创建新的历史记录，因为没有conversationId');
           const saveRes = await saveConversationHistory({
             user_id: user.id,
             topic,
             messages: updatedMessages,
           });
           if (saveRes.data && (saveRes.data as Array<{id: string}>).length > 0) {
-            setCurrentConversationId((saveRes.data as Array<{id: string}>)[0].id);
+            const newConversationId = (saveRes.data as Array<{id: string}>)[0].id;
+            setCurrentConversationId(newConversationId);
+            console.log('[DEBUG] 新历史记录创建成功，ID:', newConversationId);
           }
         } catch (error) {
           console.warn('创建历史记录失败', error);
         }
+      } else if (currentConversationId) {
+        console.log('[DEBUG] 使用现有conversationId:', currentConversationId, '更新历史记录');
       }
     } catch (error) {
       const errorMessage: Message = {
