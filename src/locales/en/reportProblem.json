@@ -1,11 +1,7 @@
 {
   "title": "Report a Problem",
   "problemTypeQuestion": "What type of problem are you reporting?",
-<<<<<<< HEAD
   "problemTypes": {
-=======
-  "problemType": {
->>>>>>> 5ee7aa6b6a3d1c88501f46082a340dc3d8514c43
     "technical": "Technical Issue",
     "content": "Content Issue",
     "behavior": "User Behavior",
@@ -14,10 +10,5 @@
   "descriptionPlaceholder": "Describe the problem or feedback in detail",
   "emailPlaceholder": "Email address (optional)",
   "attachScreenshot": "Attach Screenshot (Optional)",
-<<<<<<< HEAD
   "submitReport": "Submit Report"
-=======
-  "submitButton": "Submit Report",
-  "submitting": "Submitting..."
->>>>>>> 5ee7aa6b6a3d1c88501f46082a340dc3d8514c43
 }

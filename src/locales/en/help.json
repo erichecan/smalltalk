@@ -1,6 +1,5 @@
 {
   "title": "Help & FAQ",
-<<<<<<< HEAD
   "search": {
     "placeholder": "Search FAQs..."
   },
@@ -14,19 +13,6 @@
   "commonQuestionsTitle": "Common Questions",
   "faqs": {
     "newConversation": {
-=======
-  "searchPlaceholder": "Search FAQs...",
-  "categories": "Categories",
-  "category": {
-    "gettingStarted": "Getting Started",
-    "accountSettings": "Account Settings", 
-    "conversations": "Conversations",
-    "troubleshooting": "Troubleshooting"
-  },
-  "commonQuestions": "Common Questions",
-  "faq": {
-    "startConversation": {
->>>>>>> 5ee7aa6b6a3d1c88501f46082a340dc3d8514c43
       "question": "How do I start a new conversation?",
       "answer": "Simply tap the 'New Conversation' button on the home screen and choose a topic or scenario to begin practicing your English skills!"
     },
@@ -39,15 +25,9 @@
       "answer": "Try closing and reopening the app. If the issue persists, check your internet connection or restart your device. For more detailed steps, please visit the 'Troubleshooting' category or contact support."
     }
   },
-<<<<<<< HEAD
   "needMoreHelpTitle": "Need More Help?",
   "needMoreHelp": {
     "emailSupport": "Email Support",
     "visitHelpCenter": "Visit Help Center Online"
   }
-=======
-  "needMoreHelp": "Need More Help?",
-  "emailSupport": "Email Support",
-  "visitHelpCenter": "Visit Help Center Online"
->>>>>>> 5ee7aa6b6a3d1c88501f46082a340dc3d8514c43
 }
