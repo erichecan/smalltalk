@@ -16,6 +16,8 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const Practice = lazy(() => import('./pages/Practice'));
 const Vocabulary = lazy(() => import('./pages/Vocabulary'));
 const My = lazy(() => import('./pages/My'));
+const ReportProblem = lazy(() => import('./pages/ReportProblem'));
+const Help = lazy(() => import('./pages/Help'));
 
 import { createTheme } from '@mui/material/styles';
 const theme = createTheme();
@@ -40,6 +42,8 @@ function App() {
                 <Route path="/my" element={<My />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/report-problem" element={<ReportProblem />} />
+                <Route path="/help" element={<Help />} />
                 <Route path="/history" element={<History />} />
                 <Route path="*" element={<NotFound />} />
               </Route>

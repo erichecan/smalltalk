@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Container, Box, Typography, TextField, Button, Paper, Stack, Alert, CircularProgress, Avatar, IconButton, Fade, Tooltip, Snackbar } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import ClearIcon from '@mui/icons-material/Clear';
 import HistoryIcon from '@mui/icons-material/History';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Message } from '../types/chat';
 import { getAIResponse } from '../services/ai';
 import { useAuth } from '../contexts/AuthContext';
 import { saveConversationHistory, updateConversationHistory } from '../services/historyService';
+import MicIcon from '@mui/icons-material/Mic';
+import MicOffIcon from '@mui/icons-material/MicOff';
+import SendIcon from '@mui/icons-material/Send';
 
 export default function Dialogue() {
   const location = useLocation();
@@ -22,11 +24,20 @@ export default function Dialogue() {
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(conversationId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useAuth();
+  
+  // 语音识别相关状态
+  const [isListening, setIsListening] = useState(false);
+  const [speechRecognition, setSpeechRecognition] = useState<any>(null);
+  const [speechSupported, setSpeechSupported] = useState(false);
 
-  // 新增：未登录用户只返回一轮AI
+  // 【2025-06-29 19:53:31】PRD需求：未登录用户体验逻辑
+  // 根据产品需求文档9.2.2节：
+  // - 未登录用户TopicInput页只返回1句AI回复，不保存历史
+  // - Dialogue页仅允许体验一轮，输入框和发送按钮在收到AI回复后禁用
+  // - 再次尝试发言会提示"请登录后体验多轮对话"
   const isGuest = !isAuthenticated;
-  // 新增：未登录用户是否已体验过一轮
   const guestHasInteracted = useMemo(() => {
+    // 判断未登录用户是否已经体验过一轮对话（收到过AI回复）
     return isGuest && messages.some(m => m.sender === 'ai');
   }, [isGuest, messages]);
 
@@ -72,19 +83,27 @@ export default function Dialogue() {
   useEffect(() => {
     const initializeConversation = async () => {
       try {
+        // 【2025-06-29 19:54:15】修复初始化逻辑
+        console.log('[DEBUG] initializeConversation called:', { isHistory, initialMessages, topic });
+        
         if (isHistory && initialMessages) {
           // 历史模式：直接展示历史消息，不请求AI
+          console.log('[DEBUG] History mode, setting messages:', initialMessages);
           setMessages(initialMessages);
           setIsInitializing(false);
           return;
         }
-        // 新增：如果有 initialMessages（数组），直接用它初始化
+        
+        // 如果有 initialMessages（数组），直接用它初始化
         if (Array.isArray(initialMessages) && initialMessages.length > 0) {
+          console.log('[DEBUG] Using initialMessages:', initialMessages);
           setMessages(initialMessages);
           setIsInitializing(false);
           return;
         }
-        // 兼容老逻辑
+        
+        // 默认情况：清空消息列表
+        console.log('[DEBUG] Setting empty messages array');
         setMessages([]);
       } catch (error) {
         console.error('Error initializing conversation:', error);
@@ -93,10 +112,66 @@ export default function Dialogue() {
         setIsInitializing(false);
       }
     };
+    
     if (topic) {
       initializeConversation();
     }
   }, [topic, initialMessages, isHistory]);
+
+  // 初始化语音识别
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US'; // 可以根据需要改为 'zh-CN'
+      
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+      
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(prev => prev + transcript);
+      };
+      
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        if (event.error === 'not-allowed') {
+          setError('请允许麦克风权限以使用语音输入');
+        } else {
+          setError('语音识别失败，请重试');
+        }
+      };
+      
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+      
+      setSpeechRecognition(recognition);
+      setSpeechSupported(true);
+    } else {
+      setSpeechSupported(false);
+    }
+  }, []);
+
+  // 语音输入处理
+  const handleVoiceInput = () => {
+    if (!speechSupported) {
+      setError('您的浏览器不支持语音识别');
+      return;
+    }
+    
+    if (isListening) {
+      speechRecognition?.stop();
+    } else {
+      speechRecognition?.start();
+    }
+  };
+
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copySnackbar, setCopySnackbar] = useState(false);
@@ -121,6 +196,9 @@ export default function Dialogue() {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+    
+    // 【PRD需求】未登录用户限制逻辑：
+    // 根据产品需求文档9.2.2节：再次尝试发言会提示"请登录后体验多轮对话"
     if (guestHasInteracted) {
       setError('请登录后体验多轮对话');
       return;
@@ -139,7 +217,9 @@ export default function Dialogue() {
     setError(null);
 
     try {
-      // 未登录用户只返回一轮
+      // 【PRD需求】未登录用户AI回复逻辑：
+      // 根据产品需求文档9.2.2节：未登录用户只能体验一轮对话
+      // 收到回复后，guestHasInteracted变为true，触发输入框禁用和登录引导
       if (isGuest) {
         const aiResponse = await getAIResponse(newMessages, topic);
         const aiBubbleColor = '#E8F5E9';
@@ -343,8 +423,12 @@ export default function Dialogue() {
             )}
             </Stack>
             
-            {/* 未登录用户的模糊遮罩效果 */}
-            {isGuest && (
+            {/* 【PRD需求】未登录用户登录引导界面 */}
+            {/* 根据产品需求文档9.2.2节：
+                - 未登录用户体验一轮后，底部提示"登录可继续多轮对话"
+                - 显示条件：isGuest && guestHasInteracted
+                - 确保用户先体验一轮完整对话，然后被引导登录 */}
+            {isGuest && guestHasInteracted && (
               <Box sx={{ 
                 position: 'relative',
                 mt: 2,
@@ -443,8 +527,61 @@ export default function Dialogue() {
         </Box>
       )}
       {/* 底部输入栏 */}
-      <Box component="form" onSubmit={handleSend} sx={{ px: 2, py: 2, borderTop: '1px solid #e0e0e0', bgcolor: '#f8fcf8', display: 'flex', alignItems: 'center' }}>
-        <Box sx={{ position: 'relative', flex: 1, mr: 2 }}>
+      <Box sx={{ 
+        px: 2, 
+        py: 1.5, 
+        bgcolor: '#f8fcf8', 
+        borderTop: '1px solid #e7f3e7',
+        display: 'flex', 
+        alignItems: 'flex-end',
+        gap: 1
+      }}>
+        {/* 【2025-06-29 19:54:45】修复Tooltip警告：为禁用按钮添加span包装器 */}
+        <Tooltip title={speechSupported ? (isListening ? '停止录音' : '开始语音输入') : '浏览器不支持语音识别'}>
+          <span>
+            <IconButton 
+              onClick={handleVoiceInput}
+              disabled={!speechSupported}
+              sx={{ 
+                bgcolor: isListening ? '#ffebee' : 'white',
+                border: `1px solid ${isListening ? '#f44336' : '#e7f3e7'}`,
+                borderRadius: '50%',
+                width: 40,
+                height: 40,
+                color: isListening ? '#f44336' : '#4c9a4c',
+                '&:hover': {
+                  bgcolor: isListening ? '#ffcdd2' : '#f0f9f0',
+                  borderColor: isListening ? '#f44336' : '#4c9a4c'
+                },
+                '&:disabled': {
+                  bgcolor: '#f5f5f5',
+                  borderColor: '#e0e0e0',
+                  color: '#bdbdbd'
+                },
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              {isListening ? <MicOffIcon /> : <MicIcon />}
+            </IconButton>
+          </span>
+        </Tooltip>
+
+        {/* 输入框容器 */}
+        <Box 
+          component="form" 
+          onSubmit={handleSend}
+          sx={{ 
+            flex: 1,
+            position: 'relative',
+            bgcolor: 'white',
+            borderRadius: 3,
+            border: '1px solid #e7f3e7',
+            '&:focus-within': {
+              borderColor: '#4c9a4c',
+              boxShadow: '0 0 0 2px rgba(76, 154, 76, 0.1)'
+            }
+          }}
+        >
           <TextField
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -456,56 +593,67 @@ export default function Dialogue() {
                 }
               }
             }}
-            placeholder="按Enter发送消息，Shift+Enter换行..."
+            placeholder="Type your message..."
             variant="outlined"
-            size="small"
             multiline
             maxRows={4}
-            disabled={isLoading || (isGuest && guestHasInteracted)}
+            disabled={isLoading || (isGuest && guestHasInteracted)} // 【PRD需求】未登录用户体验完一轮后禁用输入
             fullWidth
             sx={{ 
-              borderRadius: 2, 
               '& .MuiOutlinedInput-root': { 
-                borderRadius: 2,
-                pr: input ? 5 : 2 // 当有输入内容时，为清除按钮留出空间
+                border: 'none',
+                borderRadius: 3,
+                pr: 6, // 为发送按钮留出空间
+                '& fieldset': {
+                  border: 'none',
+                },
+                '&:hover fieldset': {
+                  border: 'none',
+                },
+                '&.Mui-focused fieldset': {
+                  border: 'none',
+                },
+                '& textarea': {
+                  fontSize: 16,
+                  lineHeight: 1.4,
+                  py: 1.5,
+                  '&::placeholder': {
+                    color: '#9ca3af',
+                    opacity: 1,
+                  }
+                }
               }
             }}
           />
-          {input && (
-            <IconButton 
-              size="small" 
-              onClick={() => setInput('')}
-              sx={{ 
-                position: 'absolute', 
-                right: 8, 
-                top: '50%', 
-                transform: 'translateY(-50%)',
-                color: 'text.secondary'
-              }}
-            >
-              <ClearIcon fontSize="small" />
-            </IconButton>
-          )}
+          
+          {/* 发送按钮 */}
+          <IconButton 
+            type="submit"
+            disabled={isLoading || !input.trim() || (isGuest && guestHasInteracted)} // 【PRD需求】未登录用户体验完一轮后禁用发送
+            sx={{ 
+              position: 'absolute', 
+              right: 8, 
+              bottom: 8,
+              bgcolor: input.trim() ? '#4c9a4c' : '#e7f3e7',
+              color: input.trim() ? 'white' : '#9ca3af',
+              width: 32,
+              height: 32,
+              '&:hover': {
+                bgcolor: input.trim() ? '#3d7a3d' : '#e7f3e7',
+              },
+              '&:disabled': {
+                bgcolor: '#e7f3e7',
+                color: '#9ca3af'
+              },
+              transition: 'all 0.2s ease-in-out'
+            }}
+          >
+            <SendIcon sx={{ fontSize: 18 }} />
+          </IconButton>
         </Box>
-        <Button 
-          type="submit" 
-          variant="contained" 
-          disabled={isLoading || !input.trim() || (isGuest && guestHasInteracted)}
-          sx={{ 
-            bgcolor: '#CAECCA', 
-            color: '#111811', 
-            borderRadius: 28, 
-            fontWeight: 'bold', 
-            px: 3,
-            '&:disabled': {
-              bgcolor: '#e0e0e0',
-              color: '#9e9e9e'
-            }
-          }}
-        >
-          Send
-        </Button>
       </Box>
+      {/* 【PRD需求】未登录用户底部提示 */}
+      {/* 根据产品需求文档9.2.2节：底部提示"登录可继续多轮对话" */}
       {isGuest && guestHasInteracted && (
         <Alert severity="info" sx={{ mt: 2 }}>
           登录可继续多轮对话，体验完整 AI 互动！

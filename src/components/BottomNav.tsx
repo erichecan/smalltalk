@@ -47,7 +47,7 @@ export const navigationItems: NavItem[] = [
 ];
 
 // 不显示底部导航的路由
-const hideOnPaths = ['/login', '/register', '/', '/topic', '/dialogue', '/settings'];
+const hideOnPaths = ['/login', '/register', '/', '/topic', '/dialogue'];
 
 const BottomNav = () => {
   const theme = useTheme();

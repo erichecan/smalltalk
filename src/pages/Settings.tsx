@@ -1,4 +1,4 @@
-import { Container, Box, Typography, Avatar, Paper, Switch, ListItem, Button } from '@mui/material';
+import { Container, Box, Typography, Avatar, Paper, Button } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LanguageIcon from '@mui/icons-material/Language';
@@ -88,21 +88,24 @@ export default function Settings() {
   ];
 
   const renderItem = (item: any, index: number) => (
-    <ListItem
+    <Box
       key={index}
       sx={{
+        display: 'flex',
+        alignItems: 'center',
         gap: 2,
-        bgcolor: item.isDestructive ? 'red.50' : 'slate.50',
+        bgcolor: item.isDestructive ? '#fef2f2' : '#f8fafc',
         p: 2,
         borderRadius: 3,
         minHeight: 56,
         justifyContent: 'space-between',
-        border: `1px solid ${item.isDestructive ? 'red.100' : 'slate.100'}`,
+        border: `1px solid ${item.isDestructive ? '#fecaca' : '#f1f5f9'}`,
         '&:hover': {
-          bgcolor: item.isDestructive ? 'red.100' : 'slate.100'
+          bgcolor: item.isDestructive ? '#fee2e2' : '#f1f5f9'
         },
         cursor: 'pointer',
-        transition: 'colors 0.2s'
+        transition: 'background-color 0.2s',
+        mb: 1.5
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -114,26 +117,27 @@ export default function Settings() {
             borderRadius: '50%',
             width: 40,
             height: 40,
-            bgcolor: item.isDestructive ? 'red.100' : 'slate.200',
-            color: item.isDestructive ? 'red.600' : 'slate.700',
+            bgcolor: item.isDestructive ? '#fecaca' : '#e2e8f0',
+            color: item.isDestructive ? '#dc2626' : '#475569',
+            flexShrink: 0,
             '&:hover': {
-              bgcolor: item.isDestructive ? 'red.500' : '#0ecd6a',
+              bgcolor: item.isDestructive ? '#dc2626' : '#0ecd6a',
               color: 'white'
             },
-            transition: 'colors 0.2s'
+            transition: 'all 0.2s'
           }}
         >
           {item.icon}
         </Box>
         <Typography
           sx={{
-            color: item.isDestructive ? 'red.600' : 'slate.700',
+            color: item.isDestructive ? '#dc2626' : '#475569',
             fontWeight: 500,
             fontSize: 16,
             '&:hover': {
-              color: item.isDestructive ? 'red.700' : 'slate.900'
+              color: item.isDestructive ? '#b91c1c' : '#1e293b'
             },
-            transition: 'colors 0.2s'
+            transition: 'color 0.2s'
           }}
         >
           {item.title}
@@ -141,74 +145,86 @@ export default function Settings() {
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         {item.type === 'switch' && (
-          <Switch
-            checked={item.value}
+          <Box
             sx={{
-              '& .MuiSwitch-switchBase.Mui-checked': {
-                color: '#0ecd6a',
-                '&:hover': {
-                  backgroundColor: 'rgba(14, 205, 106, 0.08)'
-                }
-              },
-              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                backgroundColor: '#0ecd6a'
-              }
+              position: 'relative',
+              width: 48,
+              height: 28,
+              bgcolor: item.value ? '#0ecd6a' : '#cbd5e1',
+              borderRadius: '14px',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: item.value ? 'flex-end' : 'flex-start',
+              px: 0.25
             }}
-          />
+          >
+            <Box
+              sx={{
+                width: 24,
+                height: 24,
+                bgcolor: 'white',
+                borderRadius: '50%',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                transition: 'all 0.3s ease-in-out'
+              }}
+            />
+          </Box>
         )}
         {item.type === 'select' && (
           <>
             <Typography
               sx={{
-                color: 'slate.500',
+                color: '#64748b',
                 fontSize: 14,
                 '&:hover': {
-                  color: 'slate.700'
+                  color: '#475569'
                 },
-                transition: 'colors 0.2s'
+                transition: 'color 0.2s'
               }}
             >
               {item.value}
             </Typography>
-            <ChevronRightIcon sx={{ color: 'slate.400', fontSize: 20 }} />
+            <ChevronRightIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
           </>
         )}
         {item.type === 'arrow' && (
-          <ChevronRightIcon sx={{ color: item.isDestructive ? 'red.400' : 'slate.400', fontSize: 20 }} />
+          <ChevronRightIcon sx={{ color: item.isDestructive ? '#f87171' : '#94a3b8', fontSize: 20 }} />
         )}
       </Box>
-    </ListItem>
+    </Box>
   );
 
   return (
     <Container sx={{ minHeight: '100vh', bgcolor: 'white', p: 0, fontFamily: 'Inter, Noto Sans, sans-serif' }}>
       {/* 顶部栏 */}
       <Box sx={{ position: 'sticky', top: 0, zIndex: 10, bgcolor: 'white', px: 2, py: 1.5, display: 'flex', alignItems: 'center', borderBottom: '1px solid #f1f5f9', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-        <Button onClick={() => navigate(-1)} sx={{ minWidth: 0, p: 1, borderRadius: '50%', color: 'slate.700', '&:hover': { bgcolor: 'slate.100' } }}>
+        <Button onClick={() => navigate(-1)} sx={{ minWidth: 0, p: 1, borderRadius: '50%', color: '#475569', '&:hover': { bgcolor: '#f1f5f9' } }}>
           <ArrowBackIcon />
         </Button>
-        <Typography variant="h6" sx={{ flex: 1, textAlign: 'center', color: 'slate.900', fontWeight: 600, pr: 5 }}>Settings</Typography>
+        <Typography variant="h6" sx={{ flex: 1, textAlign: 'center', color: '#1e293b', fontWeight: 600, pr: 5 }}>Settings</Typography>
       </Box>
 
       {/* 用户资料 */}
       <Box sx={{ px: 2, pt: 3, pb: 1 }}>
-        <Typography variant="caption" sx={{ color: 'slate.500', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1, display: 'block' }}>
+        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1, display: 'block' }}>
           Profile
         </Typography>
-        <Paper sx={{ display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'white', p: 2, borderRadius: 3, boxShadow: 1, border: '1px solid #f1f5f9' }}>
+        <Paper sx={{ display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'white', p: 2, borderRadius: 3, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #f1f5f9' }}>
           <Avatar
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7gtNV8yzaBZCjJ4nG50QXGjItgqh2OxCjLiQ15OQLBWv1Vf7Cn9nrpBmbs_ZXuPj_DmrBfK8ubX43TDz17nWzM0Jvd9pm3pOsszHlZvdB-zmhAsQrECb5VNBm_GpBBKkyEwG_OrPwlzrvTWWbHqSf37UU-zNX9DsJDQWzUaqBWhs6KTWUk82VSdX9366Fv4o-JMmWloLSffkFyvstPeQVFGVytBIJsL7O9_WNDztSRrECLVTwO8UgZsBfBPSh6lSfkwYkEDHswWM"
             sx={{ width: 64, height: 64, border: '2px solid white', boxShadow: 2 }}
           />
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" sx={{ color: 'slate.800', fontWeight: 600 }}>
+            <Typography variant="h6" sx={{ color: '#1f2937', fontWeight: 600 }}>
               {user?.name || 'Ethan Carter'}
             </Typography>
             <Typography variant="body2" sx={{ color: '#0ecd6a', fontWeight: 500 }}>
               Beginner
             </Typography>
           </Box>
-          <Button sx={{ color: 'slate.500', '&:hover': { color: '#0ecd6a' }, minWidth: 0, p: 1 }}>
+          <Button sx={{ color: '#64748b', '&:hover': { color: '#0ecd6a' }, minWidth: 0, p: 1 }}>
             <EditIcon />
           </Button>
         </Paper>
@@ -216,30 +232,30 @@ export default function Settings() {
 
       {/* 应用设置 */}
       <Box sx={{ px: 2, py: 1 }}>
-        <Typography variant="caption" sx={{ color: 'slate.500', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1, display: 'block', pt: 1 }}>
+        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1, display: 'block', pt: 1 }}>
           App Settings
         </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box>
           {settingsItems.map((item, index) => renderItem(item, index))}
         </Box>
       </Box>
 
       {/* 账户管理 */}
       <Box sx={{ px: 2, py: 1 }}>
-        <Typography variant="caption" sx={{ color: 'slate.500', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1, display: 'block', pt: 1 }}>
+        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1, display: 'block', pt: 1 }}>
           Account Management
         </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box>
           {accountItems.map((item, index) => renderItem(item, index))}
         </Box>
       </Box>
 
       {/* 支持与信息 */}
-      <Box sx={{ px: 2, py: 1, pb: 4 }}>
-        <Typography variant="caption" sx={{ color: 'slate.500', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1, display: 'block', pt: 1 }}>
+      <Box sx={{ px: 2, py: 1, pb: 8 }}>
+        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1, display: 'block', pt: 1 }}>
           Support & Information
         </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box>
           {supportItems.map((item, index) => renderItem(item, index))}
         </Box>
       </Box>

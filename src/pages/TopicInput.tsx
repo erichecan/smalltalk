@@ -32,32 +32,44 @@ export default function TopicInput() {
     }
     setLoading(true);
     try {
-      // 调用 AI 获取初始对话
+      // 【2025-06-29 19:56:00】调用AI获取初始对话并解析
       const initialMessages = await getAIResponse([], trimmed);
+      console.log('[DEBUG] Raw AI response:', initialMessages);
+      
       // 拆分AI回复为5条
       const parseAIResponse = (text: string): string[] => {
         const conversations = text.match(/\[CONV\d+\]([\s\S]*?)(?=\[CONV\d+\]|$)/g) || [];
         return conversations.map(conv => conv.replace(/\[CONV\d+\]/, '').trim());
       };
-      const aiMessages = parseAIResponse(initialMessages).map((text, idx) => ({
+      
+      const parsedConversations = parseAIResponse(initialMessages);
+      console.log('[DEBUG] Parsed conversations:', parsedConversations);
+      
+      const aiMessages = parsedConversations.map((text, idx) => ({
         id: idx + 2,
         sender: 'ai',
         text,
         bubbleColor: '#E8F5E9'
       }));
+      console.log('[DEBUG] AI messages:', aiMessages);
       if (!user || !user.id) {
-        // 未登录：只返回AI回复，不保存历史
+        // 【2025-06-29 19:55:30】修复未登录用户逻辑：
+        // 未登录用户只体验一轮对话，传递用户输入和第一条AI回复
+        const firstAIMessage = parsedConversations[0];
         navigate('/dialogue', {
           state: {
             topic: trimmed,
-            initialMessages,
+            initialMessages: [
+              { id: 1, sender: 'user', text: trimmed },
+              { id: 2, sender: 'ai', text: firstAIMessage, bubbleColor: '#E8F5E9' }
+            ],
             conversationId: undefined
           }
         });
         setLoading(false);
         return;
       }
-      // 已登录：保存历史，包含用户输入和AI回复
+      // 【2025-06-29 19:55:45】已登录用户逻辑：保存完整的5轮对话历史
       const saveRes = await saveConversationHistory({
         user_id: user.id,
         topic: trimmed,

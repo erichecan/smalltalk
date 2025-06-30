@@ -40,14 +40,27 @@ export async function getAIResponse(messages: Message[], topic: string): Promise
   console.log(`Getting AI response for ${messages.length} messages on topic: "${topic}"`);
   const startTime = Date.now();
   try {
+    // 2025-01-29 20:07:15 修复多轮对话提示词逻辑
+    // 问题：多轮对话时完全改变了系统提示词，导致失去原始话题上下文
+    // 修复：保持原始的话题上下文，只在多轮时添加"只返回一句回复"的指令
     let systemPrompt = '';
+    const basePrompt = `You are a friendly English conversation partner helping with daily small talk. The current topic is: ${topic}.`;
+    
     if (messages.length === 0) {
-      // 首次：生成5轮
-      systemPrompt = `You are a friendly English conversation partner helping with daily small talk. The current topic is: ${topic}.
+      // 首次：生成5轮对话
+      systemPrompt = `${basePrompt}
 \nYour task is to generate 5 natural conversation pairs (question and response) related to this topic, suitable for casual daily interactions between friends or colleagues. Each conversation should feel like it's happening in common social situations like:\n- Waiting for the elevator\n- Standing in line at a coffee shop\n- Morning greetings at work\n- Casual lunch break chat\n- After-work social time\n\nRequirements:\n1. Generate exactly 5 different question-response pairs\n2. Use a conversational, friendly tone (not too formal, not too casual)\n3. Make responses sound natural, like real people talking\n4. Include some common expressions and light idioms where appropriate\n5. Each pair should explore a different aspect of the topic\n6. Keep responses concise and engaging\n\nFormat your response in this exact structure:\n[CONV1]\nQ: (first question)\nA: (natural response)\n\n[CONV2]\nQ: (second question)\nA: (natural response)\n\n[CONV3]\nQ: (third question)\nA: (natural response)\n\n[CONV4]\nQ: (fourth question)\nA: (natural response)\n\n[CONV5]\nQ: (fifth question)\nA: (natural response)\n\nRemember: The goal is to help users practice natural English conversation and feel confident in everyday small talk situations.`;
     } else {
-      // 多轮：只生成一句AI回复
-      systemPrompt = `You are a friendly English conversation partner helping with daily small talk. The current topic is: ${topic}.\nYour task is to reply to the user's latest message in a natural, friendly, and concise way, as if you are continuing a real conversation. Only return ONE reply, do not generate multiple pairs. Do not repeat previous content.`;
+      // 多轮：继续当前话题，只返回一句回复
+      systemPrompt = `${basePrompt}
+\nYou are continuing a conversation about this topic. Reply to the user's latest message in a natural, friendly, and concise way, as if you are having a real conversation with a friend or colleague. 
+
+Important instructions:
+- Only return ONE conversational reply (not multiple pairs)
+- Stay focused on the current topic: ${topic}
+- Keep the conversation natural and engaging
+- Do not repeat previous content
+- Respond as if you're genuinely interested in the conversation`;
     }
 
     // 构建请求体
@@ -72,32 +85,27 @@ export async function getAIResponse(messages: Message[], topic: string): Promise
       }
     };
 
-    // 使用系统提示和用户第一条消息来构建初始对话
-    // 这种方式更符合 Gemini API 的预期格式
-    const firstUserMessage = messages.find(msg => msg.sender === 'user');
-    
-    if (firstUserMessage) {
-      // 如果有用户消息，将系统提示与第一条用户消息合并
+    // 2025-01-29 20:07:30 优化多轮对话的上下文构建
+    // 对于多轮对话，我们需要提供完整的对话历史给AI，让它理解上下文
+    if (messages.length === 0) {
+      // 首次调用：只发送系统提示
       requestBody.contents.push({
         role: "user",
-        parts: [{ text: `${systemPrompt}\n\nUser's message: ${firstUserMessage.text}` }]
+        parts: [{ text: systemPrompt }]
+      });
+    } else {
+      // 多轮调用：先发送系统提示，然后发送完整的对话历史
+      requestBody.contents.push({
+        role: "user",
+        parts: [{ text: systemPrompt }]
       });
       
-      // 过滤掉已处理的第一条用户消息
-      const remainingMessages = messages.filter(msg => msg !== firstUserMessage);
-      
-      // 添加剩余的对话历史
-      remainingMessages.forEach(msg => {
+      // 添加对话历史，让AI理解上下文
+      messages.forEach(msg => {
         requestBody.contents.push({
           role: msg.sender === 'user' ? "user" : "model",
           parts: [{ text: msg.text }]
         });
-      });
-    } else {
-      // 如果没有用户消息，只添加系统提示
-      requestBody.contents.push({
-        role: "user",
-        parts: [{ text: systemPrompt }]
       });
     }
 
