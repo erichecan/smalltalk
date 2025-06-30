@@ -6,6 +6,7 @@ import chat from './chat.json';
 import settings from './settings.json';
 import help from './help.json';
 import reportProblem from './reportProblem.json';
+import practice from './practice.json';
 
 export default {
   common,
@@ -15,5 +16,6 @@ export default {
   chat,
   settings,
   help,
-  reportProblem
+  reportProblem,
+  practice
 };

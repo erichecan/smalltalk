@@ -1,0 +1,103 @@
+{
+  "title": "练习中心",
+  "tabs": {
+    "exercises": "练习",
+    "plan": "学习计划",
+    "history": "历史"
+  },
+  "exercises": {
+    "title": "选择练习类型",
+    "quiz": {
+      "title": "问答练习",
+      "description": "通过多选题测试你的知识掌握程度"
+    },
+    "fillBlanks": {
+      "title": "填空练习",
+      "description": "通过填入缺失的单词来完成句子"
+    },
+    "matching": {
+      "title": "配对练习",
+      "description": "将单词与其正确含义或配对项匹配"
+    },
+    "pronunciation": {
+      "title": "发音练习",
+      "description": "通过语音练习提高你的口语技能"
+    },
+    "sentenceConstruction": {
+      "title": "造句练习",
+      "description": "使用给定单词构造正确的句子"
+    }
+  },
+  "plan": {
+    "goals": {
+      "title": "学习目标",
+      "objective": "学习目标",
+      "level": "当前水平",
+      "timeGoal": "时间目标",
+      "options": {
+        "travel": "旅行交流",
+        "business": "商务英语",
+        "daily": "日常对话"
+      },
+      "levels": {
+        "beginner": "初级",
+        "intermediate": "中级",
+        "advanced": "高级"
+      },
+      "timeOptions": {
+        "1month": "1个月",
+        "3months": "3个月",
+        "6months": "6个月"
+      }
+    },
+    "schedule": {
+      "title": "练习计划",
+      "addSession": "添加练习时段"
+    },
+    "sessions": {
+      "conversation": "对话练习"
+    },
+    "progress": {
+      "title": "学习进度",
+      "conversations": "对话次数",
+      "timeWeekly": "每周时长",
+      "vocabulary": "词汇量"
+    }
+  },
+  "history": {
+    "conversations": {
+      "title": "对话历史",
+      "items": {
+        "travel": {
+          "title": "旅行计划讨论",
+          "topic": "旅行与旅游",
+          "timeAgo": "2小时前"
+        },
+        "business": {
+          "title": "商务会议准备",
+          "topic": "商务英语",
+          "timeAgo": "1天前"
+        }
+      }
+    },
+    "saved": {
+      "title": "收藏内容",
+      "items": {
+        "phrases": {
+          "title": "实用短语",
+          "category": "短语"
+        },
+        "vocabulary": {
+          "title": "新词汇",
+          "category": "单词"
+        }
+      }
+    },
+    "progress": {
+      "title": "学习统计",
+      "learningTime": "学习时长",
+      "last30Days": "最近30天"
+    },
+    "seeAll": "查看全部"
+  }
+}

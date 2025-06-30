@@ -1,0 +1,103 @@
+{
+  "title": "Practice Center",
+  "tabs": {
+    "exercises": "Exercises",
+    "plan": "Learning Plan",
+    "history": "History"
+  },
+  "exercises": {
+    "title": "Choose Your Practice",
+    "quiz": {
+      "title": "Quiz Practice",
+      "description": "Test your knowledge with multiple choice questions"
+    },
+    "fillBlanks": {
+      "title": "Fill in the Blanks",
+      "description": "Complete sentences by filling in missing words"
+    },
+    "matching": {
+      "title": "Matching Exercise",
+      "description": "Match words with their correct meanings or pairs"
+    },
+    "pronunciation": {
+      "title": "Pronunciation Practice",
+      "description": "Improve your speaking skills with voice exercises"
+    },
+    "sentenceConstruction": {
+      "title": "Sentence Construction",
+      "description": "Build correct sentences using given words"
+    }
+  },
+  "plan": {
+    "goals": {
+      "title": "Learning Goals",
+      "objective": "Learning Objective",
+      "level": "Current Level",
+      "timeGoal": "Time Goal",
+      "options": {
+        "travel": "Travel Communication",
+        "business": "Business English",
+        "daily": "Daily Conversation"
+      },
+      "levels": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "timeOptions": {
+        "1month": "1 Month",
+        "3months": "3 Months",
+        "6months": "6 Months"
+      }
+    },
+    "schedule": {
+      "title": "Practice Schedule",
+      "addSession": "Add Practice Session"
+    },
+    "sessions": {
+      "conversation": "Conversation Practice"
+    },
+    "progress": {
+      "title": "Learning Progress",
+      "conversations": "Conversations",
+      "timeWeekly": "Weekly Time",
+      "vocabulary": "Vocabulary"
+    }
+  },
+  "history": {
+    "conversations": {
+      "title": "Conversation History",
+      "items": {
+        "travel": {
+          "title": "Travel Planning Discussion",
+          "topic": "Travel & Tourism",
+          "timeAgo": "2 hours ago"
+        },
+        "business": {
+          "title": "Business Meeting Prep",
+          "topic": "Business English",
+          "timeAgo": "1 day ago"
+        }
+      }
+    },
+    "saved": {
+      "title": "Saved Items",
+      "items": {
+        "phrases": {
+          "title": "Useful Phrases",
+          "category": "Phrases"
+        },
+        "vocabulary": {
+          "title": "New Vocabulary",
+          "category": "Words"
+        }
+      }
+    },
+    "progress": {
+      "title": "Learning Statistics",
+      "learningTime": "Learning Time",
+      "last30Days": "Last 30 days"
+    },
+    "seeAll": "See All"
+  }
+}
