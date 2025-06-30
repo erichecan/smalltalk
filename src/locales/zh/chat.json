@@ -45,5 +45,9 @@
     "timeJustNow": "刚刚",
     "timeHoursAgo": "{{hours}}小时前",
     "loadingError": "加载历史失败"
+  },
+  "buttons": {
+    "cancel": "取消",
+    "delete": "删除"
   }
 }

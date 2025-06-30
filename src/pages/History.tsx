@@ -325,7 +325,7 @@ export default function History() {
             }}
             sx={{ color: '#5D895D' }}
           >
-            {t('common:buttons.cancel')}
+            {t('buttons.cancel')}
           </Button>
           <Button 
             onClick={executeDelete}
@@ -334,7 +334,7 @@ export default function History() {
             variant="contained"
             sx={{ borderRadius: 20 }}
           >
-            {deleteLoading ? t('history.deleting') : t('common:buttons.delete')}
+            {deleteLoading ? t('history.deleting') : t('buttons.delete')}
           </Button>
         </DialogActions>
       </Dialog>

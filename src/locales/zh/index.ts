@@ -1,9 +1,15 @@
 import common from './common.json';
 import navigation from './navigation.json';
 import learning from './learning.json';
+import auth from './auth.json';
+import chat from './chat.json';
+import settings from './settings.json';
 
 export default {
   common,
   navigation,
-  learning
+  learning,
+  auth,
+  chat,
+  settings
 };
