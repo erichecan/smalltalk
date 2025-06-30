@@ -104,4 +104,124 @@ Profile/My 页点击 Log Out -> 跳转登录页 -> 恢复未登录体验
 - 所有登录/注册/登出/邮箱确认流程均基于 Supabase Auth，安全可靠。
 - 前端直连 Supabase，需配置好 RLS Policy，保证数据安全。
 - 登录状态、用户信息、历史数据均类型安全，刷新/切换页面不丢失。
-- 所有关键产品逻辑已自动化测试，便于持续优化。 
+- 所有关键产品逻辑已自动化测试，便于持续优化。
+
+## 10. 学习中心功能需求 (2025-01-30 新增)
+
+### 10.1 功能概述
+学习中心是SmallTalk的核心学习管理功能，作为底部导航"词汇"tab的主要页面，整合词汇、短语、语法、话题和收藏管理。
+
+### 10.2 核心功能模块
+
+#### 10.2.1 词汇管理
+- **来源多样化**: 支持从对话中自动提取、手动添加、系统推荐
+- **完整信息**: 单词、音标、释义、例句、发音播放
+- **学习状态**: 未学习、学习中、已掌握三种状态
+- **智能复习**: 基于遗忘曲线的复习提醒
+
+#### 10.2.2 短语库
+- **分类管理**: 问候、旅行、商务、社交、餐饮等分类
+- **多语言支持**: 英文短语+中文翻译
+- **使用场景**: 每个短语包含实际使用场景说明
+- **收藏功能**: 一键收藏重要短语
+
+#### 10.2.3 语法中心
+- **系统化分类**: 动词时态、句子结构、介词、词汇等
+- **理论+实践**: 语法规则说明+例句展示+练习题
+- **交互式练习**: 填空题、选择题等多种题型
+- **进度跟踪**: 语法掌握度可视化
+
+#### 10.2.4 话题浏览
+- **图标化展示**: 每个话题配备直观图标
+- **快速进入**: 点击话题直接进入相关对话
+- **学习轨迹**: 记录用户在各话题的学习进度
+
+#### 10.2.5 收藏夹
+- **跨类型收藏**: 统一管理词汇、短语、语法的收藏内容
+- **分类展示**: 按类型分组显示收藏内容
+- **快速访问**: 一键回到原始学习材料
+
+### 10.3 技术实现要求
+
+#### 10.3.1 数据存储设计
+```sql
+-- 词汇表
+CREATE TABLE vocabulary (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  word TEXT NOT NULL,
+  definition TEXT,
+  example TEXT,
+  pronunciation TEXT,
+  source TEXT, -- 'conversation', 'manual', 'system'
+  mastery_level INTEGER DEFAULT 0, -- 0: 未学, 1: 学习中, 2: 已掌握
+  bookmarked BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  last_reviewed TIMESTAMP
+);
+
+-- 短语表
+CREATE TABLE phrases (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  phrase TEXT NOT NULL,
+  translation TEXT,
+  category TEXT,
+  usage_example TEXT,
+  bookmarked BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 语法进度表
+CREATE TABLE grammar_progress (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  grammar_topic TEXT NOT NULL,
+  progress_percentage INTEGER DEFAULT 0,
+  last_practiced TIMESTAMP
+);
+```
+
+#### 10.3.2 组件架构
+```
+Vocabulary.tsx (主页面)
+├── VocabularyTab (词汇管理)
+├── PhrasesTab (短语库)
+├── GrammarTab (语法中心)
+├── TopicsTab (话题浏览)
+└── BookmarksTab (收藏夹)
+```
+
+#### 10.3.3 状态管理
+- 使用React useState/useEffect管理本地状态
+- Supabase实时同步用户学习数据
+- 本地缓存优化用户体验
+
+### 10.4 用户体验设计
+
+#### 10.4.1 交互流程
+1. **首次进入**: 默认显示词汇tab，展示来自对话的词汇
+2. **Tab切换**: 流畅的tab切换动画和状态保持
+3. **搜索体验**: 全局搜索支持跨类型智能匹配
+4. **状态反馈**: 即时的视觉反馈和状态更新
+
+#### 10.4.2 个性化功能
+- **学习偏好**: 记住用户常用的tab和分类
+- **智能推荐**: 基于学习历史推荐相关内容
+- **进度可视化**: 直观展示学习进度和成就
+
+### 10.5 底部导航集成
+- **导航位置**: 底部导航第三个位置"词汇"
+- **图标设计**: 使用book相关图标保持一致性
+- **状态同步**: 与其他页面的数据状态保持同步
+
+### 10.6 性能优化
+- **懒加载**: Tab内容按需加载
+- **虚拟滚动**: 大列表优化渲染性能
+- **缓存策略**: 智能缓存用户学习数据
+
+### 10.7 未来扩展
+- **AI辅助**: 智能词汇难度评估和推荐
+- **社交功能**: 学习小组和词汇分享
+- **语音识别**: 发音练习和评测
+- **数据分析**: 详细的学习分析报告 

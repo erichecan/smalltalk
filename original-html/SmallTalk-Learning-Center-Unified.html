@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&family=Spline+Sans%3Awght%40400%3B500%3B700&family=Inter%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<title>SmallTalk Learning Center</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+  body {
+    min-height: max(884px, 100dvh);
+  }
+  
+  .tab-content {
+    display: none;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  .tab-button.active {
+    color: #0FDB0F;
+    border-bottom-color: #0FDB0F;
+    font-weight: 600;
+  }
+  
+  .material-icons-outlined {
+    font-family: 'Material Icons Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'liga';
+  }
+</style>
+</head>
+<body class="bg-[#F8FCF8]">
+<div class="relative flex size-full min-h-screen flex-col bg-[#F8FCF8] justify-between group/design-root overflow-x-hidden" style='font-family: "Spline Sans", "Inter", "Noto Sans", sans-serif;'>
+
+<!-- Header -->
+<header class="sticky top-0 z-10 bg-[#F8FCF8]/95 backdrop-blur-md border-b border-[#E7F3E7]">
+  <div class="flex items-center p-4 pb-2 justify-between">
+    <button class="text-[#0D1C0D] flex size-10 items-center justify-center rounded-full hover:bg-gray-200 active:bg-gray-300">
+      <span class="material-icons">arrow_back_ios_new</span>
+    </button>
+    <h1 class="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center">学习中心</h1>
+    <button class="text-[#0D1C0D] flex size-10 items-center justify-center rounded-full hover:bg-gray-200 active:bg-gray-300">
+      <span class="material-icons">more_vert</span>
+    </button>
+  </div>
+  
+  <!-- Global Search -->
+  <div class="px-4 py-3">
+    <label class="flex flex-col min-w-40 h-12 w-full">
+      <div class="flex w-full flex-1 items-stretch rounded-full h-full shadow-sm">
+        <div class="text-[#0D1C0D] flex bg-[#E7F3E7] items-center justify-center pl-4 rounded-l-full border-r-0">
+          <span class="material-icons text-gray-500">search</span>
+        </div>
+        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-full text-[#0D1C0D] focus:outline-0 focus:ring-0 border-none bg-[#E7F3E7] focus:border-none h-full placeholder:text-gray-500 px-4 text-base font-normal leading-normal" placeholder="搜索词汇、短语、语法..." value="" id="globalSearch"/>
+      </div>
+    </label>
+  </div>
+  
+  <!-- Tab Navigation -->
+  <div class="pb-0">
+    <div class="flex border-b border-[#CFE8CF] px-2 gap-1 overflow-x-auto whitespace-nowrap">
+      <button class="tab-button flex flex-col items-center justify-center border-b-[3px] border-b-[#0FDB0F] text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0 active" onclick="switchTab('vocabulary')" id="tab-vocabulary">
+        <p class="text-sm font-semibold leading-normal">词汇</p>
+      </button>
+      <button class="tab-button flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" onclick="switchTab('phrases')" id="tab-phrases">
+        <p class="text-sm font-medium leading-normal">短语</p>
+      </button>
+      <button class="tab-button flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" onclick="switchTab('grammar')" id="tab-grammar">
+        <p class="text-sm font-medium leading-normal">语法</p>
+      </button>
+      <button class="tab-button flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" onclick="switchTab('topics')" id="tab-topics">
+        <p class="text-sm font-medium leading-normal">话题</p>
+      </button>
+      <button class="tab-button flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" onclick="switchTab('bookmarks')" id="tab-bookmarks">
+        <p class="text-sm font-medium leading-normal">收藏</p>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="flex-grow pb-24">
+
+  <!-- Vocabulary Tab Content -->
+  <div id="content-vocabulary" class="tab-content active">
+    <h2 class="text-[#0D1C0D] text-lg font-semibold leading-tight tracking-tight px-4 pb-2 pt-3">来自对话的词汇</h2>
+    <div class="space-y-3 px-2">
+      <div class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm hover:shadow-md transition-shadow">
+        <button class="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#e7f3ed] text-[#10cf70] hover:bg-[#d0e9e0] transition-colors">
+          <span class="material-icons text-xl">volume_up</span>
+        </button>
+        <div class="flex-grow">
+          <p class="text-[#0d1b14] text-base font-medium leading-normal">Joy</p>
+          <p class="text-gray-600 text-sm font-normal leading-normal">A feeling of great pleasure and happiness.</p>
+          <p class="text-gray-500 text-xs italic mt-0.5">"Her eyes sparkled with joy."</p>
+        </div>
+        <div class="flex items-center gap-1">
+          <button class="text-gray-400 hover:text-[#10cf70] p-1.5 rounded-full transition-colors bookmark-btn" onclick="toggleBookmark(this)">
+            <span class="material-icons text-xl">bookmark_border</span>
+          </button>
+          <button class="text-gray-400 hover:text-[#10cf70] p-1.5 rounded-full transition-colors mastery-btn" onclick="toggleMastery(this)">
+            <span class="material-icons text-xl">check_circle_outline</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm hover:shadow-md transition-shadow">
+        <button class="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#e7f3ed] text-[#10cf70] hover:bg-[#d0e9e0] transition-colors">
+          <span class="material-icons text-xl">volume_up</span>
+        </button>
+        <div class="flex-grow">
+          <p class="text-[#0d1b14] text-base font-medium leading-normal">Compliment</p>
+          <p class="text-gray-600 text-sm font-normal leading-normal">To express admiration or approval.</p>
+          <p class="text-gray-500 text-xs italic mt-0.5">"He paid her a lovely compliment on her dress."</p>
+        </div>
+        <div class="flex items-center gap-1">
+          <button class="text-gray-400 hover:text-[#10cf70] p-1.5 rounded-full transition-colors bookmark-btn" onclick="toggleBookmark(this)">
+            <span class="material-icons text-xl">bookmark_border</span>
+          </button>
+          <button class="text-gray-400 hover:text-[#10cf70] p-1.5 rounded-full transition-colors mastery-btn" onclick="toggleMastery(this)">
+            <span class="material-icons text-xl">check_circle_outline</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm hover:shadow-md transition-shadow">
+        <button class="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#e7f3ed] text-[#10cf70] hover:bg-[#d0e9e0] transition-colors">
+          <span class="material-icons text-xl">volume_up</span>
+        </button>
+        <div class="flex-grow">
+          <p class="text-[#0d1b14] text-base font-medium leading-normal">Get along</p>
+          <p class="text-gray-600 text-sm font-normal leading-normal">To have a friendly relationship with someone.</p>
+          <p class="text-gray-500 text-xs italic mt-0.5">"Do you and your sister get along?"</p>
+        </div>
+        <div class="flex items-center gap-1">
+          <button class="text-[#10cf70] p-1.5 rounded-full transition-colors bookmark-btn" onclick="toggleBookmark(this)">
+            <span class="material-icons text-xl">bookmark</span>
+          </button>
+          <button class="text-gray-400 hover:text-[#10cf70] p-1.5 rounded-full transition-colors mastery-btn" onclick="toggleMastery(this)">
+            <span class="material-icons text-xl">check_circle_outline</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phrases Tab Content -->
+  <div id="content-phrases" class="tab-content">
+    <div class="px-4 pb-3 pt-3">
+      <div class="flex border-b border-[#CFE8CF] gap-1 overflow-x-auto whitespace-nowrap">
+        <button class="flex flex-col items-center justify-center border-b-[2px] border-b-[#0FDB0F] text-[#0D1C0D] pb-2 pt-2 px-3 flex-shrink-0">
+          <p class="text-[#0D1C0D] text-sm font-semibold leading-normal">全部</p>
+        </button>
+        <button class="flex flex-col items-center justify-center border-b-[2px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-2 pt-2 px-3 flex-shrink-0">
+          <p class="text-sm font-medium leading-normal">问候</p>
+        </button>
+        <button class="flex flex-col items-center justify-center border-b-[2px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-2 pt-2 px-3 flex-shrink-0">
+          <p class="text-sm font-medium leading-normal">旅行</p>
+        </button>
+        <button class="flex flex-col items-center justify-center border-b-[2px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-2 pt-2 px-3 flex-shrink-0">
+          <p class="text-sm font-medium leading-normal">商务</p>
+        </button>
+      </div>
+    </div>
+    
+    <h2 class="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3">常用短语</h2>
+    <div class="space-y-2 px-2">
+      <div class="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm hover:bg-gray-50 cursor-pointer">
+        <div class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
+          <span class="material-icons">chat_bubble_outline</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-[#0D1C0D] text-base font-medium leading-normal">Hi, how are you?</p>
+          <p class="text-gray-600 text-sm font-normal leading-normal">你好，你怎么样？</p>
+          <p class="text-gray-500 text-xs italic leading-normal mt-1">"Hi, how are you doing today?"</p>
+        </div>
+        <button class="text-gray-400 hover:text-[#0FDB0F] bookmark-btn" onclick="toggleBookmark(this)">
+          <span class="material-icons">bookmark_border</span>
+        </button>
+      </div>
+      
+      <div class="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm hover:bg-gray-50 cursor-pointer">
+        <div class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
+          <span class="material-icons">chat_bubble_outline</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-[#0D1C0D] text-base font-medium leading-normal">It's a pleasure to meet you.</p>
+          <p class="text-gray-600 text-sm font-normal leading-normal">很高兴见到你。</p>
+          <p class="text-gray-500 text-xs italic leading-normal mt-1">"It's a pleasure to meet you, John."</p>
+        </div>
+        <button class="text-[#0FDB0F] bookmark-btn" onclick="toggleBookmark(this)">
+          <span class="material-icons">bookmark</span>
+        </button>
+      </div>
+      
+      <div class="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm hover:bg-gray-50 cursor-pointer">
+        <div class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
+          <span class="material-icons">chat_bubble_outline</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-[#0D1C0D] text-base font-medium leading-normal">Have a wonderful day!</p>
+          <p class="text-gray-600 text-sm font-normal leading-normal">祝你有美好的一天！</p>
+          <p class="text-gray-500 text-xs italic leading-normal mt-1">"Thanks for your help, have a wonderful day!"</p>
+        </div>
+        <button class="text-gray-400 hover:text-[#0FDB0F] bookmark-btn" onclick="toggleBookmark(this)">
+          <span class="material-icons">bookmark_border</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grammar Tab Content -->
+  <div id="content-grammar" class="tab-content">
+    <div class="px-4 pt-3 pb-3">
+      <div class="flex space-x-2 overflow-x-auto">
+        <button class="px-4 py-2 text-sm font-medium text-white bg-[#4A7C4A] rounded-full whitespace-nowrap">全部</button>
+        <button class="px-4 py-2 text-sm font-medium text-[#5D895D] bg-[#EAF1EA] rounded-full whitespace-nowrap">动词时态</button>
+        <button class="px-4 py-2 text-sm font-medium text-[#5D895D] bg-[#EAF1EA] rounded-full whitespace-nowrap">句子结构</button>
+        <button class="px-4 py-2 text-sm font-medium text-[#5D895D] bg-[#EAF1EA] rounded-full whitespace-nowrap">介词</button>
+      </div>
+    </div>
+    
+    <div class="px-4 space-y-6">
+      <section>
+        <h2 class="text-[#111811] text-xl font-bold leading-tight tracking-tight mb-4">动词时态</h2>
+        <div class="bg-white rounded-xl shadow-sm p-5 space-y-4">
+          <div>
+            <h3 class="text-[#111811] text-lg font-semibold leading-snug">现在完成时</h3>
+            <p class="text-[#525252] text-sm leading-relaxed mt-1">
+              用现在完成时来谈论过去开始并延续到现在的动作。
+            </p>
+            <div class="mt-3 p-3 bg-[#F0F7F0] rounded-lg">
+              <p class="text-[#111811] text-sm font-medium">例句:</p>
+              <p class="text-[#3A6A3A] text-sm italic">'I <span class="font-semibold">have lived</span> in London for five years.'</p>
+            </div>
+          </div>
+          <hr class="border-t border-[#EAF1EA]"/>
+          <div>
+            <h3 class="text-[#111811] text-lg font-semibold leading-snug">一般过去时</h3>
+            <p class="text-[#525252] text-sm leading-relaxed mt-1">用一般过去时来谈论过去完成的动作。</p>
+            <div class="mt-3 p-3 bg-[#F0F7F0] rounded-lg">
+              <p class="text-[#111811] text-sm font-medium">例句:</p>
+              <p class="text-[#3A6A3A] text-sm italic">'I <span class="font-semibold">visited</span> Paris last summer.'</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section>
+        <h2 class="text-[#111811] text-xl font-bold leading-tight tracking-tight mb-4">练习题</h2>
+        <div class="bg-white rounded-xl shadow-sm p-5 space-y-3">
+          <p class="text-[#111811] text-base font-medium">填空:</p>
+          <p class="text-[#525252] text-sm">I ____ (go) to the park yesterday.</p>
+          <div class="flex space-x-2 pt-1">
+            <button class="flex-1 py-2.5 text-sm font-medium text-[#4A7C4A] bg-[#EAF1EA] rounded-lg hover:bg-[#DCE8DC]">went</button>
+            <button class="flex-1 py-2.5 text-sm font-medium text-[#4A7C4A] bg-[#EAF1EA] rounded-lg hover:bg-[#DCE8DC]">go</button>
+            <button class="flex-1 py-2.5 text-sm font-medium text-[#4A7C4A] bg-[#EAF1EA] rounded-lg hover:bg-[#DCE8DC]">goes</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Topics Tab Content -->
+  <div id="content-topics" class="tab-content">
+    <div class="p-4 pt-3">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="group flex cursor-pointer items-center gap-4 rounded-xl border border-[#d5e1db] bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-[#cfecdd]">
+          <div class="h-12 w-12 shrink-0 rounded-lg bg-[#E7F3E7] flex items-center justify-center">
+            <span class="material-icons text-[#4A7C4A]">chat</span>
+          </div>
+          <h2 class="text-base font-semibold text-[#111814]">Small Talk</h2>
+          <span class="material-icons ml-auto text-gray-400 group-hover:text-[#5f8672]">chevron_right</span>
+        </div>
+        
+        <div class="group flex cursor-pointer items-center gap-4 rounded-xl border border-[#d5e1db] bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-[#cfecdd]">
+          <div class="h-12 w-12 shrink-0 rounded-lg bg-[#E7F3E7] flex items-center justify-center">
+            <span class="material-icons text-[#4A7C4A]">restaurant</span>
+          </div>
+          <h2 class="text-base font-semibold text-[#111814]">Ordering Food</h2>
+          <span class="material-icons ml-auto text-gray-400 group-hover:text-[#5f8672]">chevron_right</span>
+        </div>
+        
+        <div class="group flex cursor-pointer items-center gap-4 rounded-xl border border-[#d5e1db] bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-[#cfecdd]">
+          <div class="h-12 w-12 shrink-0 rounded-lg bg-[#E7F3E7] flex items-center justify-center">
+            <span class="material-icons text-[#4A7C4A]">flight</span>
+          </div>
+          <h2 class="text-base font-semibold text-[#111814]">Travel</h2>
+          <span class="material-icons ml-auto text-gray-400 group-hover:text-[#5f8672]">chevron_right</span>
+        </div>
+        
+        <div class="group flex cursor-pointer items-center gap-4 rounded-xl border border-[#d5e1db] bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-[#cfecdd]">
+          <div class="h-12 w-12 shrink-0 rounded-lg bg-[#E7F3E7] flex items-center justify-center">
+            <span class="material-icons text-[#4A7C4A]">work</span>
+          </div>
+          <h2 class="text-base font-semibold text-[#111814]">Work</h2>
+          <span class="material-icons ml-auto text-gray-400 group-hover:text-[#5f8672]">chevron_right</span>
+        </div>
+        
+        <div class="group flex cursor-pointer items-center gap-4 rounded-xl border border-[#d5e1db] bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-[#cfecdd]">
+          <div class="h-12 w-12 shrink-0 rounded-lg bg-[#E7F3E7] flex items-center justify-center">
+            <span class="material-icons text-[#4A7C4A]">shopping_cart</span>
+          </div>
+          <h2 class="text-base font-semibold text-[#111814]">Shopping</h2>
+          <span class="material-icons ml-auto text-gray-400 group-hover:text-[#5f8672]">chevron_right</span>
+        </div>
+        
+        <div class="group flex cursor-pointer items-center gap-4 rounded-xl border border-[#d5e1db] bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-[#cfecdd]">
+          <div class="h-12 w-12 shrink-0 rounded-lg bg-[#E7F3E7] flex items-center justify-center">
+            <span class="material-icons text-[#4A7C4A]">local_hospital</span>
+          </div>
+          <h2 class="text-base font-semibold text-[#111814]">Healthcare</h2>
+          <span class="material-icons ml-auto text-gray-400 group-hover:text-[#5f8672]">chevron_right</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookmarks Tab Content -->
+  <div id="content-bookmarks" class="tab-content">
+    <h2 class="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6">我的收藏</h2>
+    <div class="space-y-4 px-2">
+      <div class="bg-[#F0F7F0] rounded-lg p-3">
+        <h3 class="text-[#0D1C0D] text-sm font-semibold mb-2">词汇收藏</h3>
+        <div class="space-y-2">
+          <div class="flex items-center gap-3 bg-white p-3 rounded-lg">
+            <span class="material-icons text-[#10cf70]">bookmark</span>
+            <span class="text-[#0D1C0D] font-medium">Get along</span>
+            <span class="text-gray-500 text-sm ml-auto">词汇</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-[#F0F7F0] rounded-lg p-3">
+        <h3 class="text-[#0D1C0D] text-sm font-semibold mb-2">短语收藏</h3>
+        <div class="space-y-2">
+          <div class="flex items-center gap-3 bg-white p-3 rounded-lg">
+            <span class="material-icons text-[#0FDB0F]">bookmark</span>
+            <span class="text-[#0D1C0D] font-medium">It's a pleasure to meet you.</span>
+            <span class="text-gray-500 text-sm ml-auto">短语</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center py-8 text-gray-500" id="empty-bookmarks" style="display: none;">
+        <span class="material-icons text-4xl mb-2">bookmark_border</span>
+        <p>还没有收藏任何内容</p>
+        <p class="text-sm">点击书签图标来收藏学习材料</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Bottom Navigation -->
+<footer class="fixed bottom-0 left-0 right-0 bg-[#F8FCF8]/95 backdrop-blur-md border-t border-[#E7F3E7] shadow-lg">
+  <div class="flex justify-around items-center px-2 py-2">
+    <a class="flex flex-col items-center justify-end gap-1 text-[#4B9B4B] hover:text-[#0FDB0F] p-2 rounded-lg w-1/4" href="#">
+      <span class="material-icons">school</span>
+      <p class="text-xs font-medium leading-normal">学习</p>
+    </a>
+    <a class="flex flex-col items-center justify-end gap-1 text-[#4B9B4B] hover:text-[#0FDB0F] p-2 rounded-lg w-1/4" href="#">
+      <span class="material-icons">model_training</span>
+      <p class="text-xs font-medium leading-normal">练习</p>
+    </a>
+    <a class="flex flex-col items-center justify-end gap-1 text-[#0FDB0F] bg-green-100 p-2 rounded-lg w-1/4" href="#">
+      <span class="material-icons">menu_book</span>
+      <p class="text-xs font-semibold leading-normal">学习中心</p>
+    </a>
+    <a class="flex flex-col items-center justify-end gap-1 text-[#4B9B4B] hover:text-[#0FDB0F] p-2 rounded-lg w-1/4" href="#">
+      <span class="material-icons">person_outline</span>
+      <p class="text-xs font-medium leading-normal">我的</p>
+    </a>
+  </div>
+  <div class="h-safe-area-bottom bg-[#F8FCF8]"></div>
+</footer>
+
+</div>
+
+<script>
+// Tab switching functionality
+function switchTab(tabName) {
+  // Hide all tab contents
+  const contents = document.querySelectorAll('.tab-content');
+  contents.forEach(content => {
+    content.classList.remove('active');
+  });
+  
+  // Remove active class from all tab buttons
+  const buttons = document.querySelectorAll('.tab-button');
+  buttons.forEach(button => {
+    button.classList.remove('active');
+  });
+  
+  // Show selected tab content
+  document.getElementById(`content-${tabName}`).classList.add('active');
+  
+  // Add active class to selected tab button
+  document.getElementById(`tab-${tabName}`).classList.add('active');
+}
+
+// Bookmark functionality
+function toggleBookmark(button) {
+  const icon = button.querySelector('.material-icons');
+  if (icon.textContent === 'bookmark_border') {
+    icon.textContent = 'bookmark';
+    button.classList.remove('text-gray-400');
+    button.classList.add('text-[#0FDB0F]');
+  } else {
+    icon.textContent = 'bookmark_border';
+    button.classList.remove('text-[#0FDB0F]');
+    button.classList.add('text-gray-400');
+  }
+}
+
+// Mastery functionality
+function toggleMastery(button) {
+  const icon = button.querySelector('.material-icons');
+  const parentCard = button.closest('.flex');
+  
+  if (icon.textContent === 'check_circle_outline') {
+    icon.textContent = 'check_circle';
+    button.classList.remove('text-gray-400');
+    button.classList.add('text-[#10cf70]');
+    parentCard.classList.add('opacity-70');
+    // Add strikethrough to the word
+    const word = parentCard.querySelector('p.font-medium');
+    if (word) word.classList.add('line-through');
+  } else {
+    icon.textContent = 'check_circle_outline';
+    button.classList.remove('text-[#10cf70]');
+    button.classList.add('text-gray-400');
+    parentCard.classList.remove('opacity-70');
+    // Remove strikethrough from the word
+    const word = parentCard.querySelector('p.font-medium');
+    if (word) word.classList.remove('line-through');
+  }
+}
+
+// Search functionality
+document.getElementById('globalSearch').addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  // Here you would implement search filtering logic
+  console.log('搜索:', searchTerm);
+});
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', function() {
+  // Default to vocabulary tab
+  switchTab('vocabulary');
+});
+</script>
+
+</body></html>
