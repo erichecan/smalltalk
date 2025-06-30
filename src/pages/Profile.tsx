@@ -5,6 +5,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import ProfileMenu from '../components/ProfileMenu';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -23,7 +24,8 @@ export default function Profile() {
         <Button onClick={() => navigate(-1)} sx={{ minWidth: 0, p: 1, borderRadius: '50%', color: '#0d1b0d', '&:hover': { bgcolor: '#e7f3e7' } }}>
           <ArrowBackIcon />
         </Button>
-        <Typography variant="h6" sx={{ flex: 1, textAlign: 'center', color: '#0d1b0d', fontWeight: 'bold', pr: 5 }}>{t('profile.friendProfile')}</Typography>
+        <Typography variant="h6" sx={{ flex: 1, textAlign: 'center', color: '#0d1b0d', fontWeight: 'bold' }}>{t('profile.friendProfile')}</Typography>
+        <ProfileMenu />
       </Box>
       {/* 头像与基本信息 */}
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', mt: 4, mb: 4 }}>

@@ -1,0 +1,29 @@
+{
+  "title": "Help & FAQ",
+  "searchPlaceholder": "Search FAQs...",
+  "categories": "Categories",
+  "category": {
+    "gettingStarted": "Getting Started",
+    "accountSettings": "Account Settings", 
+    "conversations": "Conversations",
+    "troubleshooting": "Troubleshooting"
+  },
+  "commonQuestions": "Common Questions",
+  "faq": {
+    "startConversation": {
+      "question": "How do I start a new conversation?",
+      "answer": "Simply tap the 'New Conversation' button on the home screen and choose a topic or scenario to begin practicing your English skills!"
+    },
+    "changePassword": {
+      "question": "Can I change my account password?",
+      "answer": "Yes, you can change your password in the 'Account Settings' section of your profile. Look for the 'Change Password' option and follow the instructions."
+    },
+    "appNotResponding": {
+      "question": "What if the app is not responding?",
+      "answer": "Try closing and reopening the app. If the issue persists, check your internet connection or restart your device. For more detailed steps, please visit the 'Troubleshooting' category or contact support."
+    }
+  },
+  "needMoreHelp": "Need More Help?",
+  "emailSupport": "Email Support",
+  "visitHelpCenter": "Visit Help Center Online"
+}

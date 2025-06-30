@@ -1,0 +1,15 @@
+{
+  "title": "反馈问题",
+  "problemTypeQuestion": "您要反馈什么类型的问题？",
+  "problemType": {
+    "technical": "技术问题",
+    "content": "内容问题",
+    "behavior": "用户行为",
+    "feedback": "意见建议"
+  },
+  "descriptionPlaceholder": "详细描述问题或反馈意见",
+  "emailPlaceholder": "邮箱地址（可选）",
+  "attachScreenshot": "附加截图（可选）",
+  "submitButton": "提交反馈",
+  "submitting": "提交中..."
+}
