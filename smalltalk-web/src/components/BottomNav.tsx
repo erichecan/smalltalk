@@ -3,9 +3,9 @@ import { Link, useLocation } from 'react-router-dom';
 
 const navs = [
   { path: '/dialogue', label: 'Dialogue' },
-  { path: '/history', label: 'History' },
-  { path: '/settings', label: 'Settings' },
-  { path: '/profile', label: 'Profile' },
+  { path: '/practice', label: 'Practice' },
+  { path: '/vocabulary', label: 'Vocabulary' },
+  { path: '/my', label: 'My' },
 ];
 
 const BottomNav: React.FC = () => {

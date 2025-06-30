@@ -5,7 +5,7 @@ SmallTalk is a modern web application designed to help users practice English co
 ## 🌟 Features
 
 ### Core Functionality
-- **AI-Powered Conversations**: Practice English with OpenAI's GPT-3.5-turbo
+- **AI-Powered Conversations**: Practice English with Google's Gemini AI
 - **Voice Input**: Speech-to-text functionality for natural conversation flow
 - **Topic-Based Learning**: Choose from various conversation topics
 - **Conversation History**: Save and review past conversations
@@ -29,7 +29,7 @@ SmallTalk is a modern web application designed to help users practice English co
 ### Backend & Services
 - **Firebase Authentication** - User authentication and management
 - **Firestore** - NoSQL database for conversation storage
-- **OpenAI API** - AI conversation generation
+- **Gemini API** - AI conversation generation
 - **Web Speech API** - Speech-to-text functionality
 
 ### Development Tools
@@ -67,7 +67,7 @@ SmallTalk is a modern web application designed to help users practice English co
    VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
    VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
    VITE_FIREBASE_APP_ID=your_firebase_app_id
-   VITE_OPENAI_API_KEY=your_openai_api_key
+   VITE_GEMINI_API_KEY=your_gemini_api_key
    ```
 
 4. **Firebase Setup**
@@ -76,8 +76,8 @@ SmallTalk is a modern web application designed to help users practice English co
    - Enable Firestore Database
    - Add your Firebase configuration to the environment variables
 
-5. **OpenAI Setup**
-   - Get an API key from [OpenAI Platform](https://platform.openai.com/)
+5. **Gemini Setup**
+   - Get an API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
    - Add the API key to your environment variables
 
 ## 🚀 Usage
@@ -134,9 +134,9 @@ The app uses Firebase for authentication and data storage. Configure the followi
 - **Authentication**: Email/password and Google sign-in
 - **Firestore**: Database for storing conversations and user data
 
-### OpenAI Configuration
-- Set up your OpenAI API key in the environment variables
-- The app uses GPT-3.5-turbo for conversation generation
+### Gemini Configuration
+- Set up your Gemini API key in the environment variables
+- The app uses Google's Gemini AI for conversation generation
 
 ## 🤝 Contributing
 
@@ -159,7 +159,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- OpenAI for providing the AI conversation capabilities
+- Google for providing the Gemini AI conversation capabilities
 - Firebase for backend services
 - The React and TypeScript communities for excellent tooling
 - Original design inspiration from the provided HTML files

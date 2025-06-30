@@ -3,9 +3,17 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChatIcon from '@mui/icons-material/Chat';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { logout, isAuthenticated } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
   return (
     <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0, fontFamily: 'Spline Sans, Noto Sans, sans-serif' }}>
       {/* 顶部栏 */}
@@ -68,6 +76,11 @@ export default function Profile() {
         <Button variant="contained" startIcon={<PlayArrowIcon />} sx={{ bgcolor: '#e7f3e7', color: '#0d1b0d', fontWeight: 'bold', borderRadius: 999, px: 4, boxShadow: 1, flex: 1, minWidth: 120, '&:hover': { bgcolor: '#cfe7cf' } }}>
           Start Conversation
         </Button>
+        {isAuthenticated && (
+          <Button variant="outlined" color="error" onClick={handleLogout} sx={{ ml: 2, borderRadius: 999, minWidth: 120, fontWeight: 'bold' }}>
+            Log Out
+          </Button>
+        )}
       </Box>
     </Container>
   );
