@@ -1,10 +1,10 @@
 import { Container, Box, Typography, Avatar, Paper, LinearProgress, Chip, Stack, Button } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChatIcon from '@mui/icons-material/Chat';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import ProfileMenu from '../components/ProfileMenu';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -19,11 +19,9 @@ export default function Profile() {
   return (
     <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0, fontFamily: 'Spline Sans, Noto Sans, sans-serif' }}>
       {/* 顶部栏 */}
-      <Box sx={{ position: 'sticky', top: 0, zIndex: 10, bgcolor: 'rgba(248,252,248,0.8)', backdropFilter: 'blur(8px)', px: 2, py: 1.5, display: 'flex', alignItems: 'center', borderBottom: 0 }}>
-        <Button onClick={() => navigate(-1)} sx={{ minWidth: 0, p: 1, borderRadius: '50%', color: '#0d1b0d', '&:hover': { bgcolor: '#e7f3e7' } }}>
-          <ArrowBackIcon />
-        </Button>
-        <Typography variant="h6" sx={{ flex: 1, textAlign: 'center', color: '#0d1b0d', fontWeight: 'bold', pr: 5 }}>{t('profile.friendProfile')}</Typography>
+      <Box sx={{ position: 'sticky', top: 0, zIndex: 10, bgcolor: 'rgba(248,252,248,0.8)', backdropFilter: 'blur(8px)', px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 0 }}>
+        <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>{t('profile.friendProfile')}</Typography>
+        <ProfileMenu />
       </Box>
       {/* 头像与基本信息 */}
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', mt: 4, mb: 4 }}>

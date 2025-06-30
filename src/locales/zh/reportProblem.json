@@ -1,0 +1,14 @@
+{
+  "title": "报告问题",
+  "problemTypeQuestion": "您要报告什么类型的问题？",
+  "problemTypes": {
+    "technical": "技术问题",
+    "content": "内容问题",
+    "behavior": "用户行为",
+    "feedback": "反馈/建议"
+  },
+  "descriptionPlaceholder": "详细描述问题或反馈",
+  "emailPlaceholder": "邮箱地址（可选）",
+  "attachScreenshot": "附加截图（可选）",
+  "submitReport": "提交报告"
+}

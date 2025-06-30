@@ -1,0 +1,14 @@
+{
+  "title": "Report a Problem",
+  "problemTypeQuestion": "What type of problem are you reporting?",
+  "problemTypes": {
+    "technical": "Technical Issue",
+    "content": "Content Issue",
+    "behavior": "User Behavior",
+    "feedback": "Feedback/Suggestions"
+  },
+  "descriptionPlaceholder": "Describe the problem or feedback in detail",
+  "emailPlaceholder": "Email address (optional)",
+  "attachScreenshot": "Attach Screenshot (Optional)",
+  "submitReport": "Submit Report"
+}
