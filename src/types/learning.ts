@@ -11,6 +11,14 @@ export interface VocabularyItem {
   bookmarked: boolean;
   createdAt: string;
   lastReviewed?: string;
+  // 新增字段
+  chinese_translation?: string;
+  phonetic?: string;
+  part_of_speech?: string;
+  synonyms?: string[];
+  antonyms?: string[];
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
+  usage_notes?: string;
 }
 
 export interface PhraseItem {

@@ -14,13 +14,41 @@
   },
   "vocabulary": {
     "title": "Vocabulary from Conversations",
-    "add": "Add Word",
     "mastered": "Mastered",
     "learning": "Learning",
     "notLearned": "Not Learned",
     "playPronunciation": "Play pronunciation",
     "markAsMastered": "Mark as mastered",
-    "markAsLearning": "Mark as learning"
+    "markAsLearning": "Mark as learning",
+    "add": {
+      "title": "Add New Word",
+      "wordLabel": "English Word",
+      "placeholder": "Enter an English word...",
+      "aiHelp": "AI will automatically provide definition, translation, examples, and more!",
+      "submit": "Add Word",
+      "adding": "Adding...",
+      "emptyWord": "Please enter a word",
+      "failed": "Failed to add word. Please try again."
+    },
+    "import": {
+      "title": "Import Vocabulary",
+      "fileLabel": "Select File",
+      "dropZone": "Click to select file or drag and drop",
+      "supportedFormats": "Supports TXT and CSV files (max 1MB)",
+      "formatInfo": "File format requirements:",
+      "txtFormat": "TXT: One English word per line",
+      "csvFormat": "CSV: First column should contain English words",
+      "submit": "Import File",
+      "importing": "Importing...",
+      "processing": "Processing words with AI...",
+      "results": "Import Results",
+      "successCount": "Successfully imported {{count}} words",
+      "errorCount": "{{count}} words failed to import",
+      "moreErrors": "...and {{count}} more errors",
+      "invalidFileType": "Please select a TXT or CSV file",
+      "fileTooLarge": "File size must be less than 1MB",
+      "failed": "Failed to import file. Please try again."
+    }
   },
   "phrases": {
     "title": "Common Phrases",

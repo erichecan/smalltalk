@@ -201,4 +201,163 @@ Remember: The goal is to help users practice natural English conversation and fe
       throw error; // 如果是初始消息，仍然抛出错误，因为我们需要一个有效的响应来开始对话
     }
   }
-} 
+}
+
+// 词汇信息补齐接口
+export interface VocabularyInfo {
+  word: string;
+  definition: string;
+  chinese_translation: string;
+  phonetic: string;
+  part_of_speech: string;
+  example_sentence: string;
+  synonyms: string[];
+  antonyms: string[];
+  difficulty_level: 'beginner' | 'intermediate' | 'advanced';
+  usage_notes: string;
+}
+
+// 获取词汇详细信息
+export async function getVocabularyInfo(word: string): Promise<VocabularyInfo> {
+  console.log(`Getting vocabulary info for word: "${word}"`);
+  const startTime = Date.now();
+  
+  try {
+    const prompt = `You are an expert English language tutor. Your task is to provide comprehensive information about English words for language learners.
+
+For the given English word, provide the following information in EXACT JSON format:
+
+{
+  "word": "the input word",
+  "definition": "clear, concise English definition suitable for intermediate learners",
+  "chinese_translation": "准确的中文翻译",
+  "phonetic": "IPA phonetic transcription with / / marks",
+  "part_of_speech": "noun/verb/adjective/adverb/preposition/etc.",
+  "example_sentence": "a natural, practical example sentence showing proper usage",
+  "synonyms": ["word1", "word2", "word3"],
+  "antonyms": ["word1", "word2"],
+  "difficulty_level": "beginner/intermediate/advanced",
+  "usage_notes": "brief note about common usage, collocations, or important grammar points"
+}
+
+Requirements:
+1. Definition should be clear and suitable for English learners
+2. Chinese translation should be the most common/appropriate translation
+3. Example sentence should be practical and show natural usage
+4. Provide 2-4 synonyms and 1-3 antonyms when applicable
+5. If word has multiple meanings, focus on the most common one
+6. Difficulty level based on typical learner progression
+7. Return ONLY the JSON object, no additional text
+
+Word to analyze: "${word}"`;
+
+    const requestBody = {
+      contents: [{
+        role: "user",
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        temperature: 0.3, // 降低温度确保结果一致性
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 800
+      }
+    };
+
+    console.log('Sending vocabulary request to Gemini API');
+    const response = await fetchWithRetry(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Gemini API error (${response.status})`;
+      try {
+        const errorData = await response.json();
+        console.error('Gemini API error response:', JSON.stringify(errorData, null, 2));
+        if (errorData.error) {
+          errorMessage += `: ${errorData.error.message || 'Unknown error'}`;
+        }
+      } catch {
+        const errorText = await response.text();
+        console.error('Gemini API error text:', errorText);
+        errorMessage += `: ${errorText}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json();
+    console.log('Gemini API vocabulary response:', JSON.stringify(data, null, 2));
+    
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      throw new Error('Invalid response from Gemini API');
+    }
+
+    const responseText = data.candidates[0].content.parts[0].text.trim();
+    console.log('Raw vocabulary response:', responseText);
+
+    // 解析JSON响应
+    let vocabInfo: VocabularyInfo;
+    try {
+      // 尝试提取JSON内容（处理可能的markdown代码块）
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      const jsonText = jsonMatch ? jsonMatch[0] : responseText;
+      const parsed = JSON.parse(jsonText);
+      
+      // 验证和标准化数据
+      vocabInfo = {
+        word: parsed.word || word,
+        definition: parsed.definition || 'Definition not available',
+        chinese_translation: parsed.chinese_translation || '翻译不可用',
+        phonetic: parsed.phonetic || '',
+        part_of_speech: parsed.part_of_speech || 'unknown',
+        example_sentence: parsed.example_sentence || '',
+        synonyms: Array.isArray(parsed.synonyms) ? parsed.synonyms : [],
+        antonyms: Array.isArray(parsed.antonyms) ? parsed.antonyms : [],
+        difficulty_level: ['beginner', 'intermediate', 'advanced'].includes(parsed.difficulty_level) 
+          ? parsed.difficulty_level : 'intermediate',
+        usage_notes: parsed.usage_notes || ''
+      };
+    } catch (parseError) {
+      console.error('Error parsing vocabulary JSON:', parseError);
+      console.error('Raw response text:', responseText);
+      
+      // 降级处理：返回基本信息
+      vocabInfo = {
+        word: word,
+        definition: 'AI processing failed, please try again',
+        chinese_translation: 'AI处理失败，请重试',
+        phonetic: '',
+        part_of_speech: 'unknown',
+        example_sentence: '',
+        synonyms: [],
+        antonyms: [],
+        difficulty_level: 'intermediate',
+        usage_notes: ''
+      };
+    }
+
+    const endTime = Date.now();
+    console.log(`Vocabulary info generated successfully in ${endTime - startTime}ms`);
+    return vocabInfo;
+
+  } catch (error) {
+    const endTime = Date.now();
+    console.error(`Error getting vocabulary info after ${endTime - startTime}ms:`, error);
+    
+    // 错误降级：返回基本结构
+    return {
+      word: word,
+      definition: 'Unable to fetch definition. Please check your internet connection.',
+      chinese_translation: '无法获取翻译，请检查网络连接',
+      phonetic: '',
+      part_of_speech: 'unknown',
+      example_sentence: '',
+      synonyms: [],
+      antonyms: [],
+      difficulty_level: 'intermediate',
+      usage_notes: 'Information unavailable due to network error'
+    };
+  }
+}

@@ -1,5 +1,6 @@
 // 学习中心数据服务
 import { supabase } from './supabase';
+import { getVocabularyInfo, type VocabularyInfo } from './ai';
 import type { 
   VocabularyItem, 
   PhraseItem, 
@@ -99,7 +100,14 @@ export const vocabularyService = {
         masteryLevel: item.mastery_level,
         bookmarked: item.bookmarked,
         createdAt: item.created_at,
-        lastReviewed: item.last_reviewed
+        lastReviewed: item.last_reviewed,
+        chinese_translation: item.chinese_translation,
+        phonetic: item.phonetic,
+        part_of_speech: item.part_of_speech,
+        synonyms: item.synonyms,
+        antonyms: item.antonyms,
+        difficulty_level: item.difficulty_level,
+        usage_notes: item.usage_notes
       })) || MOCK_VOCABULARY;
     } catch (error) {
       console.warn('Error fetching vocabulary, using mock data:', error);
@@ -121,7 +129,14 @@ export const vocabularyService = {
           source: vocabulary.source,
           mastery_level: vocabulary.masteryLevel,
           bookmarked: vocabulary.bookmarked,
-          last_reviewed: vocabulary.lastReviewed
+          last_reviewed: vocabulary.lastReviewed,
+          chinese_translation: vocabulary.chinese_translation,
+          phonetic: vocabulary.phonetic,
+          part_of_speech: vocabulary.part_of_speech,
+          synonyms: vocabulary.synonyms,
+          antonyms: vocabulary.antonyms,
+          difficulty_level: vocabulary.difficulty_level,
+          usage_notes: vocabulary.usage_notes
         }])
         .select()
         .single();
@@ -138,7 +153,14 @@ export const vocabularyService = {
         masteryLevel: data.mastery_level,
         bookmarked: data.bookmarked,
         createdAt: data.created_at,
-        lastReviewed: data.last_reviewed
+        lastReviewed: data.last_reviewed,
+        chinese_translation: data.chinese_translation,
+        phonetic: data.phonetic,
+        part_of_speech: data.part_of_speech,
+        synonyms: data.synonyms,
+        antonyms: data.antonyms,
+        difficulty_level: data.difficulty_level,
+        usage_notes: data.usage_notes
       };
     } catch (error) {
       console.warn('Cannot add vocabulary to database, table may not exist:', error);
@@ -169,6 +191,203 @@ export const vocabularyService = {
       console.warn('Cannot update vocabulary in database, table may not exist:', error);
       // 在实际应用中，这里可以将更新存储到本地状态或localStorage
     }
+  },
+
+  // AI增强的词汇添加功能
+  async addVocabularyWithAI(userId: string, word: string, context?: string): Promise<VocabularyItem> {
+    try {
+      console.log(`Adding vocabulary with AI enhancement: ${word}`);
+      
+      // 调用AI获取词汇信息
+      const aiInfo = await getVocabularyInfo(word);
+      
+      // 构建完整的词汇项
+      const vocabularyItem: Omit<VocabularyItem, 'id' | 'createdAt'> = {
+        word: aiInfo.word,
+        definition: aiInfo.definition,
+        example: aiInfo.example_sentence,
+        pronunciation: aiInfo.phonetic,
+        source: context ? 'conversation' : 'manual',
+        masteryLevel: 0,
+        bookmarked: false,
+        chinese_translation: aiInfo.chinese_translation,
+        phonetic: aiInfo.phonetic,
+        part_of_speech: aiInfo.part_of_speech,
+        synonyms: aiInfo.synonyms,
+        antonyms: aiInfo.antonyms,
+        difficulty_level: aiInfo.difficulty_level,
+        usage_notes: aiInfo.usage_notes
+      };
+
+      // 尝试保存到数据库
+      try {
+        const { data, error } = await supabase
+          .from('vocabulary')
+          .insert([{
+            user_id: userId,
+            word: vocabularyItem.word,
+            definition: vocabularyItem.definition,
+            example: vocabularyItem.example,
+            pronunciation: vocabularyItem.pronunciation,
+            source: vocabularyItem.source,
+            mastery_level: vocabularyItem.masteryLevel,
+            bookmarked: vocabularyItem.bookmarked,
+            chinese_translation: vocabularyItem.chinese_translation,
+            phonetic: vocabularyItem.phonetic,
+            part_of_speech: vocabularyItem.part_of_speech,
+            synonyms: vocabularyItem.synonyms,
+            antonyms: vocabularyItem.antonyms,
+            difficulty_level: vocabularyItem.difficulty_level,
+            usage_notes: vocabularyItem.usage_notes
+          }])
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        return {
+          id: data.id,
+          word: data.word,
+          definition: data.definition,
+          example: data.example,
+          pronunciation: data.pronunciation,
+          source: data.source,
+          masteryLevel: data.mastery_level,
+          bookmarked: data.bookmarked,
+          createdAt: data.created_at,
+          lastReviewed: data.last_reviewed,
+          chinese_translation: data.chinese_translation,
+          phonetic: data.phonetic,
+          part_of_speech: data.part_of_speech,
+          synonyms: data.synonyms,
+          antonyms: data.antonyms,
+          difficulty_level: data.difficulty_level,
+          usage_notes: data.usage_notes
+        };
+      } catch (dbError) {
+        console.warn('Cannot save to database, returning AI-generated vocabulary item:', dbError);
+        // 返回AI生成的词汇项，即使数据库保存失败
+        return {
+          id: Date.now().toString(),
+          ...vocabularyItem,
+          createdAt: new Date().toISOString()
+        };
+      }
+    } catch (error) {
+      console.error('Error adding vocabulary with AI:', error);
+      throw new Error('Failed to add vocabulary. Please try again.');
+    }
+  },
+
+  // 批量AI增强词汇添加
+  async addMultipleVocabularyWithAI(userId: string, words: string[]): Promise<VocabularyItem[]> {
+    const results: VocabularyItem[] = [];
+    const errors: string[] = [];
+
+    for (const word of words) {
+      try {
+        const vocabularyItem = await this.addVocabularyWithAI(userId, word.trim());
+        results.push(vocabularyItem);
+      } catch (error) {
+        console.error(`Failed to add word "${word}":`, error);
+        errors.push(word);
+      }
+    }
+
+    if (errors.length > 0) {
+      console.warn(`Failed to add ${errors.length} words:`, errors);
+    }
+
+    return results;
+  },
+
+  // 文件导入功能
+  async importVocabularyFromFile(userId: string, file: File): Promise<{ success: VocabularyItem[], errors: string[] }> {
+    try {
+      const fileContent = await this.readFileContent(file);
+      const words = this.parseFileContent(fileContent, file.name);
+      
+      if (words.length === 0) {
+        throw new Error('No valid words found in the file');
+      }
+
+      const results: VocabularyItem[] = [];
+      const errors: string[] = [];
+
+      console.log(`Importing ${words.length} words from file: ${file.name}`);
+
+      for (const word of words) {
+        try {
+          const vocabularyItem = await this.addVocabularyWithAI(userId, word);
+          results.push(vocabularyItem);
+        } catch (error) {
+          console.error(`Failed to import word "${word}":`, error);
+          errors.push(`${word}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      return { success: results, errors };
+    } catch (error) {
+      console.error('Error importing vocabulary from file:', error);
+      throw new Error(`Failed to import file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
+
+  // 读取文件内容
+  async readFileContent(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result;
+        if (typeof content === 'string') {
+          resolve(content);
+        } else {
+          reject(new Error('Failed to read file content'));
+        }
+      };
+      reader.onerror = () => reject(new Error('File reading failed'));
+      reader.readAsText(file, 'UTF-8');
+    });
+  },
+
+  // 解析文件内容
+  parseFileContent(content: string, fileName: string): string[] {
+    const lowercaseFileName = fileName.toLowerCase();
+    let words: string[] = [];
+
+    if (lowercaseFileName.endsWith('.txt')) {
+      // TXT格式：每行一个单词
+      words = content
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0 && /^[a-zA-Z\s'-]+$/.test(line)); // 只保留英文单词
+    } else if (lowercaseFileName.endsWith('.csv')) {
+      // CSV格式：支持 word,definition,example (可选列)
+      const lines = content.split('\n');
+      words = lines
+        .slice(1) // 跳过标题行
+        .map(line => {
+          const columns = line.split(',');
+          return columns[0]?.trim(); // 只取第一列（单词）
+        })
+        .filter(word => word && word.length > 0 && /^[a-zA-Z\s'-]+$/.test(word));
+    } else {
+      throw new Error('Unsupported file format. Please use .txt or .csv files.');
+    }
+
+    // 去重并验证
+    const uniqueWords = [...new Set(words)];
+    const validWords = uniqueWords.filter(word => {
+      // 基本验证：长度合理，只包含英文字符
+      return word.length >= 2 && word.length <= 50 && /^[a-zA-Z\s'-]+$/.test(word);
+    });
+
+    if (validWords.length === 0) {
+      throw new Error('No valid English words found in the file');
+    }
+
+    console.log(`Parsed ${validWords.length} valid words from ${fileName}`);
+    return validWords;
   }
 };
 

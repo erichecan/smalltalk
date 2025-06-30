@@ -3,12 +3,14 @@ import { Container, Box, Typography, TextField, Button, Paper, Stack, Alert, Cir
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ClearIcon from '@mui/icons-material/Clear';
 import HistoryIcon from '@mui/icons-material/History';
+import BookmarkAddIcon from '@mui/icons-material/BookmarkAdd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { Message } from '../types/chat';
 import { getAIResponse } from '../services/ai';
 import { useAuth } from '../contexts/AuthContext';
 import { saveConversationHistory, updateConversationHistory } from '../services/historyService';
+import { vocabularyService } from '../services/learningService';
 
 export default function Dialogue() {
   const { t } = useTranslation('chat');
@@ -25,6 +27,13 @@ export default function Dialogue() {
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(conversationId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useAuth();
+
+  // 选词功能状态
+  const [selectedWord, setSelectedWord] = useState<string>('');
+  const [showWordMenu, setShowWordMenu] = useState(false);
+  const [wordMenuPosition, setWordMenuPosition] = useState({ x: 0, y: 0 });
+  const [isAddingWord, setIsAddingWord] = useState(false);
+  const [wordAddSuccess, setWordAddSuccess] = useState<string | null>(null);
 
   // 调试：打印conversationId的传递情况
   useEffect(() => {
@@ -143,6 +152,63 @@ export default function Dialogue() {
       console.error('Failed to copy text: ', err);
     }
   };
+
+  // 处理文本选择
+  const handleTextSelection = (event: React.MouseEvent) => {
+    if (!isAuthenticated) return; // 只有登录用户才能使用选词功能
+    
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+      const selectedText = selection.toString().trim();
+      // 检查是否为英文单词（包含字母的单词）
+      if (/^[a-zA-Z'-]+$/.test(selectedText) && selectedText.length > 1) {
+        setSelectedWord(selectedText);
+        setWordMenuPosition({ x: event.clientX, y: event.clientY });
+        setShowWordMenu(true);
+      }
+    }
+  };
+
+  // 添加选中的单词到词汇表
+  const handleAddWord = async () => {
+    if (!selectedWord || !user) return;
+    
+    setIsAddingWord(true);
+    try {
+      await vocabularyService.addVocabularyWithAI(user.id, selectedWord);
+      setWordAddSuccess(selectedWord);
+      setShowWordMenu(false);
+      
+      // 3秒后清除成功消息
+      setTimeout(() => {
+        setWordAddSuccess(null);
+      }, 3000);
+    } catch (error) {
+      console.error('Error adding word to vocabulary:', error);
+    } finally {
+      setIsAddingWord(false);
+    }
+  };
+
+  // 关闭选词菜单
+  const handleCloseWordMenu = () => {
+    setShowWordMenu(false);
+    setSelectedWord('');
+  };
+
+  // 点击页面其他地方关闭菜单
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showWordMenu) {
+        handleCloseWordMenu();
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showWordMenu]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -322,7 +388,17 @@ export default function Dialogue() {
                       opacity: 1,
                     }
                   }}>
-                    <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>{msg.text}</Typography>
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        whiteSpace: 'pre-line',
+                        userSelect: msg.sender === 'ai' && isAuthenticated ? 'text' : 'auto',
+                        cursor: msg.sender === 'ai' && isAuthenticated ? 'text' : 'default'
+                      }}
+                      onMouseUp={msg.sender === 'ai' ? handleTextSelection : undefined}
+                    >
+                      {msg.text}
+                    </Typography>
                     <Tooltip title="复制">
                       <IconButton
                         className="copy-button"
@@ -468,6 +544,81 @@ export default function Dialogue() {
         )}
         <div ref={messagesEndRef} />
       </Box>
+
+      {/* 选词菜单 */}
+      {showWordMenu && (
+        <Box
+          sx={{
+            position: 'fixed',
+            left: wordMenuPosition.x,
+            top: wordMenuPosition.y,
+            zIndex: 1000,
+            bgcolor: 'white',
+            border: '1px solid #ccc',
+            borderRadius: 1,
+            boxShadow: 3,
+            p: 1,
+            minWidth: 150
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Typography variant="caption" sx={{ color: '#666', px: 1, display: 'block', mb: 1 }}>
+            选中单词: "{selectedWord}"
+          </Typography>
+          <Button
+            size="small"
+            variant="contained"
+            fullWidth
+            disabled={isAddingWord}
+            onClick={handleAddWord}
+            sx={{
+              bgcolor: '#4c9a4c',
+              '&:hover': { bgcolor: '#3a7a3a' },
+              fontSize: '0.75rem',
+              py: 0.5
+            }}
+          >
+            {isAddingWord ? (
+              <>
+                <CircularProgress size={14} sx={{ color: 'white', mr: 1 }} />
+                添加中...
+              </>
+            ) : (
+              <>
+                <BookmarkAddIcon sx={{ fontSize: 14, mr: 0.5 }} />
+                添加到词汇表
+              </>
+            )}
+          </Button>
+        </Box>
+      )}
+
+      {/* 添加成功提示 */}
+      {wordAddSuccess && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 20,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1001,
+            bgcolor: '#4caf50',
+            color: 'white',
+            px: 3,
+            py: 1,
+            borderRadius: 2,
+            boxShadow: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          <Typography variant="body2">
+            单词 "{wordAddSuccess}" 已添加到词汇表
+          </Typography>
+        </Box>
+      )}
+
       {/* 错误提示 */}
       {error && (
         <Box sx={{ px: 2, py: 1 }}>

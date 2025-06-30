@@ -1,4 +1,6 @@
 {
+  "cancel": "Cancel",
+  "close": "Close",
   "buttons": {
     "save": "Save",
     "cancel": "Cancel",

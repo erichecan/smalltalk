@@ -55,6 +55,20 @@ export default function Vocabulary() {
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   
+  // 添加词汇状态
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newWord, setNewWord] = useState('');
+  const [isAddingWord, setIsAddingWord] = useState(false);
+  const [addWordError, setAddWordError] = useState<string | null>(null);
+  
+  // 文件导入状态
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
+  const [importResults, setImportResults] = useState<{ success: VocabularyItem[], errors: string[] } | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  
   // 过滤器状态 - 使用翻译键作为默认值
   const [selectedPhraseCategory, setSelectedPhraseCategory] = useState(t('phrases.categories.all'));
   const [selectedGrammarCategory, setSelectedGrammarCategory] = useState(t('grammar.categories.all'));
@@ -161,6 +175,115 @@ export default function Vocabulary() {
     }
   }, []);
 
+  // 添加新词汇
+  const handleAddVocabulary = async () => {
+    if (!newWord.trim()) {
+      setAddWordError(t('vocabulary.add.emptyWord'));
+      return;
+    }
+
+    setIsAddingWord(true);
+    setAddWordError(null);
+
+    try {
+      const vocabularyItem = await vocabularyService.addVocabularyWithAI(
+        user?.id || 'guest',
+        newWord.trim()
+      );
+      
+      // 添加到本地状态
+      setVocabulary(prev => [vocabularyItem, ...prev]);
+      
+      // 重置状态
+      setNewWord('');
+      setShowAddDialog(false);
+      
+      console.log('Successfully added vocabulary:', vocabularyItem);
+    } catch (error) {
+      console.error('Error adding vocabulary:', error);
+      setAddWordError(error instanceof Error ? error.message : t('vocabulary.add.failed'));
+    } finally {
+      setIsAddingWord(false);
+    }
+  };
+
+  // 关闭添加对话框
+  const handleCloseAddDialog = () => {
+    if (isAddingWord) return; // 防止在加载时关闭
+    setShowAddDialog(false);
+    setNewWord('');
+    setAddWordError(null);
+  };
+
+  // 处理文件选择
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // 验证文件类型
+      const fileExtension = file.name.toLowerCase().split('.').pop();
+      if (fileExtension !== 'txt' && fileExtension !== 'csv') {
+        setImportError(t('vocabulary.import.invalidFileType'));
+        return;
+      }
+      
+      // 验证文件大小 (限制为1MB)
+      if (file.size > 1024 * 1024) {
+        setImportError(t('vocabulary.import.fileTooLarge'));
+        return;
+      }
+      
+      setSelectedFile(file);
+      setImportError(null);
+    }
+  };
+
+  // 开始导入文件
+  const handleImportFile = async () => {
+    if (!selectedFile) return;
+
+    setIsImporting(true);
+    setImportError(null);
+    setImportResults(null);
+
+    try {
+      const results = await vocabularyService.importVocabularyFromFile(
+        user?.id || 'guest',
+        selectedFile
+      );
+      
+      // 更新本地状态
+      if (results.success.length > 0) {
+        setVocabulary(prev => [...results.success, ...prev]);
+      }
+      
+      setImportResults(results);
+      
+      // 如果全部成功，3秒后自动关闭对话框
+      if (results.errors.length === 0) {
+        setTimeout(() => {
+          handleCloseImportDialog();
+        }, 3000);
+      }
+      
+      console.log('Import completed:', results);
+    } catch (error) {
+      console.error('Error importing file:', error);
+      setImportError(error instanceof Error ? error.message : t('vocabulary.import.failed'));
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // 关闭导入对话框
+  const handleCloseImportDialog = () => {
+    if (isImporting) return;
+    setShowImportDialog(false);
+    setSelectedFile(null);
+    setImportError(null);
+    setImportResults(null);
+    setImportProgress({ current: 0, total: 0 });
+  };
+
   // 播放发音
   const playPronunciation = (word: string) => {
     if ('speechSynthesis' in window) {
@@ -183,54 +306,131 @@ export default function Vocabulary() {
     return iconMap[iconName] || 'chat_bubble_outline';
   };
 
-  // 渲染词汇卡片 - 简洁风格
+  // 渲染词汇卡片 - 增强版本显示AI信息
   const renderVocabularyCard = (item: VocabularyItem) => (
-    <div key={item.id} className="flex items-center gap-3 bg-white p-3 rounded-xl hover:bg-gray-50 cursor-pointer mb-2">
-      <button
-        onClick={() => playPronunciation(item.word)}
-        className="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12 hover:bg-[#CFE8CF]"
-      >
-        <span className="material-icons">volume_up</span>
-      </button>
-      
-      <div className="flex-1">
-        <p className={`text-[#0D1C0D] text-base font-medium leading-normal ${item.masteryLevel === 2 ? 'line-through opacity-70' : ''}`}>
-          {item.word}
-        </p>
-        <p className="text-gray-600 text-sm font-normal leading-normal">
+    <div key={item.id} className="bg-white p-4 rounded-xl hover:bg-gray-50 cursor-pointer mb-3 shadow-sm">
+      {/* 头部：单词和控制按钮 */}
+      <div className="flex items-center gap-3 mb-2">
+        <button
+          onClick={() => playPronunciation(item.word)}
+          className="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12 hover:bg-[#CFE8CF]"
+        >
+          <span className="material-icons">volume_up</span>
+        </button>
+        
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <p className={`text-[#0D1C0D] text-lg font-semibold leading-normal ${item.masteryLevel === 2 ? 'line-through opacity-70' : ''}`}>
+              {item.word}
+            </p>
+            {item.phonetic && (
+              <span className="text-gray-500 text-sm italic">
+                {item.phonetic}
+              </span>
+            )}
+            {item.part_of_speech && (
+              <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
+                {item.part_of_speech}
+              </span>
+            )}
+          </div>
+          {item.difficulty_level && (
+            <span className={`text-xs px-2 py-1 rounded-full ${
+              item.difficulty_level === 'beginner' ? 'bg-green-100 text-green-600' :
+              item.difficulty_level === 'intermediate' ? 'bg-yellow-100 text-yellow-600' :
+              'bg-red-100 text-red-600'
+            }`}>
+              {item.difficulty_level}
+            </span>
+          )}
+        </div>
+        
+        <div className="flex gap-2">
+          <button
+            onClick={() => toggleBookmark(item, 'vocabulary')}
+            className={`p-2 rounded-lg ${
+              item.bookmarked 
+                ? 'text-[#0FDB0F] hover:bg-[#E7F3E7]' 
+                : 'text-gray-400 hover:text-[#0FDB0F] hover:bg-[#E7F3E7]'
+            }`}
+          >
+            <span className="material-icons">
+              {item.bookmarked ? 'bookmark' : 'bookmark_border'}
+            </span>
+          </button>
+          <button
+            onClick={() => toggleMastery(item)}
+            className={`p-2 rounded-lg ${
+              item.masteryLevel === 2 
+                ? 'text-[#0FDB0F] hover:bg-[#E7F3E7]' 
+                : 'text-gray-400 hover:text-[#0FDB0F] hover:bg-[#E7F3E7]'
+            }`}
+          >
+            <span className="material-icons">
+              {item.masteryLevel === 2 ? 'check_circle' : 'check_circle_outline'}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* 定义和翻译 */}
+      <div className="mb-2">
+        <p className="text-gray-700 text-sm font-normal leading-normal mb-1">
           {item.definition}
         </p>
-        <p className="text-gray-500 text-xs italic leading-normal mt-1">
+        {item.chinese_translation && (
+          <p className="text-blue-600 text-sm font-normal leading-normal">
+            {item.chinese_translation}
+          </p>
+        )}
+      </div>
+
+      {/* 例句 */}
+      <div className="mb-3">
+        <p className="text-gray-500 text-sm italic leading-normal">
           "{item.example}"
         </p>
       </div>
-      
-      <div className="flex gap-2">
-        <button
-          onClick={() => toggleBookmark(item, 'vocabulary')}
-          className={`p-2 rounded-lg ${
-            item.bookmarked 
-              ? 'text-[#0FDB0F] hover:bg-[#E7F3E7]' 
-              : 'text-gray-400 hover:text-[#0FDB0F] hover:bg-[#E7F3E7]'
-          }`}
-        >
-          <span className="material-icons">
-            {item.bookmarked ? 'bookmark' : 'bookmark_border'}
-          </span>
-        </button>
-        <button
-          onClick={() => toggleMastery(item)}
-          className={`p-2 rounded-lg ${
-            item.masteryLevel === 2 
-              ? 'text-[#0FDB0F] hover:bg-[#E7F3E7]' 
-              : 'text-gray-400 hover:text-[#0FDB0F] hover:bg-[#E7F3E7]'
-          }`}
-        >
-          <span className="material-icons">
-            {item.masteryLevel === 2 ? 'check_circle' : 'check_circle_outline'}
-          </span>
-        </button>
-      </div>
+
+      {/* 同义词和反义词 */}
+      {(item.synonyms?.length > 0 || item.antonyms?.length > 0) && (
+        <div className="flex gap-4 mb-2">
+          {item.synonyms?.length > 0 && (
+            <div className="flex-1">
+              <span className="text-xs text-gray-500 font-medium">Synonyms:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {item.synonyms.slice(0, 3).map((synonym, index) => (
+                  <span key={index} className="bg-green-50 text-green-700 px-2 py-1 rounded text-xs">
+                    {synonym}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {item.antonyms?.length > 0 && (
+            <div className="flex-1">
+              <span className="text-xs text-gray-500 font-medium">Antonyms:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {item.antonyms.slice(0, 2).map((antonym, index) => (
+                  <span key={index} className="bg-red-50 text-red-700 px-2 py-1 rounded text-xs">
+                    {antonym}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 使用提示 */}
+      {item.usage_notes && (
+        <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+          <p className="text-blue-700 text-xs">
+            <span className="material-icons text-sm mr-1">lightbulb</span>
+            {item.usage_notes}
+          </p>
+        </div>
+      )}
     </div>
   );
 
@@ -411,6 +611,215 @@ export default function Vocabulary() {
                 <p className="text-gray-600 text-sm">{result.subtitle} - {result.type}</p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Add Vocabulary Dialog */}
+      {showAddDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-[#0D1C0D] mb-4">{t('vocabulary.add.title')}</h3>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('vocabulary.add.wordLabel')}
+              </label>
+              <input
+                type="text"
+                value={newWord}
+                onChange={(e) => setNewWord(e.target.value)}
+                placeholder={t('vocabulary.add.placeholder')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0FDB0F] focus:border-transparent"
+                disabled={isAddingWord}
+                onKeyPress={(e) => e.key === 'Enter' && !isAddingWord && handleAddVocabulary()}
+              />
+            </div>
+
+            {addWordError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{addWordError}</p>
+              </div>
+            )}
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <p className="text-blue-700 text-sm">
+                <span className="material-icons text-sm mr-1">info</span>
+                {t('vocabulary.add.aiHelp')}
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleCloseAddDialog}
+                disabled={isAddingWord}
+                className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleAddVocabulary}
+                disabled={isAddingWord || !newWord.trim()}
+                className="flex-1 px-4 py-2 bg-[#0FDB0F] text-white rounded-lg hover:bg-[#0CBF0C] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {isAddingWord ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    {t('vocabulary.add.adding')}
+                  </div>
+                ) : (
+                  t('vocabulary.add.submit')
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import File Dialog */}
+      {showImportDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-lg">
+            <h3 className="text-lg font-semibold text-[#0D1C0D] mb-4">{t('vocabulary.import.title')}</h3>
+            
+            {/* 文件选择区域 */}
+            {!importResults && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('vocabulary.import.fileLabel')}
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0FDB0F] transition-colors">
+                  <input
+                    type="file"
+                    accept=".txt,.csv"
+                    onChange={handleFileSelect}
+                    disabled={isImporting}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    <span className="material-icons text-gray-400 text-4xl mb-2 block">upload_file</span>
+                    <p className="text-gray-600 mb-1">{t('vocabulary.import.dropZone')}</p>
+                    <p className="text-xs text-gray-500">{t('vocabulary.import.supportedFormats')}</p>
+                  </label>
+                </div>
+                
+                {selectedFile && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="material-icons text-green-600">check_circle</span>
+                      <span className="text-green-700 text-sm font-medium">{selectedFile.name}</span>
+                      <span className="text-green-600 text-xs">({(selectedFile.size / 1024).toFixed(1)}KB)</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 导入过程中的进度显示 */}
+            {isImporting && (
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">{t('vocabulary.import.processing')}</span>
+                  <span className="text-sm text-gray-500">{importProgress.current}/{importProgress.total}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-[#0FDB0F] h-2 rounded-full transition-all duration-300"
+                    style={{ 
+                      width: importProgress.total > 0 ? `${(importProgress.current / importProgress.total) * 100}%` : '0%' 
+                    }}
+                  ></div>
+                </div>
+              </div>
+            )}
+
+            {/* 导入结果 */}
+            {importResults && (
+              <div className="mb-4">
+                <h4 className="text-md font-semibold text-[#0D1C0D] mb-3">{t('vocabulary.import.results')}</h4>
+                
+                {/* 成功统计 */}
+                <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="material-icons text-green-600">check_circle</span>
+                    <span className="text-green-700 font-medium">
+                      {t('vocabulary.import.successCount', { count: importResults.success.length })}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 错误统计 */}
+                {importResults.errors.length > 0 && (
+                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="material-icons text-red-600">error</span>
+                      <span className="text-red-700 font-medium">
+                        {t('vocabulary.import.errorCount', { count: importResults.errors.length })}
+                      </span>
+                    </div>
+                    <div className="max-h-32 overflow-y-auto">
+                      {importResults.errors.slice(0, 5).map((error, index) => (
+                        <p key={index} className="text-red-600 text-xs mb-1">{error}</p>
+                      ))}
+                      {importResults.errors.length > 5 && (
+                        <p className="text-red-500 text-xs italic">
+                          {t('vocabulary.import.moreErrors', { count: importResults.errors.length - 5 })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 错误显示 */}
+            {importError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{importError}</p>
+              </div>
+            )}
+
+            {/* 文件格式说明 */}
+            {!importResults && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-blue-700 text-sm mb-2">
+                  <span className="material-icons text-sm mr-1">info</span>
+                  {t('vocabulary.import.formatInfo')}
+                </p>
+                <ul className="text-blue-600 text-xs list-disc list-inside space-y-1">
+                  <li>{t('vocabulary.import.txtFormat')}</li>
+                  <li>{t('vocabulary.import.csvFormat')}</li>
+                </ul>
+              </div>
+            )}
+
+            {/* 操作按钮 */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleCloseImportDialog}
+                disabled={isImporting}
+                className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                {importResults ? t('common.close') : t('common.cancel')}
+              </button>
+              {!importResults && (
+                <button
+                  onClick={handleImportFile}
+                  disabled={isImporting || !selectedFile}
+                  className="flex-1 px-4 py-2 bg-[#0FDB0F] text-white rounded-lg hover:bg-[#0CBF0C] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {isImporting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      {t('vocabulary.import.importing')}
+                    </div>
+                  ) : (
+                    t('vocabulary.import.submit')
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -597,6 +1006,31 @@ export default function Vocabulary() {
           </>
         )}
       </main>
+
+      {/* Floating Action Buttons - only show on vocabulary tab */}
+      {activeTab === 'vocabulary' && (
+        <div className="fixed bottom-20 right-4 flex flex-col gap-3 z-40">
+          {/* File Import Button */}
+          <button
+            onClick={() => setShowImportDialog(true)}
+            className="bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors"
+            style={{ boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}
+            title={t('vocabulary.import.title')}
+          >
+            <span className="material-icons text-xl">file_upload</span>
+          </button>
+          
+          {/* Add Word Button */}
+          <button
+            onClick={() => setShowAddDialog(true)}
+            className="bg-[#0FDB0F] text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-[#0CBF0C] transition-colors"
+            style={{ boxShadow: '0 4px 12px rgba(15, 219, 15, 0.3)' }}
+            title={t('vocabulary.add.title')}
+          >
+            <span className="material-icons text-2xl">add</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

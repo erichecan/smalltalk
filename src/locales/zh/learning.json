@@ -14,13 +14,41 @@
   },
   "vocabulary": {
     "title": "来自对话的词汇",
-    "add": "添加单词",
     "mastered": "已掌握",
     "learning": "学习中",
     "notLearned": "未学习",
     "playPronunciation": "播放发音",
     "markAsMastered": "标记为已掌握",
-    "markAsLearning": "标记为学习中"
+    "markAsLearning": "标记为学习中",
+    "add": {
+      "title": "添加新单词",
+      "wordLabel": "英文单词",
+      "placeholder": "输入英文单词...",
+      "aiHelp": "AI将自动提供释义、翻译、例句等内容！",
+      "submit": "添加单词",
+      "adding": "添加中...",
+      "emptyWord": "请输入单词",
+      "failed": "添加单词失败，请重试。"
+    },
+    "import": {
+      "title": "导入词汇表",
+      "fileLabel": "选择文件",
+      "dropZone": "点击选择文件或拖拽上传",
+      "supportedFormats": "支持TXT和CSV文件（最大1MB）",
+      "formatInfo": "文件格式要求：",
+      "txtFormat": "TXT: 每行一个英文单词",
+      "csvFormat": "CSV: 第一列应包含英文单词",
+      "submit": "导入文件",
+      "importing": "导入中...",
+      "processing": "AI处理单词中...",
+      "results": "导入结果",
+      "successCount": "成功导入{{count}}个单词",
+      "errorCount": "{{count}}个单词导入失败",
+      "moreErrors": "...还有{{count}}个错误",
+      "invalidFileType": "请选择TXT或CSV文件",
+      "fileTooLarge": "文件大小不能超过1MB",
+      "failed": "导入文件失败，请重试。"
+    }
   },
   "phrases": {
     "title": "常用短语",
