@@ -1,9 +1,10 @@
 import { supabase } from './supabase';
+import type { Message } from '../types/chat';
 
 interface SaveConversationParams {
   user_id: string;
   topic: string;
-  messages: any;
+  messages: Message[];
 }
 
 export async function saveConversationHistory({ user_id, topic, messages }: SaveConversationParams) {
@@ -41,7 +42,7 @@ export async function getConversationById(id: string) {
     .single();
 }
 
-export async function updateConversationHistory(id: string, messages: any) {
+export async function updateConversationHistory(id: string, messages: Message[]) {
   console.log('[DEBUG] updateConversationHistory called with:', id, messages);
   const res = await supabase
     .from('conversation_history')

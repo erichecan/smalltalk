@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Container, Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Paper, Button, CircularProgress, Pagination, Alert, Checkbox, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
@@ -30,7 +30,7 @@ export default function History() {
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   // 加载历史数据
-  const loadHistory = async (page: number) => {
+  const loadHistory = useCallback(async (page: number) => {
     if (!user?.id) {
       setLoading(false);
       return;
@@ -54,12 +54,12 @@ export default function History() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, pageSize]);
 
   // 页面加载时获取历史
   useEffect(() => {
     loadHistory(currentPage);
-  }, [user, currentPage]);
+  }, [user, currentPage, loadHistory]);
 
   // 处理分页变化
   const handlePageChange = (_event: React.ChangeEvent<unknown>, page: number) => {
@@ -149,7 +149,8 @@ export default function History() {
       }
       setDeleteDialogOpen(false);
       setItemToDelete(null);
-    } catch (err) {
+    } catch (error) {
+      console.error('Delete conversation error:', error);
       setError('删除失败，请重试');
     } finally {
       setDeleteLoading(false);

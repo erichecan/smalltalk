@@ -22,7 +22,8 @@ export default function Login() {
     try {
       await googleLogin();
       navigate('/topic');
-    } catch (err) {
+    } catch (error) {
+      console.error('Google login error:', error);
       setError('Google 登录失败');
     } finally {
       setLoading(false);

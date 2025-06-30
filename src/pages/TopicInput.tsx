@@ -46,12 +46,38 @@ export default function TopicInput() {
         bubbleColor: '#E8F5E9'
       }));
       if (!user || !user.id) {
-        // 未登录：只返回AI回复，不保存历史
+        // 2025-01-30: 修复未登录用户体验 - 根据PRD要求，未登录用户只返回1句AI回复，不保存历史
+        let singleReply = '';
+        if (aiMessages.length > 0) {
+          // 如果解析成功，取第一条
+          singleReply = aiMessages[0].text;
+        } else {
+          // 如果解析失败，从原始回复中提取第一段有意义的内容
+          const lines = initialMessages.split('\n').filter(line => 
+            line.trim() && 
+            !line.includes('[CONV') && 
+            !line.startsWith('Q:') && 
+            !line.startsWith('A:')
+          );
+          singleReply = lines[0] || initialMessages.substring(0, 200) + '...';
+        }
+        
+        const singleAIMessage = {
+          id: 2,
+          sender: 'ai' as const,
+          text: singleReply,
+          bubbleColor: '#E8F5E9'
+        };
+        
         navigate('/dialogue', {
           state: {
             topic: trimmed,
-            initialMessages,
-            conversationId: undefined
+            initialMessages: [
+              { id: 1, sender: 'user' as const, text: trimmed },
+              singleAIMessage
+            ],
+            conversationId: undefined,
+            isGuest: true // 标记为游客模式
           }
         });
         setLoading(false);
@@ -72,7 +98,7 @@ export default function TopicInput() {
         return;
       }
       // 修复：正确获取conversationId
-      const conversationId = saveRes.data ? (saveRes.data as any[])[0]?.id : undefined;
+      const conversationId = saveRes.data ? (saveRes.data as Array<{id: string}>)[0]?.id : undefined;
       navigate('/dialogue', { 
         state: { 
           topic: trimmed,
@@ -83,7 +109,8 @@ export default function TopicInput() {
           conversationId
         } 
       });
-    } catch (err) {
+    } catch (error) {
+      console.error('Topic input error:', error);
       setError('Failed to generate conversation. Please try again.');
       setLoading(false);
     }

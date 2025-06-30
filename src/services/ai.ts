@@ -157,7 +157,7 @@ Remember: The goal is to help users practice natural English conversation and fe
             errorMessage += ` (${JSON.stringify(errorData.error.details)})`;
           }
         }
-      } catch (e) {
+      } catch {
         // 如果无法解析为 JSON，则尝试获取文本
         const errorText = await response.text();
         console.error('Gemini API error text:', errorText);
@@ -184,11 +184,11 @@ Remember: The goal is to help users practice natural English conversation and fe
     
     // 记录更详细的错误信息
     if (error instanceof Response || (error && typeof error === 'object' && 'status' in error)) {
-      console.error(`API responded with status: ${(error as any).status}`);
+      console.error(`API responded with status: ${(error as Response).status}`);
       try {
         const errorText = await (error as Response).text();
         console.error('Error response body:', errorText);
-      } catch (e) {
+      } catch {
         console.error('Could not read error response body');
       }
     }

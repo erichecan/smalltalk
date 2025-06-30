@@ -16,6 +16,7 @@ export default function Dialogue() {
   const initialMessages = location.state?.initialMessages || '';
   const isHistory = location.state?.isHistory || false;
   const conversationId = location.state?.conversationId;
+  const isGuestMode = location.state?.isGuest || false; // 2025-01-30: 添加游客模式标记支持
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -42,33 +43,13 @@ export default function Dialogue() {
   }, [messages, scrollToBottom]);
 
   // Parse AI response into multiple messages
-  const parseAIResponse = (text: string): string[] => {
-    const conversations = text.match(/\[CONV\d+\]([\s\S]*?)(?=\[CONV\d+\]|$)/g) || [];
-    return conversations.map(conv => conv.replace(/\[CONV\d+\]/, '').trim());
-  };
+  // Currently not used but keeping for future implementation
+  // const parseAIResponse = (text: string): string[] => {
+  //   const conversations = text.match(/\[CONV\d+\]([\s\S]*?)(?=\[CONV\d+\]|$)/g) || [];
+  //   return conversations.map(conv => conv.replace(/\[CONV\d+\]/, '').trim());
+  // };
 
-  // 保存历史到 Supabase
-  const saveHistoryToCloud = useCallback(async (currentMessages: Message[]) => {
-    // 只在已登录、非历史模式、AI有新回复且消息数大于1时才保存
-    const hasAIReply = currentMessages.some(m => m.sender === 'ai');
-    if (
-      isAuthenticated &&
-      !isHistory &&
-      currentMessages.length > 1 &&
-      hasAIReply &&
-      user?.id
-    ) {
-      try {
-        await saveConversationHistory({
-          user_id: user.id,
-          topic,
-          messages: currentMessages,
-        });
-      } catch (e) {
-        // 可选：console.warn('保存历史失败', e);
-      }
-    }
-  }, [user, topic, isHistory, isAuthenticated]);
+  // 保存历史到 Supabase功能已通过其他方式实现
 
   // 新增：监听消息变化，自动保存到历史记录
   useEffect(() => {
@@ -130,11 +111,14 @@ export default function Dialogue() {
   const [isLoading, setIsLoading] = useState(false);
   const [copySnackbar, setCopySnackbar] = useState(false);
 
-  if (!topic) {
-    // 如果没有话题，自动跳转到 /topic
-    useEffect(() => {
+  // 检查话题是否存在，如果没有则跳转
+  useEffect(() => {
+    if (!topic) {
       navigate('/topic');
-    }, [navigate]);
+    }
+  }, [topic, navigate]);
+
+  if (!topic) {
     return null;
   }
 
@@ -203,18 +187,18 @@ export default function Dialogue() {
             topic,
             messages: updatedMessages,
           });
-          if (saveRes.data && (saveRes.data as any[]).length > 0) {
-            setCurrentConversationId((saveRes.data as any[])[0].id);
+          if (saveRes.data && (saveRes.data as Array<{id: string}>).length > 0) {
+            setCurrentConversationId((saveRes.data as Array<{id: string}>)[0].id);
           }
-        } catch (e) {
-          console.warn('创建历史记录失败', e);
+        } catch (error) {
+          console.warn('创建历史记录失败', error);
         }
       }
-    } catch (err) {
+    } catch (error) {
       const errorMessage: Message = {
         id: messages.length + 2,
         sender: 'ai',
-        text: err instanceof Error ? err.message : 'Failed to get AI response. Please try again.',
+        text: error instanceof Error ? error.message : 'Failed to get AI response. Please try again.',
         bubbleColor: '#FFEBEE'
       };
       setMessages([...messages, errorMessage]);

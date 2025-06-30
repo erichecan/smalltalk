@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateUserProfile = async (data: { displayName?: string; photoURL?: string }) => {
-    const updates: any = {};
+    const updates: Record<string, string> = {};
     if (data.displayName) updates.full_name = data.displayName;
     if (data.photoURL) updates.avatar_url = data.photoURL;
     const { error } = await supabase.auth.updateUser({ data: updates });
