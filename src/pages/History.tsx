@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Container, Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Paper, Button, CircularProgress, Pagination, Alert, Checkbox, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getConversationHistory, deleteConversationHistory, deleteMultipleConversations } from '../services/historyService';
 import type { Message } from '../types/chat';
@@ -16,6 +17,7 @@ interface ConversationHistory {
 export default function History() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation('chat');
   const [history, setHistory] = useState<ConversationHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export default function History() {
         setTotalPages(Math.ceil(count / pageSize));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load history');
+      setError(err instanceof Error ? err.message : t('history.loadingError'));
     } finally {
       setLoading(false);
     }
@@ -80,7 +82,7 @@ export default function History() {
 
   // 获取最后一条消息作为预览
   const getLastMessage = (messages: Message[]): string => {
-    if (messages.length === 0) return 'No messages';
+    if (messages.length === 0) return t('history.noMessages');
     const lastMessage = messages[messages.length - 1];
     return lastMessage.text.length > 50 
       ? lastMessage.text.substring(0, 50) + '...' 
@@ -94,9 +96,9 @@ export default function History() {
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
     
     if (diffInHours < 1) {
-      return 'Just now';
+      return t('history.timeJustNow');
     } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`;
+      return t('history.timeHoursAgo', { hours: Math.floor(diffInHours) });
     } else {
       return date.toLocaleDateString();
     }
@@ -151,7 +153,7 @@ export default function History() {
       setItemToDelete(null);
     } catch (error) {
       console.error('Delete conversation error:', error);
-      setError('删除失败，请重试');
+      setError(t('history.deleteFailed'));
     } finally {
       setDeleteLoading(false);
     }
@@ -161,7 +163,7 @@ export default function History() {
     <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0 }}>
       {/* 顶部标题栏 */}
       <Box sx={{ bgcolor: '#CAECCA', py: 2, px: 3, borderBottomLeftRadius: 16, borderBottomRightRadius: 16, boxShadow: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>Conversation History</Typography>
+        <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>{t('history.title')}</Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           {selectedItems.length > 0 && (
             <Button 
@@ -170,11 +172,11 @@ export default function History() {
               onClick={handleBatchDelete}
               sx={{ borderRadius: 20, fontWeight: 'bold' }}
             >
-              删除选中 ({selectedItems.length})
+              {t('history.deleteSelected')} ({selectedItems.length})
             </Button>
           )}
           <Button variant="contained" sx={{ bgcolor: '#0ecd6a', color: '#fff', borderRadius: 20, fontWeight: 'bold', boxShadow: 1 }} onClick={() => navigate('/topic')}>
-            发起新对话
+            {t('history.newConversation')}
           </Button>
         </Box>
       </Box>
@@ -189,10 +191,10 @@ export default function History() {
           <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
         ) : history.length === 0 ? (
           <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
-            <Typography variant="h6" sx={{ color: '#5D895D', mb: 2 }}>No conversation history yet</Typography>
-            <Typography variant="body2" sx={{ color: '#708C70', mb: 3 }}>Start your first conversation to see it here</Typography>
+            <Typography variant="h6" sx={{ color: '#5D895D', mb: 2 }}>{t('history.noHistory')}</Typography>
+            <Typography variant="body2" sx={{ color: '#708C70', mb: 3 }}>{t('history.noHistoryDescription')}</Typography>
             <Button variant="contained" onClick={() => navigate('/topic')} sx={{ bgcolor: '#CAECCA', color: '#111811', borderRadius: 20 }}>
-              Start Conversation
+              {t('history.startConversation')}
             </Button>
           </Paper>
         ) : (
@@ -207,7 +209,7 @@ export default function History() {
                   sx={{ color: '#5D895D', '&.Mui-checked': { color: '#4c9a4c' } }}
                 />
                 <Typography variant="body2" sx={{ color: '#5D895D', ml: 1 }}>
-                  {selectedItems.length > 0 ? `已选择 ${selectedItems.length} 项` : '全选'}
+                  {selectedItems.length > 0 ? t('history.selectedCount', { count: selectedItems.length }) : t('history.selectAll')}
                 </Typography>
               </Box>
               
@@ -249,7 +251,7 @@ export default function History() {
                             {getLastMessage(conversation.messages)}
                           </Typography>
                           <Typography variant="caption" sx={{ color: '#708C70' }}>
-                            {formatTime(conversation.created_at)} • {conversation.messages.length} messages
+                            {formatTime(conversation.created_at)} • {t('history.messagesCount', { count: conversation.messages.length })}
                           </Typography>
                         </Box>
                       }
@@ -305,13 +307,13 @@ export default function History() {
       {/* 删除确认对话框 */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>
-          确认删除
+          {t('history.confirmDelete')}
         </DialogTitle>
         <DialogContent>
           <Typography>
             {itemToDelete 
-              ? '确定要删除这条对话记录吗？此操作无法撤销。'
-              : `确定要删除选中的 ${selectedItems.length} 条对话记录吗？此操作无法撤销。`
+              ? t('history.deleteSingleConfirm')
+              : t('history.deleteMultipleConfirm', { count: selectedItems.length })
             }
           </Typography>
         </DialogContent>
@@ -323,7 +325,7 @@ export default function History() {
             }}
             sx={{ color: '#5D895D' }}
           >
-            取消
+            {t('common:buttons.cancel')}
           </Button>
           <Button 
             onClick={executeDelete}
@@ -332,7 +334,7 @@ export default function History() {
             variant="contained"
             sx={{ borderRadius: 20 }}
           >
-            {deleteLoading ? '删除中...' : '确认删除'}
+            {deleteLoading ? t('history.deleting') : t('common:buttons.delete')}
           </Button>
         </DialogActions>
       </Dialog>

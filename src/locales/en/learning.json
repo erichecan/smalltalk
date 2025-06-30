@@ -1,0 +1,104 @@
+{
+  "title": "Learning Center",
+  "tabs": {
+    "vocabulary": "Vocabulary",
+    "phrases": "Phrases",
+    "grammar": "Grammar",
+    "topics": "Topics",
+    "bookmarks": "Bookmarks"
+  },
+  "search": {
+    "placeholder": "Search phrases, vocabulary, grammar...",
+    "results": "Search Results",
+    "noResults": "No results found"
+  },
+  "vocabulary": {
+    "title": "Vocabulary from Conversations",
+    "add": "Add Word",
+    "mastered": "Mastered",
+    "learning": "Learning",
+    "notLearned": "Not Learned",
+    "playPronunciation": "Play pronunciation",
+    "markAsMastered": "Mark as mastered",
+    "markAsLearning": "Mark as learning"
+  },
+  "phrases": {
+    "title": "Common Phrases",
+    "addPhrase": "Add Phrase",
+    "categories": {
+      "all": "All",
+      "greetings": "Greetings",
+      "travel": "Travel",
+      "business": "Business",
+      "socializing": "Socializing",
+      "dining": "Dining"
+    }
+  },
+  "grammar": {
+    "title": "Grammar Center",
+    "description": "Learn English grammar with interactive exercises",
+    "categories": {
+      "all": "All",
+      "verbTenses": "Verb Tenses",
+      "sentenceStructure": "Sentence Structure", 
+      "prepositions": "Prepositions",
+      "vocabulary": "Vocabulary"
+    },
+    "topics": {
+      "presentPerfect": {
+        "title": "Present Perfect",
+        "description": "Use the present perfect to talk about actions that started in the past and continue to the present.",
+        "example": "I <strong>have lived</strong> in London for five years."
+      },
+      "simplePast": {
+        "title": "Simple Past",
+        "description": "Use the simple past to talk about completed actions in the past.",
+        "example": "I <strong>visited</strong> Paris last summer."
+      }
+    },
+    "exercise": {
+      "title": "Practice Exercise",
+      "instruction": "Fill in the blank:",
+      "question": "I ____ (go) to the park yesterday.",
+      "options": {
+        "went": "went",
+        "go": "go", 
+        "goes": "goes"
+      }
+    }
+  },
+  "topics": {
+    "title": "Learning Topics",
+    "smallTalk": "Small Talk",
+    "orderingFood": "Ordering Food",
+    "travel": "Travel",
+    "work": "Work",
+    "shopping": "Shopping",
+    "healthcare": "Healthcare",
+    "descriptions": {
+      "smallTalk": "Daily conversations",
+      "orderingFood": "Restaurant phrases",
+      "travel": "Travel English",
+      "work": "Business English",
+      "shopping": "Shopping English",
+      "healthcare": "Medical English"
+    }
+  },
+  "bookmarks": {
+    "title": "My Bookmarks",
+    "empty": {
+      "title": "No bookmarks yet",
+      "description": "Click the bookmark icon to save learning materials"
+    },
+    "sections": {
+      "vocabulary": "Vocabulary Bookmarks",
+      "phrases": "Phrase Bookmarks"
+    }
+  },
+  "errors": {
+    "loadFailed": "Failed to load data",
+    "updateFailed": "Failed to update",
+    "bookmarkFailed": "Failed to update bookmark status",
+    "masteryFailed": "Failed to update learning status"
+  }
+}

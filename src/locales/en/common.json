@@ -1,0 +1,43 @@
+{
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "close": "Close",
+    "continue": "Continue",
+    "submit": "Submit",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "remove": "Remove"
+  },
+  "status": {
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "success": "Success",
+    "failed": "Failed",
+    "pending": "Pending"
+  },
+  "actions": {
+    "bookmark": "Bookmark",
+    "unbookmark": "Remove bookmark",
+    "play": "Play",
+    "share": "Share",
+    "copy": "Copy",
+    "download": "Download",
+    "upload": "Upload"
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "more": "More",
+    "less": "Less",
+    "all": "All",
+    "none": "None"
+  }
+}

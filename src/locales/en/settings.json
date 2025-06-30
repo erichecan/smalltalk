@@ -1,0 +1,32 @@
+{
+  "title": "Settings",
+  "language": {
+    "title": "Language",
+    "description": "Choose your preferred language",
+    "current": "Current Language",
+    "options": {
+      "en": "English",
+      "zh": "中文"
+    }
+  },
+  "appearance": {
+    "title": "Appearance",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "enabled": "Enable Notifications",
+    "disabled": "Disable Notifications"
+  },
+  "account": {
+    "title": "Account",
+    "profile": "Profile Settings",
+    "logout": "Log Out"
+  },
+  "about": {
+    "title": "About",
+    "version": "Version",
+    "feedback": "Send Feedback"
+  }
+}

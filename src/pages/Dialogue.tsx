@@ -4,12 +4,14 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ClearIcon from '@mui/icons-material/Clear';
 import HistoryIcon from '@mui/icons-material/History';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { Message } from '../types/chat';
 import { getAIResponse } from '../services/ai';
 import { useAuth } from '../contexts/AuthContext';
 import { saveConversationHistory, updateConversationHistory } from '../services/historyService';
 
 export default function Dialogue() {
+  const { t } = useTranslation('chat');
   const location = useLocation();
   const navigate = useNavigate();
   const topic = location.state?.topic || '';

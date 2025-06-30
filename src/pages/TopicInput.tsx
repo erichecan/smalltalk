@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Container, TextField, Button, Typography, Box, Alert, Snackbar, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getAIResponse } from '../services/ai';
 import { useAuth } from '../contexts/AuthContext';
 import { saveConversationHistory } from '../services/historyService';
 import TopNav from '../components/TopNav';
 
 export default function TopicInput() {
+  const { t } = useTranslation('chat');
   const [topic, setTopic] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -19,15 +21,15 @@ export default function TopicInput() {
     const trimmed = topic.trim();
     // 校验：长度≥5，不能全是空白，不能全是数字，不能全是标点/特殊符号
     if (!trimmed || trimmed.length < 5) {
-      setError('Topic must be at least 5 characters.');
+      setError(t('topicInput.errors.topicRequired'));
       return;
     }
     if (/^\d+$/.test(trimmed)) {
-      setError('Topic cannot be only numbers.');
+      setError(t('topicInput.errors.topicRequired'));
       return;
     }
     if (/^[\p{P}\p{S}\s]+$/u.test(trimmed)) {
-      setError('Topic cannot be only special characters or punctuation.');
+      setError(t('topicInput.errors.topicRequired'));
       return;
     }
     setLoading(true);
@@ -93,7 +95,7 @@ export default function TopicInput() {
         ]
       });
       if (saveRes.error) {
-        setError('Failed to save conversation.');
+        setError(t('topicInput.errors.generateFailed'));
         setLoading(false);
         return;
       }
@@ -111,7 +113,7 @@ export default function TopicInput() {
       });
     } catch (error) {
       console.error('Topic input error:', error);
-      setError('Failed to generate conversation. Please try again.');
+      setError(t('topicInput.errors.generateFailed'));
       setLoading(false);
     }
   };
@@ -121,10 +123,10 @@ export default function TopicInput() {
       <TopNav />
       <Container sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: '#f8fcf8', p: 2, py: 4, height: '100%' }}>
         <Box sx={{ width: '100%', maxWidth: 480, textAlign: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#0d1b0d', mb: 3 }}>What do you want to talk about?</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#0d1b0d', mb: 3 }}>{t('topicInput.title')}</Typography>
           <form onSubmit={handleSubmit}>
             <TextField
-              label="Enter a topic (e.g. travel, food, hobbies)"
+              label={t('topicInput.placeholder')}
               variant="outlined"
               fullWidth
               value={topic}
@@ -164,10 +166,10 @@ export default function TopicInput() {
               {loading ? (
                 <>
                   <CircularProgress size={20} sx={{ mr: 1 }} />
-                  Generating Conversation...
+                  {t('topicInput.submitting')}
                 </>
               ) : (
-                'Start Conversation'
+                t('topicInput.submitButton')
               )}
             </Button>
           </form>

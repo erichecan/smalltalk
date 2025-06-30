@@ -1,0 +1,32 @@
+{
+  "title": "设置",
+  "language": {
+    "title": "语言",
+    "description": "选择你的偏好语言",
+    "current": "当前语言",
+    "options": {
+      "en": "English",
+      "zh": "中文"
+    }
+  },
+  "appearance": {
+    "title": "外观",
+    "darkMode": "深色模式",
+    "lightMode": "浅色模式"
+  },
+  "notifications": {
+    "title": "通知",
+    "enabled": "开启通知",
+    "disabled": "关闭通知"
+  },
+  "account": {
+    "title": "账户",
+    "profile": "个人资料设置",
+    "logout": "退出登录"
+  },
+  "about": {
+    "title": "关于",
+    "version": "版本",
+    "feedback": "反馈意见"
+  }
+}

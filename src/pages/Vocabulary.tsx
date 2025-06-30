@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../hooks/useLanguage';
 import type { 
   VocabularyItem, 
   PhraseItem, 
@@ -17,12 +19,29 @@ import {
   bookmarksService
 } from '../services/learningService';
 
-const PHRASE_CATEGORIES = ['All', 'Greetings', 'Travel', 'Business', 'Socializing', 'Dining'];
-const GRAMMAR_CATEGORIES = ['All', '动词时态', '句子结构', '介词', '词汇'];
-
 export default function Vocabulary() {
+  const { t } = useTranslation('learning');
+  const { changeLanguage, currentLanguage, supportedLanguages } = useLanguage();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Get categories from translations
+  const PHRASE_CATEGORIES = [
+    t('phrases.categories.all'),
+    t('phrases.categories.greetings'),
+    t('phrases.categories.travel'),
+    t('phrases.categories.business'),
+    t('phrases.categories.socializing'),
+    t('phrases.categories.dining')
+  ];
+  
+  const GRAMMAR_CATEGORIES = [
+    t('grammar.categories.all'),
+    t('grammar.categories.verbTenses'),
+    t('grammar.categories.sentenceStructure'),
+    t('grammar.categories.prepositions'),
+    t('grammar.categories.vocabulary')
+  ];
   
   // 状态管理
   const [activeTab, setActiveTab] = useState<LearningTab>('vocabulary');
@@ -36,9 +55,15 @@ export default function Vocabulary() {
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   
-  // 过滤器状态
-  const [selectedPhraseCategory, setSelectedPhraseCategory] = useState('All');
-  const [selectedGrammarCategory, setSelectedGrammarCategory] = useState('All');
+  // 过滤器状态 - 使用翻译键作为默认值
+  const [selectedPhraseCategory, setSelectedPhraseCategory] = useState(t('phrases.categories.all'));
+  const [selectedGrammarCategory, setSelectedGrammarCategory] = useState(t('grammar.categories.all'));
+
+  // 当语言切换时重置过滤器状态
+  useEffect(() => {
+    setSelectedPhraseCategory(t('phrases.categories.all'));
+    setSelectedGrammarCategory(t('grammar.categories.all'));
+  }, [currentLanguage, t]);
 
   // 初始化数据
   useEffect(() => {
@@ -63,7 +88,7 @@ export default function Vocabulary() {
       setBookmarks(bookmarksData);
     } catch (err) {
       console.error('Error loading user data:', err);
-      setError('加载数据失败');
+      setError(t('errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -113,7 +138,7 @@ export default function Vocabulary() {
       }
     } catch (err) {
       console.error('Error toggling bookmark:', err);
-      setError('更新收藏状态失败');
+      setError(t('errors.bookmarkFailed'));
     }
   }, [user]);
 
@@ -132,7 +157,7 @@ export default function Vocabulary() {
       ));
     } catch (err) {
       console.error('Error toggling mastery:', err);
-      setError('更新学习状态失败');
+      setError(t('errors.masteryFailed'));
     }
   }, []);
 
@@ -266,23 +291,24 @@ export default function Vocabulary() {
     </div>
   );
 
-  // 过滤短语
-  const filteredPhrases = selectedPhraseCategory === 'All' 
+  // 过滤短语 - 使用翻译映射
+  const filteredPhrases = selectedPhraseCategory === t('phrases.categories.all')
     ? phrases 
     : phrases.filter(p => {
+        // Map translated categories back to original data categories
         const categoryMap: { [key: string]: string } = {
-          'Greetings': '问候',
-          'Travel': '旅行', 
-          'Business': '商务',
-          'Socializing': '社交',
-          'Dining': '餐饮'
+          [t('phrases.categories.greetings')]: '问候',
+          [t('phrases.categories.travel')]: '旅行', 
+          [t('phrases.categories.business')]: '商务',
+          [t('phrases.categories.socializing')]: '社交',
+          [t('phrases.categories.dining')]: '餐饮'
         };
         return p.category === (categoryMap[selectedPhraseCategory] || selectedPhraseCategory);
       });
 
   return (
     <div className="relative flex size-full min-h-screen flex-col bg-[#F8FCF8] justify-between overflow-x-hidden" style={{ fontFamily: '"Spline Sans", "Noto Sans", sans-serif' }}>
-      {/* Header - 完全按照HTML设计稿 */}
+      {/* Header with Language Switcher */}
       <header className="sticky top-0 z-10 bg-[#F8FCF8]">
         <div className="flex items-center p-4 pb-2 justify-between">
           <button 
@@ -292,9 +318,22 @@ export default function Vocabulary() {
             <span className="material-icons">arrow_back_ios_new</span>
           </button>
           <h1 className="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center">
-            Learning Center
+            {t('title')}
           </h1>
-          <div className="size-10"></div>
+          {/* Language Switcher */}
+          <div className="relative">
+            <select 
+              value={currentLanguage}
+              onChange={(e) => changeLanguage(e.target.value)}
+              className="bg-[#E7F3E7] text-[#0D1C0D] rounded-lg px-3 py-1 text-sm border-none focus:outline-none hover:bg-[#CFE8CF]"
+            >
+              {supportedLanguages.map(lang => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.nativeName}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Search - 完全按照HTML设计稿 */}
@@ -306,7 +345,7 @@ export default function Vocabulary() {
               </div>
               <input 
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-full text-[#0D1C0D] focus:outline-0 focus:ring-0 border-none bg-[#E7F3E7] h-full placeholder:text-gray-500 px-4 text-base font-normal leading-normal" 
-                placeholder="Search phrases, vocabulary, grammar..."
+                placeholder={t('search.placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -318,11 +357,11 @@ export default function Vocabulary() {
         <div className="pb-0">
           <div className="flex border-b border-[#CFE8CF] px-2 gap-1 overflow-x-auto whitespace-nowrap">
             {[
-              { key: 'vocabulary', label: 'Vocabulary' },
-              { key: 'phrases', label: 'Phrases' },
-              { key: 'grammar', label: 'Grammar' },
-              { key: 'topics', label: 'Topics' },
-              { key: 'bookmarks', label: 'Bookmarks' }
+              { key: 'vocabulary', label: t('tabs.vocabulary') },
+              { key: 'phrases', label: t('tabs.phrases') },
+              { key: 'grammar', label: t('tabs.grammar') },
+              { key: 'topics', label: t('tabs.topics') },
+              { key: 'bookmarks', label: t('tabs.bookmarks') }
             ].map(tab => (
               <button
                 key={tab.key}
@@ -360,7 +399,7 @@ export default function Vocabulary() {
       {/* Search Results */}
       {searchResults.length > 0 && (
         <div className="mx-4 mt-2 bg-white rounded-xl shadow-sm p-3">
-          <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">Search Results</h3>
+          <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">{t('search.results')}</h3>
           <div className="space-y-1">
             {searchResults.map((result) => (
               <div 
@@ -390,7 +429,7 @@ export default function Vocabulary() {
             {activeTab === 'vocabulary' && (
               <div>
                 <h2 className="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6">
-                  Vocabulary from Conversations
+                  {t('vocabulary.title')}
                 </h2>
                 <div className="space-y-2 px-2">
                   {vocabulary.map(renderVocabularyCard)}
@@ -421,7 +460,7 @@ export default function Vocabulary() {
                 </div>
                 
                 <h2 className="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-3">
-                  Common Phrases
+                  {t('phrases.title')}
                 </h2>
                 <div className="space-y-2 px-2">
                   {filteredPhrases.map(renderPhraseCard)}
@@ -452,51 +491,47 @@ export default function Vocabulary() {
                 </div>
 
                 <div className="bg-white mx-4 p-4 rounded-xl shadow-sm mb-4">
-                  <h2 className="text-[#0D1C0D] text-xl font-bold mb-4">动词时态</h2>
+                  <h2 className="text-[#0D1C0D] text-xl font-bold mb-4">{t('grammar.categories.verbTenses')}</h2>
                   
                   <div className="mb-4">
-                    <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">现在完成时</h3>
+                    <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">{t('grammar.topics.presentPerfect.title')}</h3>
                     <p className="text-gray-600 text-sm mb-3">
-                      用现在完成时来谈论过去开始并延续到现在的动作。
+                      {t('grammar.topics.presentPerfect.description')}
                     </p>
                     <div className="bg-[#F0F7F0] p-3 rounded-lg">
                       <p className="text-[#0D1C0D] font-medium mb-1">例句:</p>
-                      <p className="text-[#3A6A3A] italic">
-                        'I <strong>have lived</strong> in London for five years.'
-                      </p>
+                      <p className="text-[#3A6A3A] italic" dangerouslySetInnerHTML={{ __html: `'${t('grammar.topics.presentPerfect.example')}'` }} />
                     </div>
                   </div>
 
                   <hr className="border-[#CFE8CF] my-4" />
 
                   <div>
-                    <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">一般过去时</h3>
+                    <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">{t('grammar.topics.simplePast.title')}</h3>
                     <p className="text-gray-600 text-sm mb-3">
-                      用一般过去时来谈论过去完成的动作。
+                      {t('grammar.topics.simplePast.description')}
                     </p>
                     <div className="bg-[#F0F7F0] p-3 rounded-lg">
                       <p className="text-[#0D1C0D] font-medium mb-1">例句:</p>
-                      <p className="text-[#3A6A3A] italic">
-                        'I <strong>visited</strong> Paris last summer.'
-                      </p>
+                      <p className="text-[#3A6A3A] italic" dangerouslySetInnerHTML={{ __html: `'${t('grammar.topics.simplePast.example')}'` }} />
                     </div>
                   </div>
                 </div>
 
                 {/* Practice Exercise */}
                 <div className="bg-white mx-4 p-4 rounded-xl shadow-sm">
-                  <h2 className="text-[#0D1C0D] text-xl font-bold mb-4">练习题</h2>
-                  <p className="text-[#0D1C0D] font-medium mb-2">填空:</p>
-                  <p className="text-gray-600 mb-4">I ____ (go) to the park yesterday.</p>
+                  <h2 className="text-[#0D1C0D] text-xl font-bold mb-4">{t('grammar.exercise.title')}</h2>
+                  <p className="text-[#0D1C0D] font-medium mb-2">{t('grammar.exercise.instruction')}</p>
+                  <p className="text-gray-600 mb-4">{t('grammar.exercise.question')}</p>
                   <div className="flex gap-2">
                     <button className="flex-1 px-4 py-2 border border-[#CFE8CF] rounded-lg text-[#0D1C0D] hover:bg-gray-50">
-                      went
+                      {t('grammar.exercise.options.went')}
                     </button>
                     <button className="flex-1 px-4 py-2 border border-[#CFE8CF] rounded-lg text-[#0D1C0D] hover:bg-gray-50">
-                      go
+                      {t('grammar.exercise.options.go')}
                     </button>
                     <button className="flex-1 px-4 py-2 border border-[#CFE8CF] rounded-lg text-[#0D1C0D] hover:bg-gray-50">
-                      goes
+                      {t('grammar.exercise.options.goes')}
                     </button>
                   </div>
                 </div>
@@ -507,7 +542,7 @@ export default function Vocabulary() {
             {activeTab === 'topics' && (
               <div>
                 <h2 className="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6">
-                  Learning Topics
+                  {t('topics.title')}
                 </h2>
                 <div className="space-y-2 px-2">
                   {topicsService.getTopics().map(renderTopicCard)}
@@ -519,21 +554,21 @@ export default function Vocabulary() {
             {activeTab === 'bookmarks' && (
               <div>
                 <h2 className="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6">
-                  My Bookmarks
+                  {t('bookmarks.title')}
                 </h2>
                 
                 {bookmarks.length === 0 ? (
                   <div className="bg-white mx-4 p-8 rounded-xl shadow-sm text-center">
                     <span className="material-icons text-gray-400 text-5xl mb-4 block">bookmark_border</span>
-                    <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">还没有收藏任何内容</h3>
-                    <p className="text-gray-600">点击书签图标来收藏学习材料</p>
+                    <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">{t('bookmarks.empty.title')}</h3>
+                    <p className="text-gray-600">{t('bookmarks.empty.description')}</p>
                   </div>
                 ) : (
                   <div className="space-y-4 px-2">
                     {/* Vocabulary Bookmarks */}
                     {bookmarks.filter(b => b.type === 'vocabulary').length > 0 && (
                       <div className="bg-[#F0F7F0] p-4 rounded-xl">
-                        <h3 className="text-[#0D1C0D] text-lg font-semibold mb-3">词汇收藏</h3>
+                        <h3 className="text-[#0D1C0D] text-lg font-semibold mb-3">{t('bookmarks.sections.vocabulary')}</h3>
                         <div className="space-y-2">
                           {bookmarks
                             .filter(b => b.type === 'vocabulary')
@@ -546,7 +581,7 @@ export default function Vocabulary() {
                     {/* Phrase Bookmarks */}
                     {bookmarks.filter(b => b.type === 'phrase').length > 0 && (
                       <div className="bg-[#F0F7F0] p-4 rounded-xl">
-                        <h3 className="text-[#0D1C0D] text-lg font-semibold mb-3">短语收藏</h3>
+                        <h3 className="text-[#0D1C0D] text-lg font-semibold mb-3">{t('bookmarks.sections.phrases')}</h3>
                         <div className="space-y-2">
                           {bookmarks
                             .filter(b => b.type === 'phrase')

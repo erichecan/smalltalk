@@ -1,0 +1,104 @@
+{
+  "title": "学习中心",
+  "tabs": {
+    "vocabulary": "词汇",
+    "phrases": "短语",
+    "grammar": "语法",
+    "topics": "话题",
+    "bookmarks": "收藏"
+  },
+  "search": {
+    "placeholder": "搜索短语、词汇、语法...",
+    "results": "搜索结果",
+    "noResults": "未找到结果"
+  },
+  "vocabulary": {
+    "title": "来自对话的词汇",
+    "add": "添加单词",
+    "mastered": "已掌握",
+    "learning": "学习中",
+    "notLearned": "未学习",
+    "playPronunciation": "播放发音",
+    "markAsMastered": "标记为已掌握",
+    "markAsLearning": "标记为学习中"
+  },
+  "phrases": {
+    "title": "常用短语",
+    "addPhrase": "添加短语",
+    "categories": {
+      "all": "全部",
+      "greetings": "问候",
+      "travel": "旅行",
+      "business": "商务",
+      "socializing": "社交",
+      "dining": "餐饮"
+    }
+  },
+  "grammar": {
+    "title": "语法中心",
+    "description": "通过互动练习学习英语语法",
+    "categories": {
+      "all": "全部",
+      "verbTenses": "动词时态",
+      "sentenceStructure": "句子结构",
+      "prepositions": "介词",
+      "vocabulary": "词汇"
+    },
+    "topics": {
+      "presentPerfect": {
+        "title": "现在完成时",
+        "description": "用现在完成时来谈论过去开始并延续到现在的动作。",
+        "example": "我在伦敦<strong>住了</strong>五年了。"
+      },
+      "simplePast": {
+        "title": "一般过去时",
+        "description": "用一般过去时来谈论过去完成的动作。",
+        "example": "我去年夏天<strong>去了</strong>巴黎。"
+      }
+    },
+    "exercise": {
+      "title": "练习题",
+      "instruction": "填空：",
+      "question": "I ____ (go) to the park yesterday.",
+      "options": {
+        "went": "went",
+        "go": "go",
+        "goes": "goes"
+      }
+    }
+  },
+  "topics": {
+    "title": "学习话题",
+    "smallTalk": "日常聊天",
+    "orderingFood": "点餐用语",
+    "travel": "旅行英语",
+    "work": "职场英语",
+    "shopping": "购物英语",
+    "healthcare": "医疗英语",
+    "descriptions": {
+      "smallTalk": "日常对话",
+      "orderingFood": "餐厅用语",
+      "travel": "旅行英语",
+      "work": "商务英语",
+      "shopping": "购物英语",
+      "healthcare": "医疗英语"
+    }
+  },
+  "bookmarks": {
+    "title": "我的收藏",
+    "empty": {
+      "title": "还没有收藏任何内容",
+      "description": "点击书签图标来收藏学习材料"
+    },
+    "sections": {
+      "vocabulary": "词汇收藏",
+      "phrases": "短语收藏"
+    }
+  },
+  "errors": {
+    "loadFailed": "加载数据失败",
+    "updateFailed": "更新失败",
+    "bookmarkFailed": "更新收藏状态失败",
+    "masteryFailed": "更新学习状态失败"
+  }
+}

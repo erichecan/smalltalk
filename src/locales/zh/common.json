@@ -1,0 +1,43 @@
+{
+  "buttons": {
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "back": "返回",
+    "close": "关闭",
+    "continue": "继续",
+    "submit": "提交",
+    "edit": "编辑",
+    "delete": "删除",
+    "add": "添加",
+    "remove": "移除"
+  },
+  "status": {
+    "loading": "加载中...",
+    "error": "发生错误",
+    "success": "成功",
+    "failed": "失败",
+    "pending": "等待中"
+  },
+  "actions": {
+    "bookmark": "收藏",
+    "unbookmark": "取消收藏",
+    "play": "播放",
+    "share": "分享",
+    "copy": "复制",
+    "download": "下载",
+    "upload": "上传"
+  },
+  "common": {
+    "yes": "是",
+    "no": "否",
+    "ok": "确定",
+    "search": "搜索",
+    "filter": "筛选",
+    "sort": "排序",
+    "more": "更多",
+    "less": "收起",
+    "all": "全部",
+    "none": "无"
+  }
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   BottomNavigation,
   BottomNavigationAction,
@@ -21,38 +22,39 @@ export interface NavItem {
   path: string;
 }
 
-// 只保留4个主入口
-export const navigationItems: NavItem[] = [
-  {
-    label: '历史',
-    icon: <History />,
-    path: '/history',
-  },
-  {
-    label: '练习',
-    icon: <Book />,
-    path: '/practice',
-  },
-  {
-    label: '词汇',
-    icon: <Book />,
-    path: '/vocabulary',
-  },
-  {
-    label: '我的',
-    icon: <Person />,
-    path: '/my',
-  },
-];
-
 // 不显示底部导航的路由
 const hideOnPaths = ['/login', '/register', '/', '/topic'];
 
 const BottomNav = () => {
+  const { t } = useTranslation('navigation');
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [value, setValue] = useState(0);
+
+  // 获取导航项配置（使用翻译）
+  const navigationItems: NavItem[] = [
+    {
+      label: t('bottomNav.history'),
+      icon: <History />,
+      path: '/history',
+    },
+    {
+      label: t('bottomNav.practice'),
+      icon: <Book />,
+      path: '/practice',
+    },
+    {
+      label: t('bottomNav.vocabulary'),
+      icon: <Book />,
+      path: '/vocabulary',
+    },
+    {
+      label: t('bottomNav.my'),
+      icon: <Person />,
+      path: '/my',
+    },
+  ];
 
   // 根据当前路径更新选中状态
   useEffect(() => {

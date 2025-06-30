@@ -1,0 +1,15 @@
+{
+  "bottomNav": {
+    "history": "历史",
+    "practice": "练习",
+    "vocabulary": "词汇",
+    "my": "我的"
+  },
+  "menu": {
+    "profile": "个人资料",
+    "settings": "设置",
+    "help": "帮助",
+    "about": "关于",
+    "logout": "退出登录"
+  }
+}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Container, TextField, Button, Typography, Box, Checkbox, Link, Alert, Snackbar, Divider, CircularProgress } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import GoogleIcon from '@mui/icons-material/Google';
 
@@ -14,6 +15,7 @@ export default function Login() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const { login, register, googleLogin } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation('auth');
 
   // Google 登录（假设 useAuth 里有 googleLogin 方法）
   const handleGoogleLogin = async () => {
@@ -24,7 +26,7 @@ export default function Login() {
       navigate('/topic');
     } catch (error) {
       console.error('Google login error:', error);
-      setError('Google 登录失败');
+      setError(t('login.errors.googleLoginFailed'));
     } finally {
       setLoading(false);
     }
@@ -42,7 +44,7 @@ export default function Login() {
       }
       navigate('/topic');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '登录/注册失败');
+      setError(err instanceof Error ? err.message : (mode === 'login' ? t('login.errors.loginFailed') : t('register.errors.registerFailed')));
     } finally {
       setLoading(false);
     }
@@ -57,10 +59,10 @@ export default function Login() {
             <span className="material-symbols-outlined" style={{ color: '#111811', fontSize: 36 }}>chat_bubble</span>
           </Box>
         </Box>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#111811', mb: 4 }}>{mode === 'login' ? 'Welcome back!' : 'Create your account'}</Typography>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#111811', mb: 4 }}>{mode === 'login' ? t('login.welcomeBack') : t('register.createAccount')}</Typography>
         <form onSubmit={handleSubmit} style={{ width: '100%' }}>
           <TextField
-            label="Email address or username"
+            label={mode === 'login' ? t('login.emailLabel') : t('register.emailLabel')}
             variant="outlined"
             fullWidth
             value={email}
@@ -68,7 +70,7 @@ export default function Login() {
             sx={{ mb: 2, borderRadius: 2, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
           />
           <TextField
-            label="Password"
+            label={mode === 'login' ? t('login.passwordLabel') : t('register.passwordLabel')}
             type="password"
             variant="outlined"
             fullWidth
@@ -79,21 +81,21 @@ export default function Login() {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Checkbox checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} sx={{ color: '#CAECCA' }} />
-              <Typography variant="body2" sx={{ color: '#5D895D' }}>Remember me</Typography>
+              <Typography variant="body2" sx={{ color: '#5D895D' }}>{t('login.rememberMe')}</Typography>
             </Box>
-            <Link component={RouterLink} to="#" sx={{ color: '#5D895D', textDecoration: 'underline', fontWeight: 'medium' }}>Forgot password?</Link>
+            <Link component={RouterLink} to="#" sx={{ color: '#5D895D', textDecoration: 'underline', fontWeight: 'medium' }}>{t('login.forgotPassword')}</Link>
           </Box>
           <Button type="submit" variant="contained" fullWidth sx={{ bgcolor: '#CAECCA', color: '#111811', borderRadius: 28, py: 1.5, fontWeight: 'bold', mb: 2 }} disabled={loading}>
             {loading ? <CircularProgress size={20} sx={{ color: '#4c9a4c', mr: 1 }} /> : null}
-            {mode === 'login' ? 'Log In' : 'Sign Up'}
+            {mode === 'login' ? t('login.loginButton') : t('register.registerButton')}
           </Button>
           <Box sx={{ my: 2, position: 'relative' }}>
             <Divider sx={{ borderColor: '#D0E0D0' }} />
-            <Typography variant="body2" sx={{ bgcolor: '#F9FBF9', px: 2, color: '#708C70', position: 'absolute', left: '50%', top: -14, transform: 'translateX(-50%)' }}>Or continue with</Typography>
+            <Typography variant="body2" sx={{ bgcolor: '#F9FBF9', px: 2, color: '#708C70', position: 'absolute', left: '50%', top: -14, transform: 'translateX(-50%)' }}>{mode === 'login' ? t('login.orContinueWith') : t('register.orContinueWith')}</Typography>
           </Box>
-          <Button variant="outlined" fullWidth sx={{ borderColor: '#D0E0D0', color: '#111811', borderRadius: 28, py: 1.5, mb: 2, '&:hover': { bgcolor: 'grey.50' } }} onClick={handleGoogleLogin} startIcon={<GoogleIcon />}>Sign in with Google</Button>
+          <Button variant="outlined" fullWidth sx={{ borderColor: '#D0E0D0', color: '#111811', borderRadius: 28, py: 1.5, mb: 2, '&:hover': { bgcolor: 'grey.50' } }} onClick={handleGoogleLogin} startIcon={<GoogleIcon />}>{t('login.googleButton')}</Button>
           <Button variant="text" fullWidth sx={{ color: '#111811', borderRadius: 28, py: 1.5, '&:hover': { bgcolor: '#EAF1EA' } }} onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
-            {mode === 'login' ? 'New User? Sign Up' : 'Already have an account? Log In'}
+            {mode === 'login' ? t('login.switchToRegister') : t('register.switchToLogin')}
           </Button>
         </form>
       </Box>

@@ -1,0 +1,15 @@
+{
+  "bottomNav": {
+    "history": "History",
+    "practice": "Practice", 
+    "vocabulary": "Vocabulary",
+    "my": "My"
+  },
+  "menu": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "help": "Help",
+    "about": "About",
+    "logout": "Logout"
+  }
+}
