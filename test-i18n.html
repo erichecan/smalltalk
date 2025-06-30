@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmallTalk i18n Test</title>
+    <!-- Google Fonts for design system -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Spline+Sans:wght@400;500;700" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        .language-transition {
+            transition: opacity 0.2s ease-in-out;
+        }
+        .language-transition.changing {
+            opacity: 0.7;
+        }
+        
+        body {
+            min-height: 100vh;
+            font-family: "Spline Sans", "Noto Sans", sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-[#F8FCF8]">
+    <div class="relative flex size-full min-h-screen flex-col bg-[#F8FCF8] justify-between overflow-x-hidden">
+        <!-- Header -->
+        <header class="sticky top-0 z-10 bg-[#F8FCF8]">
+            <div class="flex items-center p-4 pb-2 justify-between">
+                <button class="text-[#0D1C0D] flex size-10 items-center justify-center rounded-full hover:bg-gray-100">
+                    <span class="material-icons">arrow_back_ios_new</span>
+                </button>
+                <h1 class="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center language-transition" data-i18n="learning.title">
+                    Learning Center
+                </h1>
+                <!-- Language Switcher -->
+                <div class="relative">
+                    <select id="languageSwitcher" class="bg-[#E7F3E7] text-[#0D1C0D] rounded-lg px-3 py-1 text-sm border-none focus:outline-none">
+                        <option value="en">English</option>
+                        <option value="zh">中文</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="px-4 py-3">
+                <label class="flex flex-col min-w-40 h-12 w-full">
+                    <div class="flex w-full flex-1 items-stretch rounded-full h-full shadow-sm">
+                        <div class="text-[#0D1C0D] flex bg-[#E7F3E7] items-center justify-center pl-4 rounded-l-full border-r-0">
+                            <span class="material-icons text-gray-500">search</span>
+                        </div>
+                        <input 
+                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-full text-[#0D1C0D] focus:outline-0 focus:ring-0 border-none bg-[#E7F3E7] h-full text-gray-500 px-4 text-base font-normal leading-normal language-transition" 
+                            data-i18n-placeholder="search.placeholder"
+                            placeholder="Search phrases, vocabulary, grammar..."
+                        />
+                    </div>
+                </label>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="pb-0">
+                <div class="flex border-b border-[#CFE8CF] px-2 gap-1 overflow-x-auto whitespace-nowrap">
+                    <button class="active-tab flex flex-col items-center justify-center border-b-[3px] border-b-[#0FDB0F] text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" data-tab="vocabulary">
+                        <p class="text-sm font-semibold leading-normal language-transition" data-i18n="tabs.vocabulary">Vocabulary</p>
+                    </button>
+                    <button class="tab-button flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" data-tab="phrases">
+                        <p class="text-sm font-medium leading-normal language-transition" data-i18n="tabs.phrases">Phrases</p>
+                    </button>
+                    <button class="tab-button flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" data-tab="grammar">
+                        <p class="text-sm font-medium leading-normal language-transition" data-i18n="tabs.grammar">Grammar</p>
+                    </button>
+                    <button class="tab-button flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" data-tab="topics">
+                        <p class="text-sm font-medium leading-normal language-transition" data-i18n="tabs.topics">Topics</p>
+                    </button>
+                    <button class="tab-button flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D] pb-3 pt-4 px-3 flex-shrink-0" data-tab="bookmarks">
+                        <p class="text-sm font-medium leading-normal language-transition" data-i18n="tabs.bookmarks">Bookmarks</p>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow pb-24 px-2">
+            <!-- Vocabulary Tab -->
+            <div id="vocabulary-tab" class="tab-content">
+                <h2 class="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6 language-transition" data-i18n="vocabulary.title">
+                    Vocabulary from Conversations
+                </h2>
+                <div class="space-y-2 px-2">
+                    <!-- Vocabulary Card 1 -->
+                    <div class="flex items-center gap-3 bg-white p-3 rounded-xl hover:bg-gray-50 cursor-pointer mb-2">
+                        <button class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12 hover:bg-[#CFE8CF]">
+                            <span class="material-icons">volume_up</span>
+                        </button>
+                        
+                        <div class="flex-1">
+                            <p class="text-[#0D1C0D] text-base font-medium leading-normal">Joy</p>
+                            <p class="text-gray-600 text-sm font-normal leading-normal language-transition" data-i18n="vocabulary.examples.joy.definition">
+                                A feeling of great pleasure and happiness.
+                            </p>
+                            <p class="text-gray-500 text-xs italic leading-normal mt-1 language-transition" data-i18n="vocabulary.examples.joy.example">
+                                "Her eyes sparkled with joy."
+                            </p>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button class="p-2 rounded-lg text-gray-400 hover:text-[#0FDB0F] hover:bg-[#E7F3E7]">
+                                <span class="material-icons">bookmark_border</span>
+                            </button>
+                            <button class="p-2 rounded-lg text-gray-400 hover:text-[#0FDB0F] hover:bg-[#E7F3E7]">
+                                <span class="material-icons">check_circle_outline</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Vocabulary Card 2 -->
+                    <div class="flex items-center gap-3 bg-white p-3 rounded-xl hover:bg-gray-50 cursor-pointer mb-2">
+                        <button class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12 hover:bg-[#CFE8CF]">
+                            <span class="material-icons">volume_up</span>
+                        </button>
+                        
+                        <div class="flex-1">
+                            <p class="text-[#0D1C0D] text-base font-medium leading-normal">Compliment</p>
+                            <p class="text-gray-600 text-sm font-normal leading-normal language-transition" data-i18n="vocabulary.examples.compliment.definition">
+                                To express admiration or approval.
+                            </p>
+                            <p class="text-gray-500 text-xs italic leading-normal mt-1 language-transition" data-i18n="vocabulary.examples.compliment.example">
+                                "He paid her a lovely compliment on her dress."
+                            </p>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button class="p-2 rounded-lg text-[#0FDB0F] hover:bg-[#E7F3E7]">
+                                <span class="material-icons">bookmark</span>
+                            </button>
+                            <button class="p-2 rounded-lg text-gray-400 hover:text-[#0FDB0F] hover:bg-[#E7F3E7]">
+                                <span class="material-icons">check_circle_outline</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phrases Tab -->
+            <div id="phrases-tab" class="tab-content hidden">
+                <!-- Category Filter -->
+                <div class="px-4 py-3">
+                    <div class="flex gap-2 overflow-x-auto whitespace-nowrap">
+                        <button class="px-4 py-2 rounded-full text-sm font-medium flex-shrink-0 bg-[#0FDB0F] text-white">
+                            <span class="language-transition" data-i18n="categories.all">All</span>
+                        </button>
+                        <button class="px-4 py-2 rounded-full text-sm font-medium flex-shrink-0 bg-[#E7F3E7] text-[#4B9B4B] hover:bg-[#CFE8CF]">
+                            <span class="language-transition" data-i18n="categories.greetings">Greetings</span>
+                        </button>
+                        <button class="px-4 py-2 rounded-full text-sm font-medium flex-shrink-0 bg-[#E7F3E7] text-[#4B9B4B] hover:bg-[#CFE8CF]">
+                            <span class="language-transition" data-i18n="categories.travel">Travel</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <h2 class="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-3 language-transition" data-i18n="phrases.title">
+                    Common Phrases
+                </h2>
+                <div class="space-y-2 px-2">
+                    <!-- Phrase Card -->
+                    <div class="flex items-center gap-3 bg-white p-3 rounded-xl hover:bg-gray-50 cursor-pointer mb-2">
+                        <div class="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
+                            <span class="material-icons">chat_bubble_outline</span>
+                        </div>
+                        
+                        <div class="flex-1">
+                            <p class="text-[#0D1C0D] text-base font-medium leading-normal">Hi, how are you?</p>
+                            <p class="text-gray-600 text-sm font-normal leading-normal language-transition" data-i18n="phrases.examples.greeting.translation">
+                                你好，你怎么样？
+                            </p>
+                            <p class="text-gray-500 text-xs italic leading-normal mt-1 language-transition" data-i18n="phrases.examples.greeting.usage">
+                                "Hi, how are you doing today?"
+                            </p>
+                        </div>
+                        
+                        <button class="p-2 rounded-lg text-gray-400 hover:text-[#0FDB0F] hover:bg-[#E7F3E7]">
+                            <span class="material-icons">bookmark_border</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other tabs content... -->
+            <div id="grammar-tab" class="tab-content hidden">
+                <h2 class="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6 language-transition" data-i18n="grammar.title">
+                    Grammar Center
+                </h2>
+                <p class="px-4 text-gray-600 language-transition" data-i18n="grammar.description">
+                    Learn English grammar with interactive exercises.
+                </p>
+            </div>
+
+            <div id="topics-tab" class="tab-content hidden">
+                <h2 class="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6 language-transition" data-i18n="topics.title">
+                    Learning Topics
+                </h2>
+            </div>
+
+            <div id="bookmarks-tab" class="tab-content hidden">
+                <h2 class="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6 language-transition" data-i18n="bookmarks.title">
+                    My Bookmarks
+                </h2>
+                <div class="bg-white mx-4 p-8 rounded-xl shadow-sm text-center">
+                    <span class="material-icons text-gray-400 text-5xl mb-4 block">bookmark_border</span>
+                    <h3 class="text-[#0D1C0D] text-lg font-semibold mb-2 language-transition" data-i18n="bookmarks.empty.title">
+                        No bookmarks yet
+                    </h3>
+                    <p class="text-gray-600 language-transition" data-i18n="bookmarks.empty.description">
+                        Click the bookmark icon to save learning materials
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Language resources
+        const translations = {
+            en: {
+                "learning": {
+                    "title": "Learning Center"
+                },
+                "search": {
+                    "placeholder": "Search phrases, vocabulary, grammar..."
+                },
+                "tabs": {
+                    "vocabulary": "Vocabulary",
+                    "phrases": "Phrases",
+                    "grammar": "Grammar",
+                    "topics": "Topics",
+                    "bookmarks": "Bookmarks"
+                },
+                "vocabulary": {
+                    "title": "Vocabulary from Conversations",
+                    "examples": {
+                        "joy": {
+                            "definition": "A feeling of great pleasure and happiness.",
+                            "example": "\"Her eyes sparkled with joy.\""
+                        },
+                        "compliment": {
+                            "definition": "To express admiration or approval.",
+                            "example": "\"He paid her a lovely compliment on her dress.\""
+                        }
+                    }
+                },
+                "phrases": {
+                    "title": "Common Phrases",
+                    "examples": {
+                        "greeting": {
+                            "translation": "Hello, how are you?",
+                            "usage": "\"Hi, how are you doing today?\""
+                        }
+                    }
+                },
+                "grammar": {
+                    "title": "Grammar Center",
+                    "description": "Learn English grammar with interactive exercises."
+                },
+                "topics": {
+                    "title": "Learning Topics"
+                },
+                "bookmarks": {
+                    "title": "My Bookmarks",
+                    "empty": {
+                        "title": "No bookmarks yet",
+                        "description": "Click the bookmark icon to save learning materials"
+                    }
+                },
+                "categories": {
+                    "all": "All",
+                    "greetings": "Greetings",
+                    "travel": "Travel"
+                }
+            },
+            zh: {
+                "learning": {
+                    "title": "学习中心"
+                },
+                "search": {
+                    "placeholder": "搜索短语、词汇、语法..."
+                },
+                "tabs": {
+                    "vocabulary": "词汇",
+                    "phrases": "短语",
+                    "grammar": "语法",
+                    "topics": "话题",
+                    "bookmarks": "收藏"
+                },
+                "vocabulary": {
+                    "title": "来自对话的词汇",
+                    "examples": {
+                        "joy": {
+                            "definition": "极大快乐和幸福的感觉。",
+                            "example": "\"她的眼中闪烁着喜悦。\""
+                        },
+                        "compliment": {
+                            "definition": "表达钦佩或赞美。",
+                            "example": "\"他对她的裙子给予了美好的赞美。\""
+                        }
+                    }
+                },
+                "phrases": {
+                    "title": "常用短语",
+                    "examples": {
+                        "greeting": {
+                            "translation": "你好，你怎么样？",
+                            "usage": "\"嗨，你今天怎么样？\""
+                        }
+                    }
+                },
+                "grammar": {
+                    "title": "语法中心",
+                    "description": "通过互动练习学习英语语法。"
+                },
+                "topics": {
+                    "title": "学习话题"
+                },
+                "bookmarks": {
+                    "title": "我的收藏",
+                    "empty": {
+                        "title": "还没有收藏任何内容",
+                        "description": "点击书签图标来收藏学习材料"
+                    }
+                },
+                "categories": {
+                    "all": "全部",
+                    "greetings": "问候",
+                    "travel": "旅行"
+                }
+            }
+        };
+
+        // Simple i18n implementation
+        class SimpleI18n {
+            constructor() {
+                this.currentLanguage = localStorage.getItem('smalltalk_language') || 'en';
+                this.translations = translations;
+                this.init();
+            }
+
+            init() {
+                this.updateLanguageSwitcher();
+                this.translate();
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                const switcher = document.getElementById('languageSwitcher');
+                switcher.addEventListener('change', (e) => {
+                    this.changeLanguage(e.target.value);
+                });
+
+                // Tab switching
+                document.querySelectorAll('[data-tab]').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        const tabName = e.currentTarget.getAttribute('data-tab');
+                        this.switchTab(tabName);
+                    });
+                });
+            }
+
+            changeLanguage(lang) {
+                if (this.translations[lang]) {
+                    // Add transition effect
+                    document.querySelectorAll('.language-transition').forEach(el => {
+                        el.classList.add('changing');
+                    });
+
+                    setTimeout(() => {
+                        this.currentLanguage = lang;
+                        localStorage.setItem('smalltalk_language', lang);
+                        this.updateLanguageSwitcher();
+                        this.translate();
+
+                        // Remove transition effect
+                        document.querySelectorAll('.language-transition').forEach(el => {
+                            el.classList.remove('changing');
+                        });
+                    }, 100);
+                }
+            }
+
+            updateLanguageSwitcher() {
+                document.getElementById('languageSwitcher').value = this.currentLanguage;
+            }
+
+            translate() {
+                const currentTranslations = this.translations[this.currentLanguage];
+                
+                // Translate elements with data-i18n attribute
+                document.querySelectorAll('[data-i18n]').forEach(element => {
+                    const key = element.getAttribute('data-i18n');
+                    const translation = this.getNestedTranslation(currentTranslations, key);
+                    
+                    if (translation) {
+                        element.textContent = translation;
+                    }
+                });
+
+                // Translate placeholders
+                document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                    const key = element.getAttribute('data-i18n-placeholder');
+                    const translation = this.getNestedTranslation(currentTranslations, key);
+                    
+                    if (translation) {
+                        element.placeholder = translation;
+                    }
+                });
+            }
+
+            getNestedTranslation(obj, path) {
+                return path.split('.').reduce((current, key) => {
+                    return current && current[key] ? current[key] : null;
+                }, obj);
+            }
+
+            switchTab(tabName) {
+                // Update tab buttons
+                document.querySelectorAll('[data-tab]').forEach(tab => {
+                    if (tab.getAttribute('data-tab') === tabName) {
+                        tab.classList.add('active-tab');
+                        tab.classList.remove('tab-button');
+                        tab.classList.add('border-b-[#0FDB0F]', 'text-[#0D1C0D]');
+                        tab.classList.remove('border-b-transparent', 'text-[#4B9B4B]');
+                        tab.querySelector('p').classList.add('font-semibold');
+                        tab.querySelector('p').classList.remove('font-medium');
+                    } else {
+                        tab.classList.remove('active-tab');
+                        tab.classList.add('tab-button');
+                        tab.classList.remove('border-b-[#0FDB0F]', 'text-[#0D1C0D]');
+                        tab.classList.add('border-b-transparent', 'text-[#4B9B4B]');
+                        tab.querySelector('p').classList.remove('font-semibold');
+                        tab.querySelector('p').classList.add('font-medium');
+                    }
+                });
+
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    if (content.id === `${tabName}-tab`) {
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        // Initialize i18n when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.i18n = new SimpleI18n();
+        });
+    </script>
+</body>
+</html>
