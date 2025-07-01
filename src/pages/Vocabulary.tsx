@@ -73,16 +73,15 @@ function Vocabulary() {
   const loadUserData = async () => {
     setLoading(true);
     try {
-      const [vocabData, phrasesData, bookmarksData] = await Promise.all([
-        vocabularyService.getUserVocabulary(user?.id || 'guest'),
-        phrasesService.getUserPhrases(user?.id || 'guest'),
-        user ? bookmarksService.getUserBookmarks(user.id) : Promise.resolve([])
-      ]);
+      // 只加载vocabulary，暂时跳过phrases和bookmarks以避免404错误
+      const vocabData = await vocabularyService.getUserVocabulary(user?.id || 'guest');
       
       // 只显示未掌握的词汇（masteryLevel !== 2）
       setVocabulary(vocabData.filter(v => v.masteryLevel !== 2));
-      setPhrases(phrasesData);
-      setBookmarks(bookmarksData);
+      
+      // 使用模拟数据暂时替代
+      setPhrases([]);
+      setBookmarks([]);
       
       console.log(`Loaded ${vocabData.length} vocabulary from database`);
     } catch (err) {
