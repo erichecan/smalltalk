@@ -97,11 +97,13 @@ const BottomNav = () => {
           backgroundColor: theme.palette.background.paper,
         }}
       >
-        {navigationItems.map((item) => (
+        {navigationItems.map((item, index) => (
           <BottomNavigationAction
             key={item.path}
             label={item.label}
             icon={item.icon}
+            // 2025-01-30 17:05:15: 为词汇按钮添加ID，用于飞行动画目标定位
+            id={item.path === '/vocabulary' ? 'vocabulary-nav-button' : undefined}
             sx={{
               minWidth: 'auto',
               padding: '6px 0',

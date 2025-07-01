@@ -269,32 +269,150 @@ function Vocabulary() {
     }
   };
 
-  // 处理文本选择（添加单词功能）
-  const handleTextSelection = (event: React.MouseEvent) => {
-    console.log('Text selection triggered');
+  // 2025-01-30 17:15:00: 处理双击添加词汇功能（替代原文本选择）
+  const handleDoubleClick = async (event: React.MouseEvent, text: string) => {
+    console.log('Double click triggered on vocabulary page');
     
     if (!isAuthenticated) {
       console.log('User not authenticated, skipping word selection');
       return;
     }
 
+    // 防止正在添加词汇时重复操作
+    if (isAddingWord) {
+      return;
+    }
+
+    const target = event.target as HTMLElement;
+    let wordToAdd: string | null = null;
+
+    // 2025-01-30 17:15:30: 优先使用浏览器选择API获取双击的单词
     const selection = window.getSelection();
     if (selection && selection.toString().trim()) {
       const selectedText = selection.toString().trim();
-      console.log('Selected text:', selectedText);
-      
-      // 只允许选择英文单词
-      if (/^[a-zA-Z'-]+$/.test(selectedText) && selectedText.length > 1) {
-        const rect = selection.getRangeAt(0).getBoundingClientRect();
-        setSelectedWord(selectedText);
-        setWordMenuPosition({
-          x: rect.left + window.scrollX,
-          y: rect.bottom + window.scrollY + 5
-        });
-        setShowWordMenu(true);
-        console.log('Word menu should show for:', selectedText);
+      // 验证是否为有效英文单词
+      if (/^[a-zA-Z0-9'-]+$/.test(selectedText) && selectedText.length > 1 && /[a-zA-Z]/.test(selectedText)) {
+        wordToAdd = selectedText;
+        // 清除选择
+        selection.removeAllRanges();
       }
     }
+
+    // 2025-01-30 17:16:00: Fallback - 从文本中提取单词
+    if (!wordToAdd) {
+      const words = text.match(/[a-zA-Z0-9'-]+/g);
+      if (words && words.length > 0) {
+        // 简单选择第一个有效单词作为fallback
+        const firstValidWord = words.find(word => word.length > 1 && /[a-zA-Z]/.test(word));
+        if (firstValidWord) {
+          wordToAdd = firstValidWord;
+        }
+      }
+    }
+
+    if (wordToAdd) {
+      console.log('Adding word from vocabulary page:', wordToAdd);
+      
+      // 添加飞行动画效果
+      triggerVocabularyPageAnimation(wordToAdd, { x: event.clientX, y: event.clientY });
+      
+      // 添加到词汇表
+      await handleAddWord(wordToAdd);
+    }
+  };
+
+  // 2025-01-30 17:16:30: 词汇页面专用动画效果
+  const triggerVocabularyPageAnimation = (word: string, startPosition: { x: number; y: number }) => {
+    // 创建一个闪烁的成功指示器
+    const successIndicator = document.createElement('div');
+    successIndicator.innerHTML = `
+      <div style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+        color: white;
+        padding: 10px 16px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+        white-space: nowrap;
+        position: relative;
+        overflow: hidden;
+      ">
+        <span style="margin-right: 8px;">✨</span>
+        ${word}
+        <span style="margin-left: 8px;">已添加</span>
+        <div style="
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+          animation: shimmer 0.8s ease-in-out;
+        "></div>
+      </div>
+    `;
+
+    // 设置初始样式
+    Object.assign(successIndicator.style, {
+      position: 'fixed',
+      left: `${startPosition.x}px`,
+      top: `${startPosition.y}px`,
+      zIndex: '10000',
+      pointerEvents: 'none',
+      transform: 'translate(-50%, -50%) scale(0)',
+      transition: 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+    });
+
+    // 添加CSS动画（如果还没有）
+    if (!document.getElementById('vocabulary-page-styles')) {
+      const styleSheet = document.createElement('style');
+      styleSheet.id = 'vocabulary-page-styles';
+      styleSheet.textContent = `
+        @keyframes shimmer {
+          0% { left: -100%; }
+          100% { left: 100%; }
+        }
+        @keyframes bounceIn {
+          0% { transform: translate(-50%, -50%) scale(0) rotate(-180deg); opacity: 0; }
+          50% { transform: translate(-50%, -50%) scale(1.2) rotate(-10deg); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+        }
+        @keyframes bounceOut {
+          0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(0) rotate(90deg); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(styleSheet);
+    }
+
+    document.body.appendChild(successIndicator);
+
+    // 启动动画序列
+    requestAnimationFrame(() => {
+      // 第一阶段：弹入效果
+      successIndicator.style.animation = 'bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      successIndicator.style.transform = 'translate(-50%, -50%) scale(1)';
+      
+      setTimeout(() => {
+        // 第二阶段：保持显示
+        successIndicator.style.animation = '';
+        
+        setTimeout(() => {
+          // 第三阶段：弹出消失
+          successIndicator.style.animation = 'bounceOut 0.4s ease-in-out';
+          
+          setTimeout(() => {
+            if (document.body.contains(successIndicator)) {
+              document.body.removeChild(successIndicator);
+            }
+          }, 400);
+        }, 1500);
+      }, 600);
+    });
   };
 
   // 添加单词到词汇表 - 支持手动添加和对话选择 - 2025-01-30
@@ -623,14 +741,14 @@ function Vocabulary() {
           </Box>
         )}
         
-        {/* 使用提示 */}
+        {/* 使用提示 - 2025-01-30 17:20:00: 支持双击添加词汇 */}
         {item.usage_notes && (
           <Paper 
             sx={{ 
               p: 2, 
               mt: 2, 
               bgcolor: 'rgba(227, 242, 253, 0.7)', 
-              cursor: 'text',
+              cursor: 'pointer',
               borderRadius: 2,
               border: '1px solid rgba(25, 118, 210, 0.2)',
               '&:hover': { 
@@ -639,7 +757,8 @@ function Vocabulary() {
               },
               transition: 'all 0.3s ease'
             }}
-            onMouseUp={handleTextSelection}
+            onDoubleClick={(e) => handleDoubleClick(e, item.usage_notes || '')}
+            title="双击文本中的单词可快速添加到词汇表"
           >
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
               <LightbulbIcon sx={{ fontSize: 18, color: '#1976D2', mt: 0.1, flexShrink: 0 }} />

@@ -92,7 +92,7 @@ function Dialogue() {
       // 验证是否为有效英文单词
       if (/^[a-zA-Z0-9'-]+$/.test(selectedText) && selectedText.length > 1 && /[a-zA-Z]/.test(selectedText)) {
         console.log('Valid word from selection:', selectedText);
-        await addWordToVocabulary(selectedText, target);
+        await addWordToVocabulary(selectedText, target, { x: event.clientX, y: event.clientY });
         // 清除选择
         selection.removeAllRanges();
         return;
@@ -126,7 +126,7 @@ function Dialogue() {
         const firstValidWord = words.find(word => word.length > 1 && /[a-zA-Z]/.test(word));
         if (firstValidWord) {
           console.log('Using first valid word as fallback:', firstValidWord);
-          await addWordToVocabulary(firstValidWord, target);
+          await addWordToVocabulary(firstValidWord, target, { x: event.clientX, y: event.clientY });
           return;
         }
       }
@@ -134,14 +134,14 @@ function Dialogue() {
     
     if (wordInfo) {
       console.log('Valid word found:', wordInfo.word);
-      await addWordToVocabulary(wordInfo.word, target);
+      await addWordToVocabulary(wordInfo.word, target, { x: event.clientX, y: event.clientY });
     } else {
       console.log('No valid word found at click position');
     }
   };
 
-  // 2025-01-30 16:48:45: 添加词汇到词汇表的核心逻辑
-  const addWordToVocabulary = async (word: string, element: HTMLElement) => {
+  // 2025-01-30 17:06:30: 添加词汇到词汇表的核心逻辑 - 增加飞行动画
+  const addWordToVocabulary = async (word: string, element: HTMLElement, clickPosition?: { x: number; y: number }) => {
     if (!user) return;
     
     setIsAddingWord(true);
@@ -158,6 +158,11 @@ function Dialogue() {
       const isUpdate = result.lastReviewed && new Date(result.lastReviewed).getTime() > Date.now() - 10000; // 10秒内更新的
       setWordAddSuccess(isUpdate ? `已更新: ${word}` : `已添加: ${word}`);
       
+      // 2025-01-30 17:07:00: 触发飞行动画
+      if (clickPosition) {
+        triggerFlyingAnimation(word, clickPosition);
+      }
+      
       // 3秒后清除成功消息和高亮
       setTimeout(() => {
         setWordAddSuccess(null);
@@ -171,6 +176,120 @@ function Dialogue() {
     } finally {
       setIsAddingWord(false);
     }
+  };
+
+  // 2025-01-30 17:07:30: 飞行动画实现
+  const triggerFlyingAnimation = (word: string, startPosition: { x: number; y: number }) => {
+    // 获取词汇按钮的位置
+    const vocabularyButton = document.getElementById('vocabulary-nav-button');
+    if (!vocabularyButton) {
+      console.warn('Vocabulary button not found for animation');
+      return;
+    }
+
+    const buttonRect = vocabularyButton.getBoundingClientRect();
+    const targetPosition = {
+      x: buttonRect.left + buttonRect.width / 2,
+      y: buttonRect.top + buttonRect.height / 2
+    };
+
+    // 创建飞行的卡片元素
+    const flyingCard = document.createElement('div');
+    flyingCard.innerHTML = `
+      <div style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #CAECCA 0%, #A8D8A8 100%);
+        color: #0d1b0d;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        box-shadow: 0 4px 20px rgba(76, 154, 76, 0.3);
+        border: 2px solid #4caf50;
+        white-space: nowrap;
+        position: relative;
+        overflow: hidden;
+      ">
+        <span style="margin-right: 6px;">📖</span>
+        ${word}
+        <div style="
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+          animation: shimmer 0.6s ease-in-out;
+        "></div>
+      </div>
+    `;
+
+    // 设置初始样式
+    Object.assign(flyingCard.style, {
+      position: 'fixed',
+      left: `${startPosition.x}px`,
+      top: `${startPosition.y}px`,
+      zIndex: '10000',
+      pointerEvents: 'none',
+      transform: 'translate(-50%, -50%) scale(0)',
+      transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+    });
+
+    // 添加shimmer动画CSS
+    if (!document.getElementById('flying-card-styles')) {
+      const styleSheet = document.createElement('style');
+      styleSheet.id = 'flying-card-styles';
+      styleSheet.textContent = `
+        @keyframes shimmer {
+          0% { left: -100%; }
+          100% { left: 100%; }
+        }
+        @keyframes pulse {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); }
+          50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+      `;
+      document.head.appendChild(styleSheet);
+    }
+
+    document.body.appendChild(flyingCard);
+
+    // 启动动画序列
+    requestAnimationFrame(() => {
+      // 第一阶段：出现和轻微放大
+      flyingCard.style.transform = 'translate(-50%, -50%) scale(1.2)';
+      
+      setTimeout(() => {
+        // 第二阶段：飞向目标
+        flyingCard.style.left = `${targetPosition.x}px`;
+        flyingCard.style.top = `${targetPosition.y}px`;
+        flyingCard.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        flyingCard.style.opacity = '0.8';
+        
+        setTimeout(() => {
+          // 第三阶段：到达目标，脉动效果
+          flyingCard.style.animation = 'pulse 0.3s ease-in-out';
+          
+          setTimeout(() => {
+            // 第四阶段：消失
+            flyingCard.style.transform = 'translate(-50%, -50%) scale(0)';
+            flyingCard.style.opacity = '0';
+            
+            setTimeout(() => {
+              document.body.removeChild(flyingCard);
+            }, 200);
+          }, 300);
+        }, 800);
+      }, 200);
+    });
+
+    // 词汇按钮高亮效果
+    vocabularyButton.style.animation = 'pulse 0.6s ease-in-out';
+    setTimeout(() => {
+      vocabularyButton.style.animation = '';
+    }, 600);
   };
 
   // 调试：打印conversationId的传递情况
