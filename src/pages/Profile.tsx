@@ -1,26 +1,16 @@
 import { Container, Box, Typography, Avatar, Paper, LinearProgress, Chip, Stack, Button } from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../contexts/AuthContext';
 import ProfileMenu from '../components/ProfileMenu';
 
 function Profile() {
-  const navigate = useNavigate();
-  const { logout, isAuthenticated } = useAuth();
   const { t } = useTranslation('auth');
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
 
   return (
     <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0, fontFamily: 'Spline Sans, Noto Sans, sans-serif', width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>
       {/* 顶部栏 */}
-      <Box sx={{ position: 'sticky', top: 0, zIndex: 10, bgcolor: 'rgba(248,252,248,0.8)', backdropFilter: 'blur(8px)', px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 0 }}>
-        <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>{t('profile.friendProfile')}</Typography>
+      <Box sx={{ position: 'sticky', top: 0, zIndex: 10, bgcolor: 'rgba(248,252,248,0.8)', backdropFilter: 'blur(8px)', px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', borderBottom: 0 }}>
         <ProfileMenu />
       </Box>
       {/* 头像与基本信息 */}
@@ -76,11 +66,6 @@ function Profile() {
         <Button variant="contained" startIcon={<PlayArrowIcon />} sx={{ bgcolor: '#e7f3e7', color: '#0d1b0d', fontWeight: 'bold', borderRadius: 999, px: 4, boxShadow: 1, flex: 1, minWidth: 120, '&:hover': { bgcolor: '#cfe7cf' } }}>
           {t('profile.startConversation')}
         </Button>
-        {isAuthenticated && (
-          <Button variant="outlined" color="error" onClick={handleLogout} sx={{ ml: 2, borderRadius: 999, minWidth: 120, fontWeight: 'bold' }}>
-            {t('profile.logout')}
-          </Button>
-        )}
       </Box>
     </Container>
   );

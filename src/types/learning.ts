@@ -73,7 +73,7 @@ export interface BookmarkItem {
 }
 
 // Tab类型
-export type LearningTab = 'vocabulary' | 'phrases' | 'grammar' | 'topics' | 'bookmarks';
+export type LearningTab = 'vocabulary' | 'topics' | 'bookmarks';
 
 // 搜索结果类型
 export interface SearchResult {

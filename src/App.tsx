@@ -38,7 +38,6 @@ function App() {
                 <Route path="/dialogue" element={<Dialogue />} />
                 <Route path="/practice" element={<Practice />} />
                 <Route path="/vocabulary" element={<Vocabulary />} />
-                <Route path="/my" element={<Profile />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/history" element={<History />} />

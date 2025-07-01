@@ -50,9 +50,9 @@ const BottomNav = () => {
       path: '/vocabulary',
     },
     {
-      label: t('bottomNav.my'),
+      label: t('bottomNav.profile'),
       icon: <Person />,
-      path: '/my',
+      path: '/profile',
     },
   ];
 

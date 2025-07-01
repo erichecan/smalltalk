@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../hooks/useLanguage';
 import type { 
   VocabularyItem, 
-  PhraseItem, 
   LearningTab, 
   SearchResult,
   TopicItem,
@@ -13,7 +12,6 @@ import type {
 } from '../types/learning';
 import {
   vocabularyService,
-  phrasesService,
   searchService,
   topicsService,
   bookmarksService
@@ -76,23 +74,7 @@ function Vocabulary() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Get categories from translations - 修复对象渲染问题 - 2025-01-30 16:40:22
-  const PHRASE_CATEGORIES = [
-    'All',
-    'Greetings', 
-    'Travel',
-    'Business',
-    'Socializing',
-    'Dining'
-  ];
-  
-  const GRAMMAR_CATEGORIES = [
-    'All',
-    'Verb Tenses',
-    'Sentence Structure',
-    'Prepositions',
-    'Vocabulary'
-  ];
+
   
   // 状态管理
   const [activeTab, setActiveTab] = useState<LearningTab>('vocabulary');
@@ -103,7 +85,6 @@ function Vocabulary() {
   
   // 数据状态
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
-  const [phrases, setPhrases] = useState<PhraseItem[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   
@@ -129,9 +110,7 @@ function Vocabulary() {
   const [selectedWord, setSelectedWord] = useState('');
   const [wordMenuPosition, setWordMenuPosition] = useState({ x: 0, y: 0 });
 
-  // 过滤器状态
-  const [selectedPhraseCategory, setSelectedPhraseCategory] = useState('All');
-  const [selectedGrammarCategory, setSelectedGrammarCategory] = useState('All');
+
 
   // 全局alert状态
   const [alert, setAlert] = useState({ type: 'info', message: '' });
@@ -145,14 +124,12 @@ function Vocabulary() {
   const loadUserData = async () => {
     setLoading(true);
     try {
-      const [vocabData, phrasesData, bookmarksData] = await Promise.all([
+      const [vocabData, bookmarksData] = await Promise.all([
         vocabularyService.getUserVocabulary(user?.id || 'guest'),
-        phrasesService.getUserPhrases(user?.id || 'guest'),
         user ? bookmarksService.getUserBookmarks(user.id) : Promise.resolve([])
       ]);
       
       setVocabulary(vocabData);
-      setPhrases(phrasesData);
       setBookmarks(bookmarksData);
     } catch (err) {
       console.error('Error loading user data:', err);
@@ -183,21 +160,14 @@ function Vocabulary() {
   };
 
   // 切换收藏状态
-  const toggleBookmark = useCallback(async (item: VocabularyItem | PhraseItem, type: 'vocabulary' | 'phrase') => {
+  const toggleBookmark = useCallback(async (item: VocabularyItem, type: 'vocabulary') => {
     const newBookmarked = !item.bookmarked;
     
     try {
-      if (type === 'vocabulary') {
-        await vocabularyService.updateVocabulary(item.id, { bookmarked: newBookmarked });
-        setVocabulary(prev => prev.map(v => 
-          v.id === item.id ? { ...v, bookmarked: newBookmarked } : v
-        ));
-      } else {
-        await phrasesService.updatePhraseBookmark(item.id, newBookmarked);
-        setPhrases(prev => prev.map(p => 
-          p.id === item.id ? { ...p, bookmarked: newBookmarked } : p
-        ));
-      }
+      await vocabularyService.updateVocabulary(item.id, { bookmarked: newBookmarked });
+      setVocabulary(prev => prev.map(v => 
+        v.id === item.id ? { ...v, bookmarked: newBookmarked } : v
+      ));
       
       // 更新收藏列表
       if (user) {
@@ -563,20 +533,7 @@ function Vocabulary() {
     }
   };
 
-  // 过滤短语
-  const filteredPhrases = selectedPhraseCategory === 'All' 
-    ? phrases 
-    : phrases.filter(p => {
-        const categoryMap: { [key: string]: string } = {
-          'All': 'All',
-          'Greetings': '问候',
-          'Travel': '旅行', 
-          'Business': '商务',
-          'Socializing': '社交',
-          'Dining': '餐饮'
-        };
-        return p.category === (categoryMap[selectedPhraseCategory] || selectedPhraseCategory);
-      });
+
 
   // 渲染词汇卡片 - Material-UI版本
   const renderVocabularyCard = (item: VocabularyItem) => (
@@ -850,86 +807,7 @@ function Vocabulary() {
     </Card>
   );
 
-  // 渲染短语卡片 - Material-UI版本
-  const renderPhraseCard = (item: PhraseItem) => (
-    <Card key={item.id} sx={{ 
-      borderRadius: 4,
-      background: 'linear-gradient(135deg, #ffffff 0%, #f0f7f0 100%)',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-      border: '1px solid rgba(202, 236, 202, 0.2)',
-      overflow: 'hidden',
-      '&:hover': {
-        transform: 'translateY(-6px)',
-        boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
-        '& .phrase-actions': {
-          opacity: 1
-        }
-      },
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-    }}>
-      <CardContent sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-          <IconButton 
-            onClick={() => playPronunciation(item.phrase)}
-            sx={{ 
-              bgcolor: '#E7F3E7', 
-              color: '#0D1C0D',
-              width: 45,
-              height: 45,
-              '&:hover': { 
-                bgcolor: '#CFE8CF',
-                transform: 'rotate(15deg) scale(1.1)'
-              },
-              transition: 'all 0.3s ease'
-            }}
-          >
-            <VolumeUpIcon />
-          </IconButton>
-          
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h6" sx={{ 
-              color: '#0D1C0D', 
-              fontWeight: 'bold',
-              mb: 1,
-              wordBreak: 'break-word'
-            }}>
-              {item.phrase}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6 }}>
-              {item.translation}
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Chip 
-                label={item.category} 
-                size="small" 
-                sx={{ 
-                  bgcolor: '#F0F7F0',
-                  color: '#2E7D32',
-                  fontWeight: 600,
-                  '&:hover': { bgcolor: '#E8F5E8' }
-                }}
-              />
-              <IconButton
-                className="phrase-actions"
-                onClick={() => toggleBookmark(item, 'phrase')}
-                sx={{
-                  color: item.bookmarked ? '#FFD700' : '#DDD',
-                  opacity: 0,
-                  '&:hover': {
-                    color: item.bookmarked ? '#FFC107' : '#FFD700',
-                    transform: 'scale(1.2)'
-                  },
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                {item.bookmarked ? <BookmarkIcon /> : <BookmarkBorderIcon />}
-              </IconButton>
-            </Box>
-          </Box>
-        </Box>
-      </CardContent>
-    </Card>
-  );
+
 
   return (
     <MobileContainer>
@@ -963,7 +841,7 @@ function Vocabulary() {
           <Box sx={{ px: 3, pb: 3 }}>
             <TextField
               fullWidth
-              placeholder="Search phrases, vocabulary, grammar..."
+              placeholder="Search vocabulary..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               InputProps={{
@@ -1031,8 +909,6 @@ function Vocabulary() {
               }}
             >
               <Tab label="Vocabulary" value="vocabulary" />
-              <Tab label="Phrases" value="phrases" />
-              <Tab label="Grammar" value="grammar" />
               <Tab label="Bookmarks" value="bookmarks" />
               <Tab label="Topics" value="topics" />
             </Tabs>
@@ -1200,103 +1076,9 @@ function Vocabulary() {
             </Box>
           )}
 
-          {/* Phrases Tab */}
-          {activeTab === 'phrases' && (
-            <Box>
-              <Typography variant="h5" sx={{ 
-                color: '#0D1C0D', 
-                mb: 3, 
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}>
-                💬 常用短语
-              </Typography>
-              
-              {/* Modern Category Filter */}
-              <Box sx={{ mb: 4, display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                {PHRASE_CATEGORIES.map((category) => (
-                  <Chip
-                    key={category}
-                    label={category}
-                    onClick={() => setSelectedPhraseCategory(category)}
-                    sx={{
-                      bgcolor: selectedPhraseCategory === category ? '#4c9a4c' : 'rgba(255, 255, 255, 0.9)',
-                      color: selectedPhraseCategory === category ? 'white' : '#5D895D',
-                      fontWeight: 600,
-                      px: 2,
-                      py: 1,
-                      borderRadius: 3,
-                      '&:hover': {
-                        bgcolor: selectedPhraseCategory === category ? '#3d7a3d' : '#E7F3E7',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
-                      },
-                      transition: 'all 0.3s ease',
-                      cursor: 'pointer'
-                    }}
-                  />
-                ))}
-              </Box>
-              
-              {filteredPhrases.length === 0 ? (
-                <Paper sx={{ 
-                  p: 6, 
-                  textAlign: 'center', 
-                  borderRadius: 4,
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
-                  border: '2px dashed #CAECCA'
-                }}>
-                  <Box sx={{ fontSize: '3rem', mb: 2 }}>🔍</Box>
-                  <Typography variant="h6" color="text.secondary">
-                    没有找到相关短语
-                  </Typography>
-                </Paper>
-              ) : (
-                <Box sx={{ 
-                  display: 'grid', 
-                  gap: 2,
-                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(300px, 1fr))' }
-                }}>
-                  {filteredPhrases.map(renderPhraseCard)}
-                </Box>
-              )}
-            </Box>
-          )}
 
-          {/* Grammar Tab */}
-          {activeTab === 'grammar' && (
-            <Box>
-              <Typography variant="h5" sx={{ 
-                color: '#0D1C0D', 
-                mb: 3, 
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}>
-                📝 语法要点
-              </Typography>
-              
-              <Paper sx={{ 
-                p: 6, 
-                textAlign: 'center', 
-                borderRadius: 4,
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
-                border: '1px solid rgba(202, 236, 202, 0.3)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
-              }}>
-                <Box sx={{ fontSize: '4rem', mb: 2 }}>🚀</Box>
-                <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  语法功能即将推出
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  我们正在开发更多语法学习功能，敬请期待！
-                </Typography>
-              </Paper>
-            </Box>
-          )}
+
+
 
           {/* Bookmarks Tab */}
           {activeTab === 'bookmarks' && (
@@ -1355,32 +1137,7 @@ function Vocabulary() {
                       </Box>
                     </Box>
                   )}
-                  
-                  {/* Phrase Bookmarks */}
-                  {bookmarks.filter(b => b.type === 'phrase').length > 0 && (
-                    <Box>
-                      <Typography variant="h6" sx={{ 
-                        color: '#0D1C0D', 
-                        mb: 2, 
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1
-                      }}>
-                        💬 短语收藏
-                      </Typography>
-                      <Box sx={{ 
-                        display: 'grid', 
-                        gap: 2,
-                        gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(300px, 1fr))' }
-                      }}>
-                        {bookmarks
-                          .filter(b => b.type === 'phrase')
-                          .map(bookmark => renderPhraseCard(bookmark.content as PhraseItem))
-                        }
-                      </Box>
-                    </Box>
-                  )}
+
                 </>
               )}
             </Box>
