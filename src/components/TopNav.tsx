@@ -10,8 +10,9 @@ import {
 import { ArrowBack as ArrowBackIcon, Person as PersonIcon } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
-// 不显示返回箭头的路由
-const noBackButtonPaths = ['/', '/dialogue', '/history', '/profile', '/settings'];
+// 2025-01-30 17:35:00: 重新设计返回键逻辑 - 只有主入口页面不显示返回键
+// 其他所有页面统一显示返回键，提供一致的用户体验
+const noBackButtonPaths = ['/', '/topic'];
 
 const TopNav = () => {
   const theme = useTheme();

@@ -55,7 +55,6 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  ArrowBack as ArrowBackIcon,
   VolumeUp as VolumeUpIcon,
   Bookmark as BookmarkIcon,
   BookmarkBorder as BookmarkBorderIcon,
@@ -949,32 +948,15 @@ function Vocabulary() {
           borderRadius: 0,
           boxShadow: '0 4px 20px rgba(202, 236, 202, 0.3)'
         }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', p: 3, justifyContent: 'space-between' }}>
-            <IconButton 
-              onClick={() => navigate(-1)}
-              sx={{ 
-                color: '#0D1C0D',
-                bgcolor: 'rgba(255, 255, 255, 0.2)',
-                borderRadius: '50%',
-                '&:hover': { 
-                  bgcolor: 'rgba(255, 255, 255, 0.3)',
-                  transform: 'scale(1.05)'
-                },
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <ArrowBackIcon />
-            </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', p: 3, justifyContent: 'center' }}>
             <Typography variant="h4" sx={{ 
               color: '#0D1C0D', 
-              fontWeight: 'bold', 
-              flex: 1, 
+              fontWeight: 'bold',
               textAlign: 'center',
               textShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}>
               Learning Center
             </Typography>
-            <Box sx={{ width: 48 }} />
           </Box>
 
           {/* Modern Search with Glass Effect */}

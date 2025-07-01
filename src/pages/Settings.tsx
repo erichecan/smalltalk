@@ -12,7 +12,6 @@ import {
   IconButton
 } from '@mui/material';
 import {
-  ArrowBackIosNew,
   Edit,
   Notifications,
   Language,
@@ -280,21 +279,12 @@ function Settings() {
           p: 2,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'center'
         }}
       >
-        <IconButton
-          onClick={() => navigate(-1)}
-          sx={{ color: slateColors.slate700 }}
-        >
-          <ArrowBackIosNew />
-        </IconButton>
         <Typography
           variant="h6"
           sx={{
-            flex: 1,
-            textAlign: 'center',
-            pr: 5,
             color: slateColors.slate900,
             fontSize: '1.25rem',
             fontWeight: 600
