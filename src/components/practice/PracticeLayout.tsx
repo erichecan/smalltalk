@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { Container, Box, Typography, Tab, Tabs, IconButton } from '@mui/material';
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { Container, Box, Typography, Tab, Tabs } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 import PracticeExercises from './PracticeExercises';
@@ -24,7 +22,6 @@ function TabPanel({ children, value, index }: TabPanelProps) {
 
 export default function PracticeLayout() {
   const [tabValue, setTabValue] = useState(0);
-  const navigate = useNavigate();
   const { t } = useTranslation('practice');
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -42,26 +39,13 @@ export default function PracticeLayout() {
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(231, 243, 231, 0.5)'
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', p: 2, justifyContent: 'space-between' }}>
-          <IconButton 
-            onClick={() => navigate(-1)}
-            sx={{ 
-              color: '#0d1b0d',
-              width: 40,
-              height: 40,
-              '&:hover': { bgcolor: '#e7f3e7' }
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', p: 2, justifyContent: 'center' }}>
           <Typography 
             variant="h6" 
             sx={{ 
               color: '#0d1b0d', 
-              fontWeight: 'bold', 
-              flex: 1, 
-              textAlign: 'center',
-              pr: 5
+              fontWeight: 'bold',
+              textAlign: 'center'
             }}
           >
             {t('title')}
