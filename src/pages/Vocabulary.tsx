@@ -79,10 +79,21 @@ function Vocabulary() {
         user ? bookmarksService.getUserBookmarks(user.id) : Promise.resolve([])
       ]);
       
+      // 从localStorage加载临时保存的词汇
+      const tempVocab = JSON.parse(localStorage.getItem('tempVocabulary') || '[]');
+      
+      // 合并数据库词汇和临时词汇，去重
+      const allVocab = [...vocabData, ...tempVocab];
+      const uniqueVocab = allVocab.filter((vocab, index, self) => 
+        index === self.findIndex(v => v.word.toLowerCase() === vocab.word.toLowerCase())
+      );
+      
       // 只显示未掌握的词汇（masteryLevel !== 2）
-      setVocabulary(vocabData.filter(v => v.masteryLevel !== 2));
+      setVocabulary(uniqueVocab.filter(v => v.masteryLevel !== 2));
       setPhrases(phrasesData);
       setBookmarks(bookmarksData);
+      
+      console.log(`Loaded ${vocabData.length} vocabulary from database, ${tempVocab.length} from localStorage`);
     } catch (err) {
       console.error('Error loading user data:', err);
       setError(t('errors.loadFailed'));
@@ -350,6 +361,15 @@ function Vocabulary() {
       
       // 添加到本地状态
       setVocabulary(prev => [vocabularyItem, ...prev]);
+      
+      // 如果是临时ID（数据库保存失败），添加到localStorage作为备份
+      if (vocabularyItem.id && vocabularyItem.id.toString().length > 10) {
+        // 临时ID是时间戳，长度大于10，说明数据库保存失败
+        const tempVocab = JSON.parse(localStorage.getItem('tempVocabulary') || '[]');
+        tempVocab.push(vocabularyItem);
+        localStorage.setItem('tempVocabulary', JSON.stringify(tempVocab));
+        console.warn('Vocabulary saved to localStorage due to database error');
+      }
       
       // 重置状态
       setNewWord('');
