@@ -752,20 +752,8 @@ function Vocabulary() {
           <h1 className="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center">
             {t('title')}
           </h1>
-          {/* Language Switcher */}
-          <div className="relative">
-            <select 
-              value={currentLanguage}
-              onChange={(e) => changeLanguage(e.target.value)}
-              className="bg-[#E7F3E7] text-[#0D1C0D] rounded-lg px-3 py-1 text-sm border-none focus:outline-none hover:bg-[#CFE8CF]"
-            >
-              {supportedLanguages.map(lang => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.nativeName}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* 占位空间保持标题居中 */}
+          <div className="size-10"></div>
         </div>
 
         {/* Search - 完全按照HTML设计稿 */}

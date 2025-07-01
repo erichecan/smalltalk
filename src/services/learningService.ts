@@ -312,62 +312,63 @@ export const vocabularyService = {
       }
 
       // 如果单词不存在，创建新记录
-      console.log(`Creating new vocabulary record for: ${word}`);
-      const { data, error } = await supabase
-        .from('vocabulary')
-        .insert([{
-          user_id: userId,
-          word: vocabularyItem.word.toLowerCase(), // 统一小写存储
-          definition: vocabularyItem.definition,
-          example: vocabularyItem.example,
-          pronunciation: vocabularyItem.pronunciation,
-          source: vocabularyItem.source,
-          mastery_level: vocabularyItem.masteryLevel,
-          bookmarked: vocabularyItem.bookmarked,
-          chinese_translation: vocabularyItem.chinese_translation,
-          phonetic: vocabularyItem.phonetic,
-          part_of_speech: vocabularyItem.part_of_speech,
-          synonyms: Array.isArray(vocabularyItem.synonyms) 
-            ? JSON.stringify(vocabularyItem.synonyms) 
-            : vocabularyItem.synonyms,
-          antonyms: Array.isArray(vocabularyItem.antonyms)
-            ? JSON.stringify(vocabularyItem.antonyms)
-            : vocabularyItem.antonyms,
-          difficulty_level: vocabularyItem.difficulty_level,
-          usage_notes: vocabularyItem.usage_notes
-        }])
-        .select()
-        .single();
-        
-        if (error) throw error;
-        
-        return {
-          id: data.id,
-          word: data.word,
-          definition: data.definition,
-          example: data.example,
-          pronunciation: data.pronunciation,
-          source: data.source,
-          masteryLevel: data.mastery_level,
-          bookmarked: data.bookmarked,
-          createdAt: data.created_at,
-          lastReviewed: data.last_reviewed,
-          chinese_translation: data.chinese_translation,
-          phonetic: data.phonetic,
-          part_of_speech: data.part_of_speech,
-          synonyms: typeof data.synonyms === 'string' 
-            ? (data.synonyms ? this.parseStringArray(data.synonyms) : [])
-            : (data.synonyms || []),
-          antonyms: typeof data.antonyms === 'string'
-            ? (data.antonyms ? this.parseStringArray(data.antonyms) : [])
-            : (data.antonyms || []),
-          difficulty_level: data.difficulty_level,
-          usage_notes: data.usage_notes
-        };
-      } catch (dbError) {
-        console.error('Database save failed:', dbError);
-        throw new Error(`Failed to save vocabulary to database: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
-      }
+      try {
+        console.log(`Creating new vocabulary record for: ${word}`);
+        const { data, error } = await supabase
+          .from('vocabulary')
+          .insert([{
+            user_id: userId,
+            word: vocabularyItem.word.toLowerCase(), // 统一小写存储
+            definition: vocabularyItem.definition,
+            example: vocabularyItem.example,
+            pronunciation: vocabularyItem.pronunciation,
+            source: vocabularyItem.source,
+            mastery_level: vocabularyItem.masteryLevel,
+            bookmarked: vocabularyItem.bookmarked,
+            chinese_translation: vocabularyItem.chinese_translation,
+            phonetic: vocabularyItem.phonetic,
+            part_of_speech: vocabularyItem.part_of_speech,
+            synonyms: Array.isArray(vocabularyItem.synonyms) 
+              ? JSON.stringify(vocabularyItem.synonyms) 
+              : vocabularyItem.synonyms,
+            antonyms: Array.isArray(vocabularyItem.antonyms)
+              ? JSON.stringify(vocabularyItem.antonyms)
+              : vocabularyItem.antonyms,
+            difficulty_level: vocabularyItem.difficulty_level,
+            usage_notes: vocabularyItem.usage_notes
+          }])
+          .select()
+          .single();
+          
+          if (error) throw error;
+          
+          return {
+            id: data.id,
+            word: data.word,
+            definition: data.definition,
+            example: data.example,
+            pronunciation: data.pronunciation,
+            source: data.source,
+            masteryLevel: data.mastery_level,
+            bookmarked: data.bookmarked,
+            createdAt: data.created_at,
+            lastReviewed: data.last_reviewed,
+            chinese_translation: data.chinese_translation,
+            phonetic: data.phonetic,
+            part_of_speech: data.part_of_speech,
+            synonyms: typeof data.synonyms === 'string' 
+              ? (data.synonyms ? this.parseStringArray(data.synonyms) : [])
+              : (data.synonyms || []),
+            antonyms: typeof data.antonyms === 'string'
+              ? (data.antonyms ? this.parseStringArray(data.antonyms) : [])
+              : (data.antonyms || []),
+            difficulty_level: data.difficulty_level,
+            usage_notes: data.usage_notes
+          };
+        } catch (dbError) {
+          console.error('Database save failed:', dbError);
+          throw new Error(`Failed to save vocabulary to database: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
+        }
     } catch (error) {
       console.error('Error adding vocabulary with AI:', error);
       throw new Error('Failed to add vocabulary. Please try again.');
