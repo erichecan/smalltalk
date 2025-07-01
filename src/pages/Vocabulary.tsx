@@ -6,7 +6,6 @@ import { useLanguage } from '../hooks/useLanguage';
 import type { 
   VocabularyItem, 
   LearningTab, 
-  SearchResult,
   TopicItem,
   BookmarkItem
 } from '../types/learning';
@@ -87,7 +86,8 @@ function Vocabulary() {
   // 数据状态
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  // 搜索结果状态优化 - 2025-01-30 18:30:30
+  const [searchResults, setSearchResults] = useState<{ vocabulary: VocabularyItem[], topics: TopicItem[] }>({ vocabulary: [], topics: [] });
   // 收藏对话相关状态 - 2025-01-30 15:50:00
   const [bookmarkedConversations, setBookmarkedConversations] = useState<any[]>([]);
   
@@ -144,12 +144,12 @@ function Vocabulary() {
     }
   };
 
-  // 搜索功能
+  // 搜索功能 - 2025-01-30 18:31:00
   useEffect(() => {
     if (searchQuery.trim()) {
       handleSearch();
     } else {
-      setSearchResults([]);
+      setSearchResults({ vocabulary: [], topics: [] });
     }
   }, [searchQuery]);
 
@@ -161,6 +161,7 @@ function Vocabulary() {
       setSearchResults(results);
     } catch (err) {
       console.error('Search error:', err);
+      setSearchResults({ vocabulary: [], topics: [] });
     }
   };
 
@@ -937,8 +938,8 @@ function Vocabulary() {
             </Box>
           )}
 
-          {/* Search Results */}
-          {searchQuery && searchResults.length > 0 && (
+          {/* 搜索结果 - 优化显示 - 2025-01-30 18:32:00 */}
+          {searchQuery && (searchResults.vocabulary.length > 0 || searchResults.topics.length > 0) && (
             <Box sx={{ mb: 4 }}>
               <Typography variant="h5" sx={{ 
                 color: '#0D1C0D', 
@@ -951,37 +952,77 @@ function Vocabulary() {
                 <SearchIcon />
                 搜索结果
               </Typography>
-              {searchResults.map((result) => (
-                <Paper key={result.id} sx={{ 
-                  p: 3, 
-                  mb: 2, 
-                  borderRadius: 4,
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                  border: '1px solid rgba(202, 236, 202, 0.2)',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0 12px 40px rgba(0,0,0,0.15)'
-                  },
-                  transition: 'all 0.3s ease'
-                }}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#0D1C0D', mb: 1 }}>
-                    {result.title}
+              
+              {/* 单词搜索结果 */}
+              {searchResults.vocabulary.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ 
+                    color: '#0D1C0D', 
+                    mb: 2, 
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    📚 找到 {searchResults.vocabulary.length} 个单词
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    {result.content}
+                  <Box sx={{ 
+                    display: 'grid', 
+                    gap: 3,
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(350px, 1fr))' }
+                  }}>
+                    {searchResults.vocabulary.map(renderVocabularyCard)}
+                  </Box>
+                </Box>
+              )}
+
+              {/* 话题搜索结果 */}
+              {searchResults.topics.length > 0 && (
+                <Box>
+                  <Typography variant="h6" sx={{ 
+                    color: '#0D1C0D', 
+                    mb: 2, 
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    🎯 找到 {searchResults.topics.length} 个话题
                   </Typography>
-                  <Chip 
-                    label={result.type} 
-                    size="small" 
-                    sx={{ 
-                      bgcolor: '#E7F3E7',
-                      color: '#2E7D32',
-                      fontWeight: 600
-                    }}
-                  />
-                </Paper>
-              ))}
+                  <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(300px, 1fr))' } }}>
+                    {searchResults.topics.map((topic) => (
+                      <Card key={topic.id} sx={{ 
+                        borderRadius: 3,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                        '&:hover': {
+                          boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                          transform: 'translateY(-2px)',
+                          transition: 'all 0.3s ease'
+                        },
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => navigate('/topic', { state: { selectedTopic: topic.name } })}
+                      >
+                        <CardContent>
+                          <Typography variant="h6" sx={{ 
+                            fontWeight: 'bold', 
+                            color: '#0D1C0D',
+                            mb: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1
+                          }}>
+                            🎯 {topic.name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {topic.description}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Box>
+                </Box>
+              )}
             </Box>
           )}
 

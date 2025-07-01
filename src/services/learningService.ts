@@ -646,59 +646,32 @@ export const topicsService = {
   }
 };
 
-// 搜索服务
+// 搜索服务 - 2025-01-30 18:30:00
 export const searchService = {
-  // 全局搜索
-  async search(query: string, userId: string) {
-    if (!query.trim()) return [];
+  // 优化的搜索功能：只搜索单词名称和话题名称
+  async search(query: string, userId: string): Promise<{ vocabulary: VocabularyItem[], topics: TopicItem[] }> {
+    if (!query.trim()) return { vocabulary: [], topics: [] };
 
     const searchTerm = query.toLowerCase();
-    const results = [];
+    const results: { vocabulary: VocabularyItem[], topics: TopicItem[] } = { vocabulary: [], topics: [] };
 
     try {
-      // 搜索词汇
+      // 搜索词汇 - 仅匹配单词名称
       const vocabulary = await vocabularyService.getUserVocabulary(userId);
-      vocabulary.forEach(v => {
-        if (v.word.toLowerCase().includes(searchTerm) || 
-            v.definition.toLowerCase().includes(searchTerm)) {
-          results.push({
-            id: v.id,
-            type: 'vocabulary' as const,
-            title: v.word,
-            subtitle: v.definition,
-            content: v
-          });
-        }
-      });
-
-      // 搜索短语
-      const phrases = await phrasesService.getUserPhrases(userId);
-      phrases.forEach(p => {
-        if (p.phrase.toLowerCase().includes(searchTerm) || 
-            p.translation.toLowerCase().includes(searchTerm)) {
-          results.push({
-            id: p.id,
-            type: 'phrases' as const,
-            title: p.phrase,
-            subtitle: p.translation,
-            content: p
-          });
-        }
-      });
-
-      // 搜索话题
+      const matchedVocabulary = vocabulary.filter(v => 
+        v.word.toLowerCase().includes(searchTerm)
+      );
+      
+      // 搜索话题 - 仅匹配话题名称
       const topics = topicsService.getTopics();
-      topics.forEach(t => {
-        if (t.name.toLowerCase().includes(searchTerm)) {
-          results.push({
-            id: t.id,
-            type: 'topics' as const,
-            title: t.name,
-            subtitle: t.description || '',
-            content: t
-          });
-        }
-      });
+      const matchedTopics = topics.filter(t => 
+        t.name.toLowerCase().includes(searchTerm) || 
+        (t.description && t.description.toLowerCase().includes(searchTerm))
+      );
+
+      results.vocabulary = matchedVocabulary;
+      results.topics = matchedTopics;
+      
     } catch (error) {
       console.warn('Search error:', error);
     }
