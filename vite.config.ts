@@ -20,6 +20,6 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
-    strictPort: false
+    strictPort: true  // 强制使用5173端口，避免端口不匹配问题 - 2025-01-30 15:32:15
   }
 })

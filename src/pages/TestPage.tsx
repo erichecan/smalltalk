@@ -1,23 +1,37 @@
-import { Box, Typography, Container, Paper, Button } from '@mui/material';
+import React, { useState } from 'react';
+import { Container, Box, Typography, Button } from '@mui/material';
 
-const TestPage = () => {
+// React hooks测试页面 - 2025-01-30 16:40:22
+function TestPage() {
+  const [count, setCount] = useState(0);
+
+  console.log('TestPage rendering, useState working:', { count });
+
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          测试页面
+    <Container>
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Typography variant="h4" gutterBottom>
+          React Hooks Test
         </Typography>
-        <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="body1" paragraph>
-            这是一个测试页面，用于验证路由和组件功能。
-          </Typography>
-          <Button variant="contained" href="/topic">
-            返回首页
-          </Button>
-        </Paper>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Count: {count}
+        </Typography>
+        <Button 
+          variant="contained" 
+          onClick={() => setCount(prev => prev + 1)}
+          sx={{ mr: 2 }}
+        >
+          Increment
+        </Button>
+        <Button 
+          variant="outlined" 
+          onClick={() => setCount(0)}
+        >
+          Reset
+        </Button>
       </Box>
     </Container>
   );
-};
+}
 
 export default TestPage;

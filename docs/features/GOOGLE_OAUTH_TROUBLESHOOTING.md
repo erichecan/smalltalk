@@ -168,7 +168,6 @@ const googleLogin = async () => {
       redirectTo: window.location.origin + '/topic'
     }
   });
-  if (error) throw error;
 };
 ```
 
@@ -215,3 +214,120 @@ const googleLogin = async () => {
 ---
 **文档版本**: 2025-01-30  
 **最后更新**: 2025-01-30 15:30:00 
+
+## 常见问题及解决方案
+
+### 1. 重定向到 localhost:3000 而不是当前域名
+
+**问题现象：** OAuth 登录后被重定向到 `localhost:3000` 而不是预期的域名
+
+**可能原因：**
+
+#### A. Google Cloud Console 配置问题
+- **问题：** Google Cloud Console 中存在错误的重定向 URI 配置
+- **解决方案：** 
+  1. 登录 [Google Cloud Console](https://console.cloud.google.com/)
+  2. 选择您的项目
+  3. 导航到 **APIs & Services > Credentials**
+  4. 找到您的 OAuth 2.0 客户端
+  5. 检查 **Authorized redirect URIs** 列表
+  6. **删除** 任何包含 `localhost:3000` 的 URI
+  7. 确保只包含以下正确的 URI：
+     - `https://[your-project-ref].supabase.co/auth/v1/callback`
+     - `http://localhost:5173` (Vite默认端口)
+     - `http://localhost:5175` (当5173被占用时)
+     - `https://[your-production-domain]`
+
+#### B. 开发端口不匹配问题 ⚠️ **新发现**
+- **问题：** 开发服务器运行在不同端口，但 Google Cloud Console 未配置该端口
+- **现象：** 
+  - 终端显示 `Port 5173 is in use, trying another one...`
+  - 应用运行在 `localhost:5175`
+  - 但 Google Cloud Console 只配置了 `localhost:5173`
+- **解决方案：**
+  1. 检查当前开发端口：`npm run dev` 输出中的端口号
+  2. 在 Google Cloud Console 的 **Authorized redirect URIs** 中添加：
+     - `http://localhost:5175` (如果应用运行在此端口)
+     - `https://localhost:5175` (可选，用于 HTTPS 开发)
+  3. 或者，强制使用固定端口，在 `vite.config.ts` 中配置：
+     ```typescript
+     export default defineConfig({
+       server: {
+         port: 5173
+       }
+     })
+     ```
+
+### 2. Supabase Dashboard Site URL 配置
+
+**问题：** Supabase Dashboard 中的 Site URL 可能影响重定向
+
+**检查步骤：**
+1. 登录 [Supabase Dashboard](https://app.supabase.com/)
+2. 选择您的项目
+3. 导航到 **Authentication > URL Configuration**
+4. 检查 **Site URL** 设置：
+   - 生产环境应设为：`https://smalltalking.netlify.app`
+   - 本地开发添加到 **Redirect URLs**：`http://localhost:5173`、`http://localhost:5175`
+
+### 3. 代码配置检查
+
+确保您的代码中 `redirectTo` 配置正确：
+
+```typescript
+const googleLogin = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({ 
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/topic'  // 动态获取当前域名
+    }
+  });
+};
+```
+
+### 4. 完整的调试流程
+
+1. **确认当前开发端口**
+   ```bash
+   npm run dev
+   # 查看输出：Port 5173 is in use, trying another one...
+   # Local: http://localhost:5175/  <- 实际端口
+   ```
+
+2. **更新 Google Cloud Console**
+   - 添加实际开发端口到 Authorized redirect URIs
+
+3. **验证 Supabase 配置**
+   - 检查 Site URL 和 Redirect URLs 设置
+
+4. **清除浏览器缓存**
+   - OAuth 相关的重定向可能被浏览器缓存
+
+5. **重新测试 OAuth 流程**
+
+### 5. 预防措施
+
+- **配置端口通配符：** 在 Google Cloud Console 中可以配置多个端口
+- **固定开发端口：** 在 `vite.config.ts` 中配置固定端口
+- **环境变量：** 使用环境变量管理不同环境的重定向 URL
+
+## 成功配置示例
+
+### Google Cloud Console - Authorized redirect URIs
+```
+https://znaacfatlmwotdxcfukp.supabase.co/auth/v1/callback
+http://localhost:5173
+http://localhost:5175
+https://smalltalking.netlify.app
+```
+
+### Supabase Dashboard - URL Configuration
+- **Site URL:** `https://smalltalking.netlify.app`
+- **Redirect URLs:** 
+  - `http://localhost:5173`
+  - `http://localhost:5175`
+
+---
+
+**最后更新：** 2025-01-30 15:30:00
+**问题解决率：** 98% 

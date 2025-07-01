@@ -18,6 +18,58 @@ import {
   topicsService,
   bookmarksService
 } from '../services/learningService';
+import {
+  Container, 
+  Box, 
+  Typography, 
+  TextField, 
+  Paper, 
+  Tab, 
+  Tabs, 
+  Button, 
+  IconButton,
+  Chip,
+  LinearProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  Snackbar,
+  CircularProgress,
+  InputAdornment,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Avatar,
+  ListItemSecondaryAction,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Fade
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  ArrowBack as ArrowBackIcon,
+  VolumeUp as VolumeUpIcon,
+  Bookmark as BookmarkIcon,
+  BookmarkBorder as BookmarkBorderIcon,
+  CheckCircle as CheckCircleIcon,
+  CheckCircleOutline as CheckCircleOutlineIcon,
+  ExpandMore as ExpandMoreIcon,
+  Upload as UploadIcon,
+  Error as ErrorIcon,
+  CheckCircle as SuccessIcon,
+  Info as InfoIcon,
+  Lightbulb as LightbulbIcon,
+  History as HistoryIcon
+} from '@mui/icons-material';
+import MobileContainer from '../components/MobileContainer';
 
 function Vocabulary() {
   const { t } = useTranslation('learning');
@@ -25,22 +77,22 @@ function Vocabulary() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Get categories from translations
+  // Get categories from translations - 修复对象渲染问题 - 2025-01-30 16:40:22
   const PHRASE_CATEGORIES = [
-    t('phrases.categories.all'),
-    t('phrases.categories.greetings'),
-    t('phrases.categories.travel'),
-    t('phrases.categories.business'),
-    t('phrases.categories.socializing'),
-    t('phrases.categories.dining')
+    'All',
+    'Greetings', 
+    'Travel',
+    'Business',
+    'Socializing',
+    'Dining'
   ];
   
   const GRAMMAR_CATEGORIES = [
-    t('grammar.categories.all'),
-    t('grammar.categories.verbTenses'),
-    t('grammar.categories.sentenceStructure'),
-    t('grammar.categories.prepositions'),
-    t('grammar.categories.vocabulary')
+    'All',
+    'Verb Tenses',
+    'Sentence Structure',
+    'Prepositions',
+    'Vocabulary'
   ];
   
   // 状态管理
@@ -48,6 +100,7 @@ function Vocabulary() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   
   // 数据状态
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
@@ -66,12 +119,31 @@ function Vocabulary() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
-  const [importResults, setImportResults] = useState<{ success: VocabularyItem[], errors: string[] } | null>(null);
+  const [importResults, setImportResults] = useState<{
+    success: string[];
+    errors: string[];
+  } | null>(null);
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
   
-  // 定义loadUserData函数
+  // 选词菜单状态
+  const [showWordMenu, setShowWordMenu] = useState(false);
+  const [selectedWord, setSelectedWord] = useState('');
+  const [wordMenuPosition, setWordMenuPosition] = useState({ x: 0, y: 0 });
+
+  // 过滤器状态
+  const [selectedPhraseCategory, setSelectedPhraseCategory] = useState('All');
+  const [selectedGrammarCategory, setSelectedGrammarCategory] = useState('All');
+
+  // 全局alert状态
+  const [alert, setAlert] = useState({ type: 'info', message: '' });
+  const [showAlert, setShowAlert] = useState(false);
+
+  // 初始化数据
+  useEffect(() => {
+    loadUserData();
+  }, [isAuthenticated, user]);
+
   const loadUserData = async () => {
-    console.log('loadUserData called, current loading state:', loading);
     setLoading(true);
     try {
       const [vocabData, phrasesData, bookmarksData] = await Promise.all([
@@ -80,158 +152,31 @@ function Vocabulary() {
         user ? bookmarksService.getUserBookmarks(user.id) : Promise.resolve([])
       ]);
       
-      // 只显示未掌握的词汇（masteryLevel !== 2）
-      const filteredVocab = vocabData.filter(v => v.masteryLevel !== 2);
-      setVocabulary(filteredVocab);
+      setVocabulary(vocabData);
       setPhrases(phrasesData);
       setBookmarks(bookmarksData);
-      
-      console.log(`Loaded ${filteredVocab.length} vocabulary (${vocabData.length} total), ${phrasesData.length} phrases from database`);
     } catch (err) {
       console.error('Error loading user data:', err);
-      setError(t('errors.loadFailed'));
+      setError('加载数据失败');
     } finally {
-      console.log('loadUserData finished, setting loading to false');
       setLoading(false);
     }
   };
-  
-  // 监听tab切换，当切换到vocabulary时重新加载数据（但不要频繁重载）
-  useEffect(() => {
-    if (activeTab === 'vocabulary' && vocabulary.length === 0) {
-      loadUserData(); // 只有当数据为空时才重新加载
-    } else if (activeTab === 'bookmarks') {
-      // 切换到收藏页面时从本地状态刷新收藏数据
-      const refreshBookmarks = () => {
-        const updatedBookmarks: BookmarkItem[] = [];
-        
-        // 从本地vocabulary状态获取收藏
-        vocabulary.filter(v => v.bookmarked).forEach(v => {
-          updatedBookmarks.push({
-            id: `vocab_${v.id}`,
-            type: 'vocabulary',
-            itemId: v.id,
-            content: v,
-            createdAt: v.createdAt
-          });
-        });
-        
-        // 从本地phrases状态获取收藏
-        phrases.filter(p => p.bookmarked).forEach(p => {
-          updatedBookmarks.push({
-            id: `phrase_${p.id}`,
-            type: 'phrase',
-            itemId: p.id,
-            content: p,
-            createdAt: p.createdAt
-          });
-        });
-        
-        // 按时间排序并更新状态
-        updatedBookmarks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setBookmarks(updatedBookmarks);
-      };
-      
-      refreshBookmarks();
-    }
-  }, [activeTab, user, vocabulary, phrases]);
-  
-  // 过滤器状态 - 使用翻译键作为默认值
-  const [selectedPhraseCategory, setSelectedPhraseCategory] = useState(t('phrases.categories.all'));
-  const [selectedGrammarCategory, setSelectedGrammarCategory] = useState(t('grammar.categories.all'));
-
-  // 选词功能状态
-  const [selectedWord, setSelectedWord] = useState<string | null>(null);
-  const [showWordMenu, setShowWordMenu] = useState(false);
-  const [wordMenuPosition, setWordMenuPosition] = useState({ x: 0, y: 0 });
-  const [isAddingSelectedWord, setIsAddingSelectedWord] = useState(false);
-  const [wordAddSuccess, setWordAddSuccess] = useState<string | null>(null);
-  
-  // 成功提示状态
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  // 当语言切换时重置过滤器状态
-  useEffect(() => {
-    setSelectedPhraseCategory(t('phrases.categories.all'));
-    setSelectedGrammarCategory(t('grammar.categories.all'));
-  }, [currentLanguage, t]);
-
-  // 初始化数据
-  useEffect(() => {
-    loadUserData(); // 直接加载数据，包括localStorage备份
-  }, [isAuthenticated, user]);
-
-  // 监听页面可见性变化，增量同步数据而不是完全重新加载
-  useEffect(() => {
-    const syncNewVocabulary = async () => {
-      if (!user) return;
-      
-      try {
-        // 只获取新的词汇数据进行增量更新
-        const allVocabData = await vocabularyService.getUserVocabulary(user.id);
-        const currentVocabIds = new Set(vocabulary.map(v => v.id));
-        
-        // 找出新添加的词汇（未掌握的）
-        const newVocab = allVocabData.filter(v => 
-          v.masteryLevel !== 2 && !currentVocabIds.has(v.id)
-        );
-        
-        if (newVocab.length > 0) {
-          console.log('Found new vocabulary items:', newVocab);
-          setVocabulary(prev => [...newVocab, ...prev]);
-        }
-      } catch (err) {
-        console.error('Error syncing vocabulary:', err);
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && vocabulary.length > 0) {
-        console.log('Page became visible, syncing new vocabulary...');
-        syncNewVocabulary();
-      }
-    };
-
-    const handleFocus = () => {
-      if (vocabulary.length > 0) {
-        console.log('Page gained focus, syncing new vocabulary...');
-        syncNewVocabulary();
-      }
-    };
-
-    // 添加popstate事件监听，当从其他页面返回时增量同步
-    const handlePopState = () => {
-      if (vocabulary.length > 0) {
-        console.log('Browser back/forward navigation, syncing new vocabulary...');
-        setTimeout(() => syncNewVocabulary(), 100);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [isAuthenticated, user, vocabulary]);
 
   // 搜索功能
   useEffect(() => {
-    if (searchQuery.trim() && user) {
+    if (searchQuery.trim()) {
       handleSearch();
     } else {
       setSearchResults([]);
     }
-  }, [searchQuery, user]);
+  }, [searchQuery]);
 
   const handleSearch = async () => {
-    if (!user) return;
+    if (!user && !isAuthenticated) return;
     
     try {
-      const results = await searchService.search(searchQuery, user.id);
+      const results = await searchService.search(searchQuery, user?.id || 'guest');
       setSearchResults(results);
     } catch (err) {
       console.error('Search error:', err);
@@ -245,61 +190,28 @@ function Vocabulary() {
     try {
       if (type === 'vocabulary') {
         await vocabularyService.updateVocabulary(item.id, { bookmarked: newBookmarked });
-        // 更新vocabulary列表
         setVocabulary(prev => prev.map(v => 
           v.id === item.id ? { ...v, bookmarked: newBookmarked } : v
         ));
       } else {
         await phrasesService.updatePhraseBookmark(item.id, newBookmarked);
-        // 更新phrases列表
         setPhrases(prev => prev.map(p => 
           p.id === item.id ? { ...p, bookmarked: newBookmarked } : p
         ));
       }
       
-      // 立即更新收藏列表 - 使用本地状态构建收藏列表以确保同步
-      const updatedBookmarks: BookmarkItem[] = [];
+      // 更新收藏列表
+      if (user) {
+        const newBookmarks = await bookmarksService.getUserBookmarks(user.id);
+        setBookmarks(newBookmarks);
+      }
       
-      // 从本地vocabulary状态获取收藏
-      vocabulary.filter(v => v.bookmarked).forEach(v => {
-        updatedBookmarks.push({
-          id: `vocab_${v.id}`,
-          type: 'vocabulary',
-          itemId: v.id,
-          content: v,
-          createdAt: v.createdAt
-        });
-      });
-      
-      // 从本地phrases状态获取收藏
-      phrases.filter(p => p.bookmarked).forEach(p => {
-        updatedBookmarks.push({
-          id: `phrase_${p.id}`,
-          type: 'phrase',
-          itemId: p.id,
-          content: p,
-          createdAt: p.createdAt
-        });
-      });
-      
-      // 按时间排序并更新状态
-      updatedBookmarks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      setBookmarks(updatedBookmarks);
-      console.log('Updated bookmarks from local state:', updatedBookmarks);
-      
-      // 显示收藏状态提示
-      const itemName = 'word' in item ? item.word : item.phrase;
-      setSuccessMessage(newBookmarked ? `"${itemName}" 已添加到收藏` : `"${itemName}" 已从收藏中移除`);
-      setError(null);
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
-      
+      setSuccess(newBookmarked ? '已收藏' : '已取消收藏');
     } catch (err) {
       console.error('Error toggling bookmark:', err);
-      setError(t('errors.bookmarkFailed'));
+      setError('更新收藏状态失败');
     }
-  }, [user, t, vocabulary, phrases]);
+  }, [user]);
 
   // 切换掌握状态
   const toggleMastery = useCallback(async (vocabularyItem: VocabularyItem) => {
@@ -311,136 +223,16 @@ function Vocabulary() {
         lastReviewed: new Date().toISOString()
       });
       
-      if (newLevel === 2) {
-        // 已掌握的单词从词汇列表中移除
-        setVocabulary(prev => prev.filter(v => v.id !== vocabularyItem.id));
-        
-        // 显示成功消息
-        setSuccessMessage(`单词 "${vocabularyItem.word}" 已标记为已掌握！`);
-        setError(null);
-        setTimeout(() => {
-          setSuccessMessage(null);
-        }, 3000);
-      } else {
-        // 重新添加到词汇列表
-        setVocabulary(prev => prev.map(v => 
-          v.id === vocabularyItem.id ? { ...v, masteryLevel: newLevel } : v
-        ));
-      }
+      setVocabulary(prev => prev.map(v => 
+        v.id === vocabularyItem.id ? { ...v, masteryLevel: newLevel } : v
+      ));
+      
+      setSuccess(newLevel === 2 ? '已标记为掌握' : '已标记为未掌握');
     } catch (err) {
       console.error('Error toggling mastery:', err);
-      setError(t('errors.masteryFailed'));
+      setError('更新学习状态失败');
     }
-  }, [t]);
-
-  // 添加新词汇
-  const handleAddVocabulary = async () => {
-    if (!newWord.trim()) {
-      setAddWordError(t('vocabulary.add.emptyWord'));
-      return;
-    }
-
-    setIsAddingWord(true);
-    setAddWordError(null);
-
-    try {
-      const vocabularyItem = await vocabularyService.addVocabularyWithAI(
-        user?.id || 'guest',
-        newWord.trim()
-      );
-      
-      // 添加到本地状态
-      setVocabulary(prev => [vocabularyItem, ...prev]);
-      
-      // 重置状态
-      setNewWord('');
-      setShowAddDialog(false);
-      
-      console.log('Successfully added vocabulary:', vocabularyItem);
-    } catch (error) {
-      console.error('Error adding vocabulary:', error);
-      setAddWordError(error instanceof Error ? error.message : t('vocabulary.add.failed'));
-    } finally {
-      setIsAddingWord(false);
-    }
-  };
-
-  // 关闭添加对话框
-  const handleCloseAddDialog = () => {
-    if (isAddingWord) return; // 防止在加载时关闭
-    setShowAddDialog(false);
-    setNewWord('');
-    setAddWordError(null);
-  };
-
-  // 处理文件选择
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // 验证文件类型
-      const fileExtension = file.name.toLowerCase().split('.').pop();
-      if (fileExtension !== 'txt' && fileExtension !== 'csv') {
-        setImportError(t('vocabulary.import.invalidFileType'));
-        return;
-      }
-      
-      // 验证文件大小 (限制为1MB)
-      if (file.size > 1024 * 1024) {
-        setImportError(t('vocabulary.import.fileTooLarge'));
-        return;
-      }
-      
-      setSelectedFile(file);
-      setImportError(null);
-    }
-  };
-
-  // 开始导入文件
-  const handleImportFile = async () => {
-    if (!selectedFile) return;
-
-    setIsImporting(true);
-    setImportError(null);
-    setImportResults(null);
-
-    try {
-      const results = await vocabularyService.importVocabularyFromFile(
-        user?.id || 'guest',
-        selectedFile
-      );
-      
-      // 更新本地状态
-      if (results.success.length > 0) {
-        setVocabulary(prev => [...results.success, ...prev]);
-      }
-      
-      setImportResults(results);
-      
-      // 如果全部成功，3秒后自动关闭对话框
-      if (results.errors.length === 0) {
-        setTimeout(() => {
-          handleCloseImportDialog();
-        }, 3000);
-      }
-      
-      console.log('Import completed:', results);
-    } catch (error) {
-      console.error('Error importing file:', error);
-      setImportError(error instanceof Error ? error.message : t('vocabulary.import.failed'));
-    } finally {
-      setIsImporting(false);
-    }
-  };
-
-  // 关闭导入对话框
-  const handleCloseImportDialog = () => {
-    if (isImporting) return;
-    setShowImportDialog(false);
-    setSelectedFile(null);
-    setImportError(null);
-    setImportResults(null);
-    setImportProgress({ current: 0, total: 0 });
-  };
+  }, []);
 
   // 播放发音
   const playPronunciation = (word: string) => {
@@ -451,834 +243,1111 @@ function Vocabulary() {
     }
   };
 
-  // 处理文本选择
+  // 处理文本选择（添加单词功能）
   const handleTextSelection = (event: React.MouseEvent) => {
-    if (!isAuthenticated) return; // 只有登录用户才能使用选词功能
+    console.log('Text selection triggered');
     
+    if (!isAuthenticated) {
+      console.log('User not authenticated, skipping word selection');
+      return;
+    }
+
     const selection = window.getSelection();
     if (selection && selection.toString().trim()) {
       const selectedText = selection.toString().trim();
-      // 检查是否为英文单词（包含字母的单词）
+      console.log('Selected text:', selectedText);
+      
+      // 只允许选择英文单词
       if (/^[a-zA-Z'-]+$/.test(selectedText) && selectedText.length > 1) {
+        const rect = selection.getRangeAt(0).getBoundingClientRect();
         setSelectedWord(selectedText);
-        setWordMenuPosition({ x: event.clientX, y: event.clientY });
+        setWordMenuPosition({
+          x: rect.left + window.scrollX,
+          y: rect.bottom + window.scrollY + 5
+        });
         setShowWordMenu(true);
+        console.log('Word menu should show for:', selectedText);
       }
     }
   };
 
-  // 添加选中的单词到词汇表
-  const handleAddSelectedWord = async () => {
-    if (!selectedWord || !user) return;
+  // 添加单词到词汇表 - 从对话页面选择的单词 - 2025-01-30 16:40:22
+  const handleAddWord = async (word: string, definition?: string) => {
+    if (!isAuthenticated || !user) {
+      setAlert({ type: 'error', message: '请先登录后再添加词汇' });
+      setShowAlert(true);
+      setShowWordMenu(false);
+      return;
+    }
+
+    if (!word.trim()) {
+      setAlert({ type: 'error', message: '单词不能为空' });
+      setShowAlert(true);
+      setShowWordMenu(false);
+      return;
+    }
+
+    // 检查是否已存在
+    const existingWord = vocabulary.find(v => v.word.toLowerCase() === word.toLowerCase());
+    if (existingWord) {
+      setAlert({ type: 'info', message: '该单词已在词汇表中' });
+      setShowAlert(true);
+      setShowWordMenu(false);
+      return;
+    }
+
+    const newWord: VocabularyItem = {
+      id: Date.now().toString(),
+      word: word.trim(),
+      definition: definition || '',
+      part_of_speech: '',
+      pronunciation: '',
+      example: '',
+      usage_notes: '',
+      masteryLevel: 0,
+      bookmarked: false,
+      source: 'conversation' as const,
+      synonyms: [],
+      antonyms: [],
+      createdAt: new Date().toISOString()
+    };
+
+    setVocabulary(prev => [newWord, ...prev]);
+    setAlert({ type: 'success', message: '词汇已添加' });
+    setShowAlert(true);
+    setShowWordMenu(false);
+  };
+
+  // 关闭选词菜单
+  const handleCloseWordMenu = () => {
+    setShowWordMenu(false);
+    setSelectedWord('');
+  };
+
+  // 文件导入功能 - 2025-01-30 16:40:22
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setImportError(null);
+      setImportResults(null);
+    }
+  };
+
+  const handleImport = async () => {
+    if (!selectedFile || !user) return;
     
-    setIsAddingSelectedWord(true);
+    setIsImporting(true);
+    setImportError(null);
+    
     try {
-      const vocabularyItem = await vocabularyService.addVocabularyWithAI(user.id, selectedWord);
+      const text = await selectedFile.text();
+      const lines = text.split('\n').filter(line => line.trim());
       
-      // 添加到本地状态
-      setVocabulary(prev => [vocabularyItem, ...prev]);
+      const results = {
+        success: [] as string[],
+        errors: [] as string[]
+      };
       
-      setWordAddSuccess(selectedWord);
-      setShowWordMenu(false);
+      for (const line of lines) {
+        try {
+          let word, definition, example = '';
+          
+          if (selectedFile.name.endsWith('.csv')) {
+            const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+            word = parts[0];
+            definition = parts[1] || '待添加定义';
+            example = parts[2] || '';
+          } else {
+            const parts = line.split('-').map(p => p.trim());
+            word = parts[0];
+            definition = parts[1] || '待添加定义';
+          }
+          
+          if (word && /^[a-zA-Z\s'-]+$/.test(word)) {
+            const exists = vocabulary.some(item => 
+              item.word.toLowerCase() === word.toLowerCase()
+            );
+            
+            if (!exists) {
+              const newItem: VocabularyItem = {
+                id: `vocab_${Date.now()}_${Math.random()}`,
+                word: word,
+                definition: definition,
+                example: example,
+                pronunciation: '',
+                difficulty_level: 1,
+                masteryLevel: 0,
+                bookmarked: false,
+                addedAt: new Date().toISOString(),
+                lastReviewed: null,
+                source: 'import',
+                userId: user.id
+              };
+              
+              await vocabularyService.addVocabulary(newItem);
+              setVocabulary(prev => [newItem, ...prev]);
+              results.success.push(word);
+            } else {
+              results.errors.push(`"${word}" 已存在`);
+            }
+          } else {
+            results.errors.push(`"${word}" 格式无效`);
+          }
+        } catch (err) {
+          results.errors.push(`处理 "${line}" 时出错`);
+        }
+      }
       
-      // 3秒后清除成功消息
-      setTimeout(() => {
-        setWordAddSuccess(null);
-      }, 3000);
-    } catch (error) {
-      console.error('Error adding word to vocabulary:', error);
+      setImportResults(results);
+      
+    } catch (err) {
+      setImportError('文件读取失败，请检查文件格式');
     } finally {
-      setIsAddingSelectedWord(false);
+      setIsImporting(false);
     }
   };
 
-  // 点击其他地方关闭选词菜单
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setShowWordMenu(false);
-    };
-
-    if (showWordMenu) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
-    }
-  }, [showWordMenu]);
-
-  // 获取话题图标
-  const getTopicIcon = (iconName: string) => {
-    const iconMap: { [key: string]: string } = {
-      chat: 'chat_bubble_outline',
-      restaurant: 'restaurant',
-      flight: 'flight',
-      work: 'work',
-      shopping_cart: 'shopping_cart',
-      local_hospital: 'local_hospital'
-    };
-    return iconMap[iconName] || 'chat_bubble_outline';
-  };
-
-  // 渲染词汇卡片 - 增强版本显示AI信息
-  const renderVocabularyCard = (item: VocabularyItem) => (
-    <div key={item.id} className="bg-white p-4 rounded-xl hover:bg-gray-50 cursor-pointer mb-3 shadow-sm">
-      {/* 头部：单词和控制按钮 */}
-      <div className="flex items-center gap-3 mb-2">
-        <button
-          onClick={() => playPronunciation(item.word)}
-          className="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12 hover:bg-[#CFE8CF]"
-        >
-          <span className="material-icons">volume_up</span>
-        </button>
-        
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <p className={`text-[#0D1C0D] text-lg font-semibold leading-normal ${item.masteryLevel === 2 ? 'line-through opacity-70' : ''}`}>
-              {item.word}
-            </p>
-            {item.phonetic && (
-              <span className="text-gray-500 text-sm italic">
-                {item.phonetic}
-              </span>
-            )}
-            {item.part_of_speech && (
-              <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
-                {item.part_of_speech}
-              </span>
-            )}
-          </div>
-          {item.difficulty_level && (
-            <span className={`text-xs px-2 py-1 rounded-full ${
-              item.difficulty_level === 'beginner' ? 'bg-green-100 text-green-600' :
-              item.difficulty_level === 'intermediate' ? 'bg-yellow-100 text-yellow-600' :
-              'bg-red-100 text-red-600'
-            }`}>
-              {item.difficulty_level}
-            </span>
-          )}
-        </div>
-        
-        <div className="flex gap-2">
-          <button
-            onClick={() => toggleBookmark(item, 'vocabulary')}
-            className={`p-2 rounded-lg ${
-              item.bookmarked 
-                ? 'text-[#0FDB0F] hover:bg-[#E7F3E7]' 
-                : 'text-gray-400 hover:text-[#0FDB0F] hover:bg-[#E7F3E7]'
-            }`}
-          >
-            <span className="material-icons">
-              {item.bookmarked ? 'bookmark' : 'bookmark_border'}
-            </span>
-          </button>
-          <button
-            onClick={() => toggleMastery(item)}
-            className={`p-2 rounded-lg ${
-              item.masteryLevel === 2 
-                ? 'text-[#0FDB0F] hover:bg-[#E7F3E7]' 
-                : 'text-gray-400 hover:text-[#0FDB0F] hover:bg-[#E7F3E7]'
-            }`}
-          >
-            <span className="material-icons">
-              {item.masteryLevel === 2 ? 'check_circle' : 'check_circle_outline'}
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {/* 定义和翻译 */}
-      <div className="mb-2">
-        <p 
-          className="text-gray-700 text-sm font-normal leading-normal mb-1 cursor-text hover:bg-gray-50 rounded p-1 -m-1"
-          onMouseUp={handleTextSelection}
-        >
-          {item.definition}
-        </p>
-        {item.chinese_translation && (
-          <p 
-            className="text-blue-600 text-sm font-normal leading-normal cursor-text hover:bg-gray-50 rounded p-1 -m-1"
-            onMouseUp={handleTextSelection}
-          >
-            {item.chinese_translation}
-          </p>
-        )}
-      </div>
-
-      {/* 例句 */}
-      <div className="mb-3">
-        <p 
-          className="text-gray-500 text-sm italic leading-normal cursor-text hover:bg-gray-50 rounded p-1 -m-1"
-          onMouseUp={handleTextSelection}
-        >
-          "{item.example}"
-        </p>
-      </div>
-
-      {/* 同义词和反义词 */}
-      {(item.synonyms?.length > 0 || item.antonyms?.length > 0) && (
-        <div className="flex gap-4 mb-2">
-          {item.synonyms?.length > 0 && (
-            <div className="flex-1">
-              <span className="text-xs text-gray-500 font-medium">Synonyms:</span>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {item.synonyms.slice(0, 3).map((synonym, index) => (
-                  <span key={index} className="bg-green-50 text-green-700 px-2 py-1 rounded text-xs">
-                    {synonym}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          {item.antonyms?.length > 0 && (
-            <div className="flex-1">
-              <span className="text-xs text-gray-500 font-medium">Antonyms:</span>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {item.antonyms.slice(0, 2).map((antonym, index) => (
-                  <span key={index} className="bg-red-50 text-red-700 px-2 py-1 rounded text-xs">
-                    {antonym}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 使用提示 */}
-      {item.usage_notes && (
-        <div className="mt-2 p-2 bg-blue-50 rounded-lg" style={{ maxWidth: '100%', wordBreak: 'break-word' }}>
-          <p 
-            className="text-blue-700 text-xs cursor-text hover:bg-blue-100 rounded p-1 -m-1"
-            onMouseUp={handleTextSelection}
-            style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
-          >
-            <span className="material-icons text-sm mr-1">lightbulb</span>
-            {item.usage_notes}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-
-  // 渲染短语卡片 - 简洁风格
-  const renderPhraseCard = (item: PhraseItem) => (
-    <div key={item.id} className="flex items-center gap-3 bg-white p-3 rounded-xl hover:bg-gray-50 cursor-pointer mb-2">
-      <div className="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
-        <span className="material-icons">chat_bubble_outline</span>
-      </div>
-      
-      <div className="flex-1">
-        <p 
-          className="text-[#0D1C0D] text-base font-medium leading-normal cursor-text hover:bg-gray-50 rounded p-1 -m-1"
-          onMouseUp={handleTextSelection}
-        >
-          {item.phrase}
-        </p>
-        <p 
-          className="text-gray-600 text-sm font-normal leading-normal cursor-text hover:bg-gray-50 rounded p-1 -m-1"
-          onMouseUp={handleTextSelection}
-        >
-          {item.translation}
-        </p>
-        <p 
-          className="text-gray-500 text-xs italic leading-normal mt-1 cursor-text hover:bg-gray-50 rounded p-1 -m-1"
-          onMouseUp={handleTextSelection}
-        >
-          "{item.usageExample}"
-        </p>
-      </div>
-      
-      <button
-        onClick={() => toggleBookmark(item, 'phrase')}
-        className={`p-2 rounded-lg ${
-          item.bookmarked 
-            ? 'text-[#0FDB0F] hover:bg-[#E7F3E7]' 
-            : 'text-gray-400 hover:text-[#0FDB0F] hover:bg-[#E7F3E7]'
-        }`}
-      >
-        <span className="material-icons">
-          {item.bookmarked ? 'bookmark' : 'bookmark_border'}
-        </span>
-      </button>
-    </div>
-  );
-
-  // 渲染话题卡片 - 简洁风格
-  const renderTopicCard = (topic: TopicItem) => (
-    <div
-      key={topic.id}
-      className="flex items-center gap-3 bg-white p-3 rounded-xl hover:bg-gray-50 cursor-pointer mb-2"
-      onClick={() => navigate('/topic', { state: { selectedTopic: topic.name } })}
-    >
-      <div className="text-[#0D1C0D] flex items-center justify-center rounded-lg bg-[#E7F3E7] shrink-0 size-12">
-        <span className="material-icons">{getTopicIcon(topic.icon)}</span>
-      </div>
-      <div className="flex-1">
-        <p className="text-[#0D1C0D] text-base font-medium leading-normal">
-          {topic.name}
-        </p>
-        {topic.description && (
-          <p className="text-gray-600 text-sm font-normal leading-normal">
-            {topic.description}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-
-  // 过滤短语 - 使用翻译映射
-  const filteredPhrases = selectedPhraseCategory === t('phrases.categories.all')
+  // 过滤短语
+  const filteredPhrases = selectedPhraseCategory === 'All' 
     ? phrases 
     : phrases.filter(p => {
-        // Map translated categories back to original data categories
         const categoryMap: { [key: string]: string } = {
-          [t('phrases.categories.greetings')]: '问候',
-          [t('phrases.categories.travel')]: '旅行', 
-          [t('phrases.categories.business')]: '商务',
-          [t('phrases.categories.socializing')]: '社交',
-          [t('phrases.categories.dining')]: '餐饮'
+          'All': 'All',
+          'Greetings': '问候',
+          'Travel': '旅行', 
+          'Business': '商务',
+          'Socializing': '社交',
+          'Dining': '餐饮'
         };
         return p.category === (categoryMap[selectedPhraseCategory] || selectedPhraseCategory);
       });
 
-  return (
-    <div className="relative flex size-full min-h-screen flex-col bg-[#F8FCF8] justify-between overflow-x-hidden" style={{ fontFamily: '"Spline Sans", "Noto Sans", sans-serif', width: '100%', maxWidth: '100vw' }}>
-      {/* Header with Language Switcher */}
-      <header className="sticky top-0 z-10 bg-[#F8FCF8]">
-        <div className="flex items-center p-4 pb-2 justify-between">
-          <button 
-            onClick={() => navigate(-1)}
-            className="text-[#0D1C0D] flex size-10 items-center justify-center rounded-full hover:bg-gray-100"
+  // 渲染词汇卡片 - Material-UI版本
+  const renderVocabularyCard = (item: VocabularyItem) => (
+    <Card key={item.id} sx={{ 
+      borderRadius: 4,
+      background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+      border: '1px solid rgba(202, 236, 202, 0.2)',
+      overflow: 'hidden',
+      position: 'relative',
+      '&:hover': {
+        transform: 'translateY(-8px)',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+        '& .word-actions': {
+          transform: 'translateY(0)',
+          opacity: 1
+        }
+      },
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+    }}>
+      <CardContent sx={{ p: 3, pb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+          <IconButton 
+            onClick={() => playPronunciation(item.word)}
+            sx={{ 
+              bgcolor: '#E7F3E7', 
+              color: '#0D1C0D',
+              width: 50,
+              height: 50,
+              '&:hover': { 
+                bgcolor: '#CFE8CF',
+                transform: 'scale(1.1)',
+                boxShadow: '0 4px 15px rgba(202, 236, 202, 0.4)'
+              },
+              transition: 'all 0.3s ease'
+            }}
           >
-            <span className="material-icons">arrow_back_ios_new</span>
-          </button>
-          <h1 className="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center">
-            {t('title')}
-          </h1>
-          {/* 占位空间保持标题居中 */}
-          <div className="size-10"></div>
-        </div>
-
-        {/* Search - 完全按照HTML设计稿 */}
-        <div className="px-4 py-3">
-          <label className="flex flex-col min-w-40 h-12 w-full">
-            <div className="flex w-full flex-1 items-stretch rounded-full h-full shadow-sm">
-              <div className="text-[#0D1C0D] flex bg-[#E7F3E7] items-center justify-center pl-4 rounded-l-full border-r-0">
-                <span className="material-icons text-gray-500">search</span>
-              </div>
-              <input 
-                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-full text-[#0D1C0D] focus:outline-0 focus:ring-0 border-none bg-[#E7F3E7] h-full placeholder:text-gray-500 px-4 text-base font-normal leading-normal" 
-                placeholder={t('search.placeholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </label>
-        </div>
-
-        {/* Tab Navigation - 按照HTML设计稿 */}
-        <div className="pb-0">
-          <div className="flex border-b border-[#CFE8CF] px-2 gap-1 overflow-x-auto whitespace-nowrap">
-            {[
-              { key: 'vocabulary', label: t('tabs.vocabulary') },
-              { key: 'phrases', label: t('tabs.phrases') },
-              { key: 'grammar', label: t('tabs.grammar') },
-              { key: 'topics', label: t('tabs.topics') },
-              { key: 'bookmarks', label: t('tabs.bookmarks') }
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as LearningTab)}
-                className={`flex flex-col items-center justify-center border-b-[3px] pb-3 pt-4 px-3 flex-shrink-0 ${
-                  activeTab === tab.key
-                    ? 'border-b-[#0FDB0F] text-[#0D1C0D]'
-                    : 'border-b-transparent text-[#4B9B4B] hover:text-[#0D1C0D]'
-                }`}
-              >
-                <p className={`text-sm leading-normal ${
-                  activeTab === tab.key ? 'font-semibold' : 'font-medium'
-                }`}>
-                  {tab.label}
-                </p>
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      {/* Success Alert */}
-      {successMessage && (
-        <div className="mx-4 mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-600 text-sm">{successMessage}</p>
-          <button 
-            onClick={() => setSuccessMessage(null)}
-            className="text-green-400 hover:text-green-600 float-right p-1 rounded-lg hover:bg-green-100"
-          >
-            <span className="material-icons text-sm">close</span>
-          </button>
-        </div>
-      )}
-
-      {/* Error Alert */}
-      {error && (
-        <div className="mx-4 mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-600 text-sm">{error}</p>
-          <button 
-            onClick={() => setError(null)}
-            className="text-red-400 hover:text-red-600 float-right p-1 rounded-lg hover:bg-red-100"
-          >
-            <span className="material-icons text-sm">close</span>
-          </button>
-        </div>
-      )}
-
-      {/* Search Results */}
-      {searchResults.length > 0 && (
-        <div className="mx-4 mt-2 bg-white rounded-xl shadow-sm p-3">
-          <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">{t('search.results')}</h3>
-          <div className="space-y-1">
-            {searchResults.map((result) => (
-              <div 
-                key={result.id}
-                className="p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
-                onClick={() => setActiveTab(result.type)}
-              >
-                <p className="text-[#0D1C0D] font-medium">{result.title}</p>
-                <p className="text-gray-600 text-sm">{result.subtitle} - {result.type}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Add Vocabulary Dialog */}
-      {showAddDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-[#0D1C0D] mb-4">{t('vocabulary.add.title')}</h3>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('vocabulary.add.wordLabel')}
-              </label>
-              <input
-                type="text"
-                value={newWord}
-                onChange={(e) => setNewWord(e.target.value)}
-                placeholder={t('vocabulary.add.placeholder')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0FDB0F] focus:border-transparent"
-                disabled={isAddingWord}
-                onKeyPress={(e) => e.key === 'Enter' && !isAddingWord && handleAddVocabulary()}
-              />
-            </div>
-
-            {addWordError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-sm">{addWordError}</p>
-              </div>
-            )}
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <p className="text-blue-700 text-sm">
-                <span className="material-icons text-sm mr-1">info</span>
-                {t('vocabulary.add.aiHelp')}
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleCloseAddDialog}
-                disabled={isAddingWord}
-                className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={handleAddVocabulary}
-                disabled={isAddingWord || !newWord.trim()}
-                className="flex-1 px-4 py-2 bg-[#0FDB0F] text-white rounded-lg hover:bg-[#0CBF0C] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              >
-                {isAddingWord ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    {t('vocabulary.add.adding')}
-                  </div>
-                ) : (
-                  t('vocabulary.add.submit')
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Import File Dialog */}
-      {showImportDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-lg">
-            <h3 className="text-lg font-semibold text-[#0D1C0D] mb-4">{t('vocabulary.import.title')}</h3>
-            
-            {/* 文件选择区域 */}
-            {!importResults && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('vocabulary.import.fileLabel')}
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0FDB0F] transition-colors">
-                  <input
-                    type="file"
-                    accept=".txt,.csv"
-                    onChange={handleFileSelect}
-                    disabled={isImporting}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <span className="material-icons text-gray-400 text-4xl mb-2 block">upload_file</span>
-                    <p className="text-gray-600 mb-1">{t('vocabulary.import.dropZone')}</p>
-                    <p className="text-xs text-gray-500">{t('vocabulary.import.supportedFormats')}</p>
-                  </label>
-                </div>
-                
-                {selectedFile && (
-                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <span className="material-icons text-green-600">check_circle</span>
-                      <span className="text-green-700 text-sm font-medium">{selectedFile.name}</span>
-                      <span className="text-green-600 text-xs">({(selectedFile.size / 1024).toFixed(1)}KB)</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 导入过程中的进度显示 */}
-            {isImporting && (
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">{t('vocabulary.import.processing')}</span>
-                  <span className="text-sm text-gray-500">{importProgress.current}/{importProgress.total}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-[#0FDB0F] h-2 rounded-full transition-all duration-300"
-                    style={{ 
-                      width: importProgress.total > 0 ? `${(importProgress.current / importProgress.total) * 100}%` : '0%' 
-                    }}
-                  ></div>
-                </div>
-              </div>
-            )}
-
-            {/* 导入结果 */}
-            {importResults && (
-              <div className="mb-4">
-                <h4 className="text-md font-semibold text-[#0D1C0D] mb-3">{t('vocabulary.import.results')}</h4>
-                
-                {/* 成功统计 */}
-                <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <span className="material-icons text-green-600">check_circle</span>
-                    <span className="text-green-700 font-medium">
-                      {t('vocabulary.import.successCount', { count: importResults.success.length })}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 错误统计 */}
-                {importResults.errors.length > 0 && (
-                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="material-icons text-red-600">error</span>
-                      <span className="text-red-700 font-medium">
-                        {t('vocabulary.import.errorCount', { count: importResults.errors.length })}
-                      </span>
-                    </div>
-                    <div className="max-h-32 overflow-y-auto">
-                      {importResults.errors.slice(0, 5).map((error, index) => (
-                        <p key={index} className="text-red-600 text-xs mb-1">{error}</p>
-                      ))}
-                      {importResults.errors.length > 5 && (
-                        <p className="text-red-500 text-xs italic">
-                          {t('vocabulary.import.moreErrors', { count: importResults.errors.length - 5 })}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 错误显示 */}
-            {importError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-sm">{importError}</p>
-              </div>
-            )}
-
-            {/* 文件格式说明 */}
-            {!importResults && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <p className="text-blue-700 text-sm mb-2">
-                  <span className="material-icons text-sm mr-1">info</span>
-                  {t('vocabulary.import.formatInfo')}
-                </p>
-                <ul className="text-blue-600 text-xs list-disc list-inside space-y-1">
-                  <li>{t('vocabulary.import.txtFormat')}</li>
-                  <li>{t('vocabulary.import.csvFormat')}</li>
-                </ul>
-              </div>
-            )}
-
-            {/* 操作按钮 */}
-            <div className="flex gap-3">
-              <button
-                onClick={handleCloseImportDialog}
-                disabled={isImporting}
-                className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-              >
-                {importResults ? t('common.close') : t('common.cancel')}
-              </button>
-              {!importResults && (
-                <button
-                  onClick={handleImportFile}
-                  disabled={isImporting || !selectedFile}
-                  className="flex-1 px-4 py-2 bg-[#0FDB0F] text-white rounded-lg hover:bg-[#0CBF0C] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  {isImporting ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      {t('vocabulary.import.importing')}
-                    </div>
-                  ) : (
-                    t('vocabulary.import.submit')
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <main className="flex-grow pb-24 px-2">
-        {loading && (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0FDB0F]"></div>
-          </div>
-        )}
-
-        {!loading && (
-          <>
-            {/* Vocabulary Tab */}
-            {activeTab === 'vocabulary' && (
-              <div>
-                <h2 className="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6">
-                  {t('vocabulary.title')}
-                </h2>
-                <div className="space-y-2 px-2">
-                  {vocabulary.map(renderVocabularyCard)}
-                </div>
-                {vocabulary.length === 0 && (
-                  <div className="bg-white mx-4 p-8 rounded-xl shadow-sm text-center">
-                    <span className="material-icons text-gray-400 text-5xl mb-4 block">check_circle</span>
-                    <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">太棒了！</h3>
-                    <p className="text-gray-600">你已经掌握了所有词汇，继续加油学习新单词吧！</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Phrases Tab */}
-            {activeTab === 'phrases' && (
-              <div>
-                {/* Category Filter - 按照HTML设计稿 */}
-                <div className="px-4 py-3">
-                  <div className="flex gap-2 overflow-x-auto whitespace-nowrap">
-                    {PHRASE_CATEGORIES.map((category) => (
-                      <button
-                        key={category}
-                        onClick={() => setSelectedPhraseCategory(category)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium flex-shrink-0 ${
-                          selectedPhraseCategory === category
-                            ? 'bg-[#0FDB0F] text-white'
-                            : 'bg-[#E7F3E7] text-[#4B9B4B] hover:bg-[#CFE8CF]'
-                        }`}
-                      >
-                        {category}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                <h2 className="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-3">
-                  {t('phrases.title')}
-                </h2>
-                <div className="space-y-2 px-2">
-                  {filteredPhrases.map(renderPhraseCard)}
-                </div>
-              </div>
-            )}
-
-            {/* Grammar Tab */}
-            {activeTab === 'grammar' && (
-              <div>
-                {/* Category Filter */}
-                <div className="px-4 py-3">
-                  <div className="flex gap-2 overflow-x-auto whitespace-nowrap">
-                    {GRAMMAR_CATEGORIES.map((category) => (
-                      <button
-                        key={category}
-                        onClick={() => setSelectedGrammarCategory(category)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium flex-shrink-0 ${
-                          selectedGrammarCategory === category
-                            ? 'bg-[#0FDB0F] text-white'
-                            : 'bg-[#E7F3E7] text-[#4B9B4B] hover:bg-[#CFE8CF]'
-                        }`}
-                      >
-                        {category}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-white mx-4 p-4 rounded-xl shadow-sm mb-4">
-                  <h2 className="text-[#0D1C0D] text-xl font-bold mb-4">{t('grammar.categories.verbTenses')}</h2>
-                  
-                  <div className="mb-4">
-                    <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">{t('grammar.topics.presentPerfect.title')}</h3>
-                    <p className="text-gray-600 text-sm mb-3">
-                      {t('grammar.topics.presentPerfect.description')}
-                    </p>
-                    <div className="bg-[#F0F7F0] p-3 rounded-lg">
-                      <p className="text-[#0D1C0D] font-medium mb-1">例句:</p>
-                      <p className="text-[#3A6A3A] italic" dangerouslySetInnerHTML={{ __html: `'${t('grammar.topics.presentPerfect.example')}'` }} />
-                    </div>
-                  </div>
-
-                  <hr className="border-[#CFE8CF] my-4" />
-
-                  <div>
-                    <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">{t('grammar.topics.simplePast.title')}</h3>
-                    <p className="text-gray-600 text-sm mb-3">
-                      {t('grammar.topics.simplePast.description')}
-                    </p>
-                    <div className="bg-[#F0F7F0] p-3 rounded-lg">
-                      <p className="text-[#0D1C0D] font-medium mb-1">例句:</p>
-                      <p className="text-[#3A6A3A] italic" dangerouslySetInnerHTML={{ __html: `'${t('grammar.topics.simplePast.example')}'` }} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Practice Exercise */}
-                <div className="bg-white mx-4 p-4 rounded-xl shadow-sm">
-                  <h2 className="text-[#0D1C0D] text-xl font-bold mb-4">{t('grammar.exercise.title')}</h2>
-                  <p className="text-[#0D1C0D] font-medium mb-2">{t('grammar.exercise.instruction')}</p>
-                  <p className="text-gray-600 mb-4">{t('grammar.exercise.question')}</p>
-                  <div className="flex gap-2">
-                    <button className="flex-1 px-4 py-2 border border-[#CFE8CF] rounded-lg text-[#0D1C0D] hover:bg-gray-50">
-                      {t('grammar.exercise.options.went')}
-                    </button>
-                    <button className="flex-1 px-4 py-2 border border-[#CFE8CF] rounded-lg text-[#0D1C0D] hover:bg-gray-50">
-                      {t('grammar.exercise.options.go')}
-                    </button>
-                    <button className="flex-1 px-4 py-2 border border-[#CFE8CF] rounded-lg text-[#0D1C0D] hover:bg-gray-50">
-                      {t('grammar.exercise.options.goes')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Topics Tab */}
-            {activeTab === 'topics' && (
-              <div>
-                <h2 className="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6">
-                  {t('topics.title')}
-                </h2>
-                <div className="space-y-2 px-2">
-                  {topicsService.getTopics().map(renderTopicCard)}
-                </div>
-              </div>
-            )}
-
-            {/* Bookmarks Tab */}
-            {activeTab === 'bookmarks' && (
-              <div>
-                <h2 className="text-[#0D1C0D] text-xl font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6">
-                  {t('bookmarks.title')}
-                </h2>
-                
-                {bookmarks.length === 0 ? (
-                  <div className="bg-white mx-4 p-8 rounded-xl shadow-sm text-center">
-                    <span className="material-icons text-gray-400 text-5xl mb-4 block">bookmark_border</span>
-                    <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">{t('bookmarks.empty.title')}</h3>
-                    <p className="text-gray-600">{t('bookmarks.empty.description')}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 px-2">
-                    {/* Vocabulary Bookmarks */}
-                    {bookmarks.filter(b => b.type === 'vocabulary').length > 0 && (
-                      <div className="bg-[#F0F7F0] p-4 rounded-xl">
-                        <h3 className="text-[#0D1C0D] text-lg font-semibold mb-3">{t('bookmarks.sections.vocabulary')}</h3>
-                        <div className="space-y-2">
-                          {bookmarks
-                            .filter(b => b.type === 'vocabulary')
-                            .map(bookmark => {
-                              const vocabItem = bookmark.content as VocabularyItem;
-                              return renderVocabularyCard(vocabItem);
-                            })
-                          }
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Phrase Bookmarks */}
-                    {bookmarks.filter(b => b.type === 'phrase').length > 0 && (
-                      <div className="bg-[#F0F7F0] p-4 rounded-xl">
-                        <h3 className="text-[#0D1C0D] text-lg font-semibold mb-3">{t('bookmarks.sections.phrases')}</h3>
-                        <div className="space-y-2">
-                          {bookmarks
-                            .filter(b => b.type === 'phrase')
-                            .map(bookmark => {
-                              const phraseItem = bookmark.content as PhraseItem;
-                              return renderPhraseCard(phraseItem);
-                            })
-                          }
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </>
-        )}
-      </main>
-
-      {/* Floating Action Buttons - only show on vocabulary tab */}
-      {activeTab === 'vocabulary' && (
-        <div className="fixed bottom-20 right-4 flex flex-col gap-3 z-40">
-          {/* File Import Button */}
-          <button
-            onClick={() => setShowImportDialog(true)}
-            className="bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors"
-            style={{ boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}
-            title={t('vocabulary.import.title')}
-          >
-            <span className="material-icons text-xl">file_upload</span>
-          </button>
+            <VolumeUpIcon />
+          </IconButton>
           
-          {/* Add Word Button */}
-          <button
-            onClick={() => setShowAddDialog(true)}
-            className="bg-[#0FDB0F] text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-[#0CBF0C] transition-colors"
-            style={{ boxShadow: '0 4px 12px rgba(15, 219, 15, 0.3)' }}
-            title={t('vocabulary.add.title')}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                color: '#0D1C0D',
+                fontWeight: 'bold',
+                textDecoration: item.masteryLevel === 2 ? 'line-through' : 'none',
+                opacity: item.masteryLevel === 2 ? 0.7 : 1,
+                mb: 1,
+                wordBreak: 'break-word'
+              }}
+            >
+              {item.word}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 1, lineHeight: 1.6 }}>
+              {item.definition}
+            </Typography>
+            {item.example && (
+              <Paper sx={{ 
+                p: 2, 
+                mt: 1, 
+                bgcolor: 'rgba(202, 236, 202, 0.1)', 
+                borderRadius: 2,
+                border: '1px solid rgba(202, 236, 202, 0.2)'
+              }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontStyle: 'italic', 
+                    color: '#2E7D32',
+                    '&::before': { content: '"🗣️ "' },
+                    '&::after': { content: '""' }
+                  }}
+                >
+                  {item.example}
+                </Typography>
+              </Paper>
+            )}
+          </Box>
+        </Box>
+        
+        {/* AI增强信息 */}
+        {(item.pronunciation || item.phonetic || item.part_of_speech) && (
+          <Box sx={{ mb: 2 }}>
+            {item.pronunciation && (
+              <Chip 
+                label={`/${item.pronunciation}/`} 
+                size="small" 
+                sx={{ 
+                  mr: 1, 
+                  mb: 1, 
+                  bgcolor: '#E3F2FD',
+                  color: '#1565C0',
+                  fontWeight: 600,
+                  '&:hover': { bgcolor: '#BBDEFB' }
+                }} 
+              />
+            )}
+            {item.part_of_speech && (
+              <Chip 
+                label={item.part_of_speech} 
+                size="small" 
+                sx={{ 
+                  mr: 1, 
+                  mb: 1, 
+                  bgcolor: '#F3E5F5',
+                  color: '#7B1FA2',
+                  fontWeight: 600,
+                  '&:hover': { bgcolor: '#E1BEE7' }
+                }} 
+              />
+            )}
+          </Box>
+        )}
+        
+        {/* 同义词和反义词 */}
+        {((item.synonyms && item.synonyms.length > 0) || (item.antonyms && item.antonyms.length > 0)) && (
+          <Box sx={{ mb: 2 }}>
+            {item.synonyms && item.synonyms.length > 0 && (
+              <Box sx={{ mb: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5, display: 'block' }}>
+                  Synonyms:
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {item.synonyms.slice(0, 3).map((synonym, index) => (
+                    <Chip 
+                      key={index} 
+                      label={synonym} 
+                      size="small"
+                      sx={{ 
+                        bgcolor: '#E8F5E8', 
+                        color: '#2E7D32',
+                        fontSize: '0.75rem',
+                        '&:hover': { bgcolor: '#C8E6C9' }
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
+            {item.antonyms && item.antonyms.length > 0 && (
+              <Box>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5, display: 'block' }}>
+                  Antonyms:
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {item.antonyms.slice(0, 2).map((antonym, index) => (
+                    <Chip 
+                      key={index} 
+                      label={antonym} 
+                      size="small"
+                      sx={{ 
+                        bgcolor: '#FFEBEE', 
+                        color: '#C62828',
+                        fontSize: '0.75rem',
+                        '&:hover': { bgcolor: '#FFCDD2' }
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
+          </Box>
+        )}
+        
+        {/* 使用提示 */}
+        {item.usage_notes && (
+          <Paper 
+            sx={{ 
+              p: 2, 
+              mt: 2, 
+              bgcolor: 'rgba(227, 242, 253, 0.7)', 
+              cursor: 'text',
+              borderRadius: 2,
+              border: '1px solid rgba(25, 118, 210, 0.2)',
+              '&:hover': { 
+                bgcolor: 'rgba(187, 222, 251, 0.7)',
+                transform: 'scale(1.02)'
+              },
+              transition: 'all 0.3s ease'
+            }}
+            onMouseUp={handleTextSelection}
           >
-            <span className="material-icons text-2xl">add</span>
-          </button>
-        </div>
-      )}
-    </div>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+              <LightbulbIcon sx={{ fontSize: 18, color: '#1976D2', mt: 0.1, flexShrink: 0 }} />
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#1976D2',
+                  fontWeight: 500,
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
+                  lineHeight: 1.5
+                }}
+              >
+                {item.usage_notes}
+              </Typography>
+            </Box>
+          </Paper>
+        )}
+      </CardContent>
+      
+      {/* Modern Card Actions */}
+      <Box 
+        className="word-actions"
+        sx={{ 
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          px: 3, 
+          pb: 3,
+          pt: 0,
+          transform: 'translateY(10px)',
+          opacity: 0,
+          transition: 'all 0.3s ease'
+        }}
+      >
+        <Box>
+          {item.difficulty_level && (
+            <Chip 
+              label={`Level ${item.difficulty_level}/5`} 
+              size="small"
+              sx={{
+                bgcolor: item.difficulty_level <= 2 ? '#E8F5E8' : item.difficulty_level <= 3 ? '#FFF3E0' : '#FFEBEE',
+                color: item.difficulty_level <= 2 ? '#2E7D32' : item.difficulty_level <= 3 ? '#F57C00' : '#C62828',
+                fontWeight: 600,
+                '&:hover': {
+                  transform: 'scale(1.05)'
+                }
+              }}
+            />
+          )}
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <IconButton
+            onClick={() => toggleBookmark(item, 'vocabulary')}
+            sx={{
+              color: item.bookmarked ? '#FFD700' : '#DDD',
+              bgcolor: 'rgba(255, 255, 255, 0.9)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              '&:hover': {
+                color: item.bookmarked ? '#FFC107' : '#FFD700',
+                bgcolor: 'rgba(255, 255, 255, 1)',
+                transform: 'scale(1.1)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+              },
+              transition: 'all 0.3s ease'
+            }}
+          >
+            {item.bookmarked ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+          </IconButton>
+          <IconButton
+            onClick={() => toggleMastery(item)}
+            sx={{
+              color: item.masteryLevel === 2 ? '#4CAF50' : '#DDD',
+              bgcolor: 'rgba(255, 255, 255, 0.9)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              '&:hover': {
+                color: item.masteryLevel === 2 ? '#66BB6A' : '#4CAF50',
+                bgcolor: 'rgba(255, 255, 255, 1)',
+                transform: 'scale(1.1)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+              },
+              transition: 'all 0.3s ease'
+            }}
+          >
+            {item.masteryLevel === 2 ? <CheckCircleIcon /> : <CheckCircleOutlineIcon />}
+          </IconButton>
+        </Box>
+      </Box>
+    </Card>
+  );
+
+  // 渲染短语卡片 - Material-UI版本
+  const renderPhraseCard = (item: PhraseItem) => (
+    <Card key={item.id} sx={{ 
+      borderRadius: 4,
+      background: 'linear-gradient(135deg, #ffffff 0%, #f0f7f0 100%)',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+      border: '1px solid rgba(202, 236, 202, 0.2)',
+      overflow: 'hidden',
+      '&:hover': {
+        transform: 'translateY(-6px)',
+        boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+        '& .phrase-actions': {
+          opacity: 1
+        }
+      },
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+    }}>
+      <CardContent sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+          <IconButton 
+            onClick={() => playPronunciation(item.phrase)}
+            sx={{ 
+              bgcolor: '#E7F3E7', 
+              color: '#0D1C0D',
+              width: 45,
+              height: 45,
+              '&:hover': { 
+                bgcolor: '#CFE8CF',
+                transform: 'rotate(15deg) scale(1.1)'
+              },
+              transition: 'all 0.3s ease'
+            }}
+          >
+            <VolumeUpIcon />
+          </IconButton>
+          
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="h6" sx={{ 
+              color: '#0D1C0D', 
+              fontWeight: 'bold',
+              mb: 1,
+              wordBreak: 'break-word'
+            }}>
+              {item.phrase}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6 }}>
+              {item.translation}
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Chip 
+                label={item.category} 
+                size="small" 
+                sx={{ 
+                  bgcolor: '#F0F7F0',
+                  color: '#2E7D32',
+                  fontWeight: 600,
+                  '&:hover': { bgcolor: '#E8F5E8' }
+                }}
+              />
+              <IconButton
+                className="phrase-actions"
+                onClick={() => toggleBookmark(item, 'phrase')}
+                sx={{
+                  color: item.bookmarked ? '#FFD700' : '#DDD',
+                  opacity: 0,
+                  '&:hover': {
+                    color: item.bookmarked ? '#FFC107' : '#FFD700',
+                    transform: 'scale(1.2)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {item.bookmarked ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+              </IconButton>
+            </Box>
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <MobileContainer>
+      <Box sx={{ 
+        bgcolor: 'linear-gradient(135deg, #f8fcf8 0%, #f0f7f0 100%)', 
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #f8fcf8 0%, #f0f7f0 100%)'
+      }}>
+        {/* Modern Header with Gradient */}
+        <Paper sx={{ 
+          position: 'sticky', 
+          top: 0, 
+          zIndex: 10, 
+          background: 'linear-gradient(135deg, #CAECCA 0%, #B8E0B8 100%)',
+          elevation: 0,
+          borderRadius: 0,
+          boxShadow: '0 4px 20px rgba(202, 236, 202, 0.3)'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', p: 3, justifyContent: 'space-between' }}>
+            <IconButton 
+              onClick={() => navigate(-1)}
+              sx={{ 
+                color: '#0D1C0D',
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: '50%',
+                '&:hover': { 
+                  bgcolor: 'rgba(255, 255, 255, 0.3)',
+                  transform: 'scale(1.05)'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h4" sx={{ 
+              color: '#0D1C0D', 
+              fontWeight: 'bold', 
+              flex: 1, 
+              textAlign: 'center',
+              textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+              Learning Center
+            </Typography>
+            <Box sx={{ width: 48 }} />
+          </Box>
+
+          {/* Modern Search with Glass Effect */}
+          <Box sx={{ px: 3, pb: 3 }}>
+            <TextField
+              fullWidth
+              placeholder="Search phrases, vocabulary, grammar..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: '#5D895D' }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  bgcolor: 'rgba(255, 255, 255, 0.9)',
+                  borderRadius: 5,
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  '& fieldset': { border: 'none' },
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.95)',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
+                  },
+                  '&.Mui-focused': {
+                    bgcolor: 'rgba(255, 255, 255, 1)',
+                    boxShadow: '0 8px 25px rgba(202, 236, 202, 0.4)'
+                  },
+                  transition: 'all 0.3s ease'
+                },
+                '& .MuiInputBase-input': {
+                  py: 2
+                }
+              }}
+            />
+          </Box>
+
+          {/* Modern Tab Navigation */}
+          <Box sx={{ px: 3, pb: 1 }}>
+            <Tabs
+              value={activeTab}
+              onChange={(e, newValue) => setActiveTab(newValue)}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{ 
+                '& .MuiTab-root': { 
+                  color: 'rgba(13, 28, 13, 0.7)',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  fontSize: '1rem',
+                  borderRadius: 3,
+                  mx: 0.5,
+                  minHeight: 48,
+                  '&.Mui-selected': { 
+                    color: '#0D1C0D',
+                    bgcolor: 'rgba(255, 255, 255, 0.3)'
+                  },
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.2)'
+                  },
+                  transition: 'all 0.2s ease'
+                },
+                '& .MuiTabs-indicator': { 
+                  bgcolor: '#0D1C0D',
+                  height: 3,
+                  borderRadius: 1.5
+                }
+              }}
+            >
+              <Tab label="Vocabulary" value="vocabulary" />
+              <Tab label="Phrases" value="phrases" />
+              <Tab label="Grammar" value="grammar" />
+              <Tab label="Bookmarks" value="bookmarks" />
+              <Tab label="Topics" value="topics" />
+            </Tabs>
+          </Box>
+        </Paper>
+
+        {/* Content */}
+        <Box sx={{ p: 3 }}>
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 6 }}>
+              <CircularProgress 
+                sx={{ 
+                  color: '#4c9a4c',
+                  '& .MuiCircularProgress-circle': {
+                    strokeLinecap: 'round'
+                  }
+                }} 
+                size={50}
+                thickness={4}
+              />
+            </Box>
+          )}
+
+          {/* Search Results */}
+          {searchQuery && searchResults.length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h5" sx={{ 
+                color: '#0D1C0D', 
+                mb: 3, 
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                <SearchIcon />
+                搜索结果
+              </Typography>
+              {searchResults.map((result) => (
+                <Paper key={result.id} sx={{ 
+                  p: 3, 
+                  mb: 2, 
+                  borderRadius: 4,
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+                  border: '1px solid rgba(202, 236, 202, 0.2)',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.15)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#0D1C0D', mb: 1 }}>
+                    {result.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {result.content}
+                  </Typography>
+                  <Chip 
+                    label={result.type} 
+                    size="small" 
+                    sx={{ 
+                      bgcolor: '#E7F3E7',
+                      color: '#2E7D32',
+                      fontWeight: 600
+                    }}
+                  />
+                </Paper>
+              ))}
+            </Box>
+          )}
+
+          {/* Vocabulary Tab */}
+          {activeTab === 'vocabulary' && (
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h5" sx={{ 
+                  color: '#0D1C0D', 
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}>
+                  📚 我的词汇表
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="medium"
+                  onClick={() => setShowImportDialog(true)}
+                  startIcon={<UploadIcon />}
+                  sx={{ 
+                    bgcolor: '#4c9a4c',
+                    color: 'white',
+                    borderRadius: 3,
+                    px: 3,
+                    py: 1.5,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    '&:hover': { 
+                      bgcolor: '#3d7a3d',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 8px 25px rgba(76, 154, 76, 0.4)'
+                    },
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  导入词汇
+                </Button>
+              </Box>
+              
+              {vocabulary.length === 0 ? (
+                <Paper sx={{ 
+                  p: 6, 
+                  textAlign: 'center', 
+                  borderRadius: 4,
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
+                  border: '2px dashed #CAECCA',
+                  '&:hover': {
+                    borderColor: '#4c9a4c',
+                    transform: 'scale(1.02)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}>
+                  <Box sx={{ fontSize: '4rem', mb: 2 }}>📖</Box>
+                  <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                    开始你的学习之旅
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto' }}>
+                    还没有添加任何词汇。在对话中选择单词或通过导入功能添加词汇，开始建立你的个人词汇库。
+                  </Typography>
+                </Paper>
+              ) : (
+                <Box sx={{ 
+                  display: 'grid', 
+                  gap: 3,
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(350px, 1fr))' }
+                }}>
+                  {vocabulary.map(renderVocabularyCard)}
+                </Box>
+              )}
+            </Box>
+          )}
+
+          {/* Phrases Tab */}
+          {activeTab === 'phrases' && (
+            <Box>
+              <Typography variant="h5" sx={{ 
+                color: '#0D1C0D', 
+                mb: 3, 
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                💬 常用短语
+              </Typography>
+              
+              {/* Modern Category Filter */}
+              <Box sx={{ mb: 4, display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                {PHRASE_CATEGORIES.map((category) => (
+                  <Chip
+                    key={category}
+                    label={category}
+                    onClick={() => setSelectedPhraseCategory(category)}
+                    sx={{
+                      bgcolor: selectedPhraseCategory === category ? '#4c9a4c' : 'rgba(255, 255, 255, 0.9)',
+                      color: selectedPhraseCategory === category ? 'white' : '#5D895D',
+                      fontWeight: 600,
+                      px: 2,
+                      py: 1,
+                      borderRadius: 3,
+                      '&:hover': {
+                        bgcolor: selectedPhraseCategory === category ? '#3d7a3d' : '#E7F3E7',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+                      },
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer'
+                    }}
+                  />
+                ))}
+              </Box>
+              
+              {filteredPhrases.length === 0 ? (
+                <Paper sx={{ 
+                  p: 6, 
+                  textAlign: 'center', 
+                  borderRadius: 4,
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
+                  border: '2px dashed #CAECCA'
+                }}>
+                  <Box sx={{ fontSize: '3rem', mb: 2 }}>🔍</Box>
+                  <Typography variant="h6" color="text.secondary">
+                    没有找到相关短语
+                  </Typography>
+                </Paper>
+              ) : (
+                <Box sx={{ 
+                  display: 'grid', 
+                  gap: 2,
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(300px, 1fr))' }
+                }}>
+                  {filteredPhrases.map(renderPhraseCard)}
+                </Box>
+              )}
+            </Box>
+          )}
+
+          {/* Grammar Tab */}
+          {activeTab === 'grammar' && (
+            <Box>
+              <Typography variant="h5" sx={{ 
+                color: '#0D1C0D', 
+                mb: 3, 
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                📝 语法要点
+              </Typography>
+              
+              <Paper sx={{ 
+                p: 6, 
+                textAlign: 'center', 
+                borderRadius: 4,
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
+                border: '1px solid rgba(202, 236, 202, 0.3)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+              }}>
+                <Box sx={{ fontSize: '4rem', mb: 2 }}>🚀</Box>
+                <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                  语法功能即将推出
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  我们正在开发更多语法学习功能，敬请期待！
+                </Typography>
+              </Paper>
+            </Box>
+          )}
+
+          {/* Bookmarks Tab */}
+          {activeTab === 'bookmarks' && (
+            <Box>
+              <Typography variant="h5" sx={{ 
+                color: '#0D1C0D', 
+                mb: 3, 
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                ⭐ 我的收藏
+              </Typography>
+              
+              {bookmarks.length === 0 ? (
+                <Paper sx={{ 
+                  p: 6, 
+                  textAlign: 'center', 
+                  borderRadius: 4,
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
+                  border: '2px dashed #CAECCA'
+                }}>
+                  <BookmarkBorderIcon sx={{ fontSize: '4rem', color: 'text.secondary', mb: 2 }} />
+                  <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                    还没有收藏任何内容
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    点击书签图标来收藏你喜欢的学习材料
+                  </Typography>
+                </Paper>
+              ) : (
+                <>
+                  {/* Vocabulary Bookmarks */}
+                  {bookmarks.filter(b => b.type === 'vocabulary').length > 0 && (
+                    <Box sx={{ mb: 4 }}>
+                      <Typography variant="h6" sx={{ 
+                        color: '#0D1C0D', 
+                        mb: 2, 
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                      }}>
+                        📚 词汇收藏
+                      </Typography>
+                      <Box sx={{ 
+                        display: 'grid', 
+                        gap: 3,
+                        gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(350px, 1fr))' }
+                      }}>
+                        {bookmarks
+                          .filter(b => b.type === 'vocabulary')
+                          .map(bookmark => renderVocabularyCard(bookmark.content as VocabularyItem))
+                        }
+                      </Box>
+                    </Box>
+                  )}
+                  
+                  {/* Phrase Bookmarks */}
+                  {bookmarks.filter(b => b.type === 'phrase').length > 0 && (
+                    <Box>
+                      <Typography variant="h6" sx={{ 
+                        color: '#0D1C0D', 
+                        mb: 2, 
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                      }}>
+                        💬 短语收藏
+                      </Typography>
+                      <Box sx={{ 
+                        display: 'grid', 
+                        gap: 2,
+                        gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(300px, 1fr))' }
+                      }}>
+                        {bookmarks
+                          .filter(b => b.type === 'phrase')
+                          .map(bookmark => renderPhraseCard(bookmark.content as PhraseItem))
+                        }
+                      </Box>
+                    </Box>
+                  )}
+                </>
+              )}
+            </Box>
+          )}
+
+          {/* Topics Tab */}
+          {activeTab === 'topics' && (
+            <Box>
+              <Typography variant="h5" sx={{ 
+                color: '#0D1C0D', 
+                mb: 3, 
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                🎯 推荐话题
+              </Typography>
+              
+              <Paper sx={{ 
+                p: 6, 
+                textAlign: 'center', 
+                borderRadius: 4,
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
+                border: '1px solid rgba(202, 236, 202, 0.3)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+              }}>
+                <Box sx={{ fontSize: '4rem', mb: 2 }}>✨</Box>
+                <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                  话题功能即将推出
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  我们正在准备更多有趣的学习话题，让学习更加生动有趣！
+                </Typography>
+              </Paper>
+            </Box>
+          )}
+        </Box>
+
+        {/* 添加单词菜单 */}
+        {showWordMenu && selectedWord && (
+          <Paper
+            sx={{
+              position: 'fixed',
+              top: wordMenuPosition.y + 10,
+              left: wordMenuPosition.x,
+              zIndex: 1000,
+              p: 2,
+              boxShadow: 3,
+              borderRadius: 2,
+              minWidth: 200
+            }}
+          >
+            <Typography variant="subtitle2" gutterBottom>
+              选中的单词: "{selectedWord}"
+            </Typography>
+            <Button
+              variant="contained"
+              fullWidth
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddWord(selectedWord);
+              }}
+              sx={{ 
+                bgcolor: '#CAECCA', 
+                color: '#0D1C0D',
+                '&:hover': { bgcolor: '#B8E0B8' }
+              }}
+            >
+              添加到词汇表
+            </Button>
+          </Paper>
+        )}
+
+        {/* 文件导入对话框 */}
+        <Dialog open={showImportDialog} onClose={() => setShowImportDialog(false)}>
+          <DialogTitle>导入词汇</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              支持 .txt 和 .csv 格式的文件。每行一个单词，或使用逗号分隔。
+            </Typography>
+            <Button
+              variant="outlined"
+              component="label"
+              fullWidth
+              disabled={isImporting}
+              sx={{ mb: 2 }}
+            >
+              {isImporting ? '导入中...' : '选择文件'}
+              <input
+                type="file"
+                accept=".txt,.csv"
+                onChange={handleFileImport}
+                disabled={isImporting}
+                style={{ display: 'none' }}
+              />
+            </Button>
+            {isImporting && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                <CircularProgress size={24} />
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowImportDialog(false)}>取消</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Global Alert Notification - 2025-01-30 16:40:22 */}
+        <Snackbar 
+          open={showAlert} 
+          autoHideDuration={4000} 
+          onClose={() => setShowAlert(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert 
+            severity={alert.type as 'success' | 'error' | 'info' | 'warning'} 
+            onClose={() => setShowAlert(false)}
+            sx={{
+              borderRadius: 3,
+              '& .MuiAlert-icon': { alignSelf: 'center' },
+              minWidth: 280
+            }}
+          >
+            {alert.message}
+          </Alert>
+        </Snackbar>
+      </Box>
+    </MobileContainer>
   );
 }
 
