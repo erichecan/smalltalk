@@ -662,12 +662,18 @@ export const searchService = {
         v.word.toLowerCase().includes(searchTerm)
       );
       
-      // 搜索话题 - 仅匹配话题名称
+      // 搜索话题 - 搜索话题的全部内容 - 2025-01-30 18:35:00
       const topics = topicsService.getTopics();
-      const matchedTopics = topics.filter(t => 
-        t.name.toLowerCase().includes(searchTerm) || 
-        (t.description && t.description.toLowerCase().includes(searchTerm))
-      );
+      const matchedTopics = topics.filter(t => {
+        const searchableContent = [
+          t.name,
+          t.description || '',
+          t.icon || '',
+          // 可以根据需要添加更多话题相关的内容字段
+        ].join(' ').toLowerCase();
+        
+        return searchableContent.includes(searchTerm);
+      });
 
       results.vocabulary = matchedVocabulary;
       results.topics = matchedTopics;

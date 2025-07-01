@@ -153,6 +153,14 @@ function Vocabulary() {
     }
   }, [searchQuery]);
 
+  // Tab切换时清空搜索 - 2025-01-30 18:36:00
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      setSearchQuery('');
+      setSearchResults({ vocabulary: [], topics: [] });
+    }
+  }, [activeTab]);
+
   const handleSearch = async () => {
     if (!user && !isAuthenticated) return;
     
