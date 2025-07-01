@@ -79,21 +79,12 @@ function Vocabulary() {
         user ? bookmarksService.getUserBookmarks(user.id) : Promise.resolve([])
       ]);
       
-      // 从localStorage加载临时保存的词汇
-      const tempVocab = JSON.parse(localStorage.getItem('tempVocabulary') || '[]');
-      
-      // 合并数据库词汇和临时词汇，去重
-      const allVocab = [...vocabData, ...tempVocab];
-      const uniqueVocab = allVocab.filter((vocab, index, self) => 
-        index === self.findIndex(v => v.word.toLowerCase() === vocab.word.toLowerCase())
-      );
-      
       // 只显示未掌握的词汇（masteryLevel !== 2）
-      setVocabulary(uniqueVocab.filter(v => v.masteryLevel !== 2));
+      setVocabulary(vocabData.filter(v => v.masteryLevel !== 2));
       setPhrases(phrasesData);
       setBookmarks(bookmarksData);
       
-      console.log(`Loaded ${vocabData.length} vocabulary from database, ${tempVocab.length} from localStorage`);
+      console.log(`Loaded ${vocabData.length} vocabulary from database`);
     } catch (err) {
       console.error('Error loading user data:', err);
       setError(t('errors.loadFailed'));
@@ -104,8 +95,8 @@ function Vocabulary() {
   
   // 监听tab切换，当切换到vocabulary时重新加载数据（但不要频繁重载）
   useEffect(() => {
-    if (activeTab === 'vocabulary' && vocabulary.length === 0) {
-      loadUserData(); // 只有当数据为空时才重新加载
+    if (activeTab === 'vocabulary') {
+      loadUserData(); // 每次切换到vocabulary tab都重新加载，确保获取最新数据
     } else if (activeTab === 'bookmarks') {
       // 切换到收藏页面时从本地状态刷新收藏数据
       const refreshBookmarks = () => {
@@ -164,11 +155,7 @@ function Vocabulary() {
 
   // 初始化数据
   useEffect(() => {
-    if (isAuthenticated && user) {
-      loadUserData();
-    } else {
-      loadUserData(); // 使用模拟数据
-    }
+    loadUserData(); // 直接加载数据，包括localStorage备份
   }, [isAuthenticated, user]);
 
   // 监听页面可见性变化，增量同步数据而不是完全重新加载
@@ -361,15 +348,6 @@ function Vocabulary() {
       
       // 添加到本地状态
       setVocabulary(prev => [vocabularyItem, ...prev]);
-      
-      // 如果是临时ID（数据库保存失败），添加到localStorage作为备份
-      if (vocabularyItem.id && vocabularyItem.id.toString().length > 10) {
-        // 临时ID是时间戳，长度大于10，说明数据库保存失败
-        const tempVocab = JSON.parse(localStorage.getItem('tempVocabulary') || '[]');
-        tempVocab.push(vocabularyItem);
-        localStorage.setItem('tempVocabulary', JSON.stringify(tempVocab));
-        console.warn('Vocabulary saved to localStorage due to database error');
-      }
       
       // 重置状态
       setNewWord('');

@@ -265,13 +265,8 @@ export const vocabularyService = {
           usage_notes: data.usage_notes
         };
       } catch (dbError) {
-        console.warn('Cannot save to database, returning AI-generated vocabulary item:', dbError);
-        // 返回AI生成的词汇项，即使数据库保存失败
-        return {
-          id: Date.now().toString(),
-          ...vocabularyItem,
-          createdAt: new Date().toISOString()
-        };
+        console.error('Database save failed:', dbError);
+        throw new Error(`Failed to save vocabulary to database: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error adding vocabulary with AI:', error);
