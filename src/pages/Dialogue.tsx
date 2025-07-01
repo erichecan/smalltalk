@@ -214,13 +214,24 @@ function Dialogue() {
 
   // 点击页面其他地方关闭菜单
   useEffect(() => {
-    const handleClickOutside = () => {
+    const handleClickOutside = (event: MouseEvent) => {
       if (showWordMenu) {
-        handleCloseWordMenu();
+        // 延迟一点再关闭，避免与选择文本的事件冲突
+        setTimeout(() => {
+          const target = event.target as Element;
+          // 如果点击的不是菜单本身，则关闭菜单
+          if (!target.closest('[data-word-menu]')) {
+            console.log('Clicking outside, closing word menu');
+            handleCloseWordMenu();
+          }
+        }, 100);
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
+    if (showWordMenu) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
@@ -562,8 +573,12 @@ function Dialogue() {
       </Box>
 
       {/* 选词菜单 */}
-      {showWordMenu && (
+      {showWordMenu && (() => {
+        console.log('Rendering word menu, selectedWord:', selectedWord, 'position:', wordMenuPosition, 'showWordMenu:', showWordMenu);
+        return true;
+      })() && (
         <Box
+          data-word-menu
           sx={{
             position: 'fixed',
             left: wordMenuPosition.x,
