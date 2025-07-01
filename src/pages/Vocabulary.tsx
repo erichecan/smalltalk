@@ -131,20 +131,6 @@ function Vocabulary() {
     }
   }, [activeTab, user, vocabulary, phrases]);
   
-  // 添加词汇状态
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [newWord, setNewWord] = useState('');
-  const [isAddingWord, setIsAddingWord] = useState(false);
-  const [addWordError, setAddWordError] = useState<string | null>(null);
-  
-  // 文件导入状态
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
-  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
-  const [importResults, setImportResults] = useState<{ success: VocabularyItem[], errors: string[] } | null>(null);
-  const [importError, setImportError] = useState<string | null>(null);
-  
   // 过滤器状态 - 使用翻译键作为默认值
   const [selectedPhraseCategory, setSelectedPhraseCategory] = useState(t('phrases.categories.all'));
   const [selectedGrammarCategory, setSelectedGrammarCategory] = useState(t('grammar.categories.all'));
