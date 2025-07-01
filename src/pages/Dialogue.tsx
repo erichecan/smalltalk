@@ -28,12 +28,150 @@ function Dialogue() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useAuth();
 
-  // 选词功能状态
-  const [selectedWord, setSelectedWord] = useState<string>('');
-  const [showWordMenu, setShowWordMenu] = useState(false);
-  const [wordMenuPosition, setWordMenuPosition] = useState({ x: 0, y: 0 });
+  // 2025-01-30 16:45:32: 重构选词功能 - 改为双击添加，移除选择相关状态
   const [isAddingWord, setIsAddingWord] = useState(false);
   const [wordAddSuccess, setWordAddSuccess] = useState<string | null>(null);
+  const [highlightedWord, setHighlightedWord] = useState<{word: string, element: HTMLElement} | null>(null);
+  const [showUsageTip, setShowUsageTip] = useState(true);
+
+  // 2025-01-30 16:46:15: 实现双击事件处理和单词边界检测
+  const extractWordAtPosition = (text: string, position: number): { word: string; start: number; end: number } | null => {
+    // 定义单词字符（字母、数字、连字符、撇号）
+    const wordRegex = /[a-zA-Z0-9'-]/;
+    
+    // 如果点击位置不是单词字符，返回null
+    if (!wordRegex.test(text[position])) {
+      return null;
+    }
+    
+    // 向前查找单词开始位置
+    let start = position;
+    while (start > 0 && wordRegex.test(text[start - 1])) {
+      start--;
+    }
+    
+    // 向后查找单词结束位置
+    let end = position;
+    while (end < text.length - 1 && wordRegex.test(text[end + 1])) {
+      end++;
+    }
+    
+    const word = text.substring(start, end + 1);
+    
+    // 验证是否为有效英文单词（至少包含一个字母，长度大于1）
+    if (word.length > 1 && /[a-zA-Z]/.test(word)) {
+      return { word, start, end };
+    }
+    
+    return null;
+  };
+
+  // 2025-01-30 16:47:30: 处理双击事件
+  const handleDoubleClick = async (event: React.MouseEvent, messageText: string) => {
+    console.log('handleDoubleClick called, isAuthenticated:', isAuthenticated);
+    
+    // 只有登录用户才能使用选词功能
+    if (!isAuthenticated) {
+      console.log('User not authenticated, skipping word selection');
+      return;
+    }
+
+    // 防止正在添加词汇时重复操作
+    if (isAddingWord) {
+      return;
+    }
+
+    const target = event.target as HTMLElement;
+    let clickPosition = -1;
+    let wordInfo: { word: string; start: number; end: number } | null = null;
+
+    // 2025-01-30 16:50:45: 优先使用浏览器选择API获取双击的单词
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+      const selectedText = selection.toString().trim();
+      // 验证是否为有效英文单词
+      if (/^[a-zA-Z0-9'-]+$/.test(selectedText) && selectedText.length > 1 && /[a-zA-Z]/.test(selectedText)) {
+        console.log('Valid word from selection:', selectedText);
+        await addWordToVocabulary(selectedText, target);
+        // 清除选择
+        selection.removeAllRanges();
+        return;
+      }
+    }
+
+    // 2025-01-30 16:51:15: Fallback方案 - 使用caretRangeFromPoint
+    try {
+      const range = document.caretRangeFromPoint ? 
+        document.caretRangeFromPoint(event.clientX, event.clientY) :
+        (document as any).caretPositionFromPoint?.(event.clientX, event.clientY);
+      
+      if (range) {
+        const textNode = range.startContainer || range.offsetNode;
+        if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+          clickPosition = range.startOffset || range.offset || 0;
+          wordInfo = extractWordAtPosition(messageText, clickPosition);
+        }
+      }
+    } catch (error) {
+      console.log('caretRangeFromPoint not supported or failed:', error);
+    }
+
+    // 2025-01-30 16:52:00: 最后的fallback - 简单的词汇匹配
+    if (!wordInfo) {
+      console.log('Using fallback word extraction');
+      // 使用正则表达式找到所有单词，并根据鼠标位置估算最近的单词
+      const words = messageText.match(/[a-zA-Z0-9'-]+/g);
+      if (words && words.length > 0) {
+        // 简单选择第一个有效单词作为fallback
+        const firstValidWord = words.find(word => word.length > 1 && /[a-zA-Z]/.test(word));
+        if (firstValidWord) {
+          console.log('Using first valid word as fallback:', firstValidWord);
+          await addWordToVocabulary(firstValidWord, target);
+          return;
+        }
+      }
+    }
+    
+    if (wordInfo) {
+      console.log('Valid word found:', wordInfo.word);
+      await addWordToVocabulary(wordInfo.word, target);
+    } else {
+      console.log('No valid word found at click position');
+    }
+  };
+
+  // 2025-01-30 16:48:45: 添加词汇到词汇表的核心逻辑
+  const addWordToVocabulary = async (word: string, element: HTMLElement) => {
+    if (!user) return;
+    
+    setIsAddingWord(true);
+    
+    // 添加高亮效果
+    setHighlightedWord({ word, element });
+    
+    try {
+      console.log('Starting to add word:', word, 'for user:', user.id);
+      const result = await vocabularyService.addVocabularyWithAI(user.id, word);
+      console.log('Word operation result:', result);
+      
+      // 根据是否是已存在的单词显示不同的成功消息
+      const isUpdate = result.lastReviewed && new Date(result.lastReviewed).getTime() > Date.now() - 10000; // 10秒内更新的
+      setWordAddSuccess(isUpdate ? `已更新: ${word}` : `已添加: ${word}`);
+      
+      // 3秒后清除成功消息和高亮
+      setTimeout(() => {
+        setWordAddSuccess(null);
+        setHighlightedWord(null);
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Error adding word to vocabulary:', error);
+      setWordAddSuccess(null);
+      setHighlightedWord(null);
+    } finally {
+      setIsAddingWord(false);
+    }
+  };
 
   // 调试：打印conversationId的传递情况
   useEffect(() => {
@@ -152,92 +290,6 @@ function Dialogue() {
       console.error('Failed to copy text: ', err);
     }
   };
-
-  // 处理文本选择
-  const handleTextSelection = (event: React.MouseEvent) => {
-    console.log('handleTextSelection called, isAuthenticated:', isAuthenticated);
-    if (!isAuthenticated) {
-      console.log('User not authenticated, skipping word selection');
-      return; // 只有登录用户才能使用选词功能
-    }
-    
-    const selection = window.getSelection();
-    console.log('Selection:', selection?.toString());
-    if (selection && selection.toString().trim()) {
-      const selectedText = selection.toString().trim();
-      console.log('Selected text:', selectedText);
-      // 检查是否为英文单词（包含字母的单词）
-      if (/^[a-zA-Z'-]+$/.test(selectedText) && selectedText.length > 1) {
-        console.log('Valid word selected, showing menu');
-        setSelectedWord(selectedText);
-        setWordMenuPosition({ x: event.clientX, y: event.clientY });
-        setShowWordMenu(true);
-      } else {
-        console.log('Invalid word pattern or too short');
-      }
-    } else {
-      console.log('No selection or empty selection');
-    }
-  };
-
-  // 添加选中的单词到词汇表
-  const handleAddWord = async () => {
-    if (!selectedWord || !user) return;
-    
-    setIsAddingWord(true);
-    try {
-      console.log('Starting to add word:', selectedWord, 'for user:', user.id);
-      const result = await vocabularyService.addVocabularyWithAI(user.id, selectedWord);
-      console.log('Word operation result:', result);
-      
-      // 根据是否是已存在的单词显示不同的成功消息
-      const isUpdate = result.lastReviewed && new Date(result.lastReviewed).getTime() > Date.now() - 10000; // 10秒内更新的
-      setWordAddSuccess(isUpdate ? `已更新: ${selectedWord}` : `已添加: ${selectedWord}`);
-      setShowWordMenu(false);
-      
-      // 3秒后清除成功消息
-      setTimeout(() => {
-        setWordAddSuccess(null);
-      }, 3000);
-    } catch (error) {
-      console.error('Error adding word to vocabulary:', error);
-      // 显示错误给用户
-      setWordAddSuccess(null);
-    } finally {
-      setIsAddingWord(false);
-    }
-  };
-
-  // 关闭选词菜单
-  const handleCloseWordMenu = () => {
-    setShowWordMenu(false);
-    setSelectedWord('');
-  };
-
-  // 点击页面其他地方关闭菜单
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showWordMenu) {
-        // 延迟一点再关闭，避免与选择文本的事件冲突
-        setTimeout(() => {
-          const target = event.target as Element;
-          // 如果点击的不是菜单本身，则关闭菜单
-          if (!target.closest('[data-word-menu]')) {
-            console.log('Clicking outside, closing word menu');
-            handleCloseWordMenu();
-          }
-        }, 100);
-      }
-    };
-
-    if (showWordMenu) {
-      document.addEventListener('click', handleClickOutside);
-    }
-    
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [showWordMenu]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -422,9 +474,15 @@ function Dialogue() {
                       sx={{ 
                         whiteSpace: 'pre-line',
                         userSelect: msg.sender === 'ai' && isAuthenticated ? 'text' : 'auto',
-                        cursor: msg.sender === 'ai' && isAuthenticated ? 'text' : 'default'
+                        cursor: msg.sender === 'ai' && isAuthenticated ? 'pointer' : 'default',
+                        // 2025-01-30 16:49:20: 双击提示样式 - 简化实现
+                        '&:hover': msg.sender === 'ai' && isAuthenticated ? {
+                          bgcolor: 'rgba(202, 236, 202, 0.1)',
+                          borderRadius: 1,
+                          transition: 'background-color 0.2s ease'
+                        } : {}
                       }}
-                      onMouseUp={msg.sender === 'ai' ? handleTextSelection : undefined}
+                      onDoubleClick={msg.sender === 'ai' && isAuthenticated ? (e) => handleDoubleClick(e, msg.text) : undefined}
                     >
                       {msg.text}
                     </Typography>
@@ -574,81 +632,47 @@ function Dialogue() {
         <div ref={messagesEndRef} />
       </Box>
 
-      {/* 选词菜单 */}
-      {showWordMenu && (() => {
-        console.log('Rendering word menu, selectedWord:', selectedWord, 'position:', wordMenuPosition, 'showWordMenu:', showWordMenu);
-        return true;
-      })() && (
-        <Box
-          data-word-menu
-          sx={{
-            position: 'fixed',
-            left: wordMenuPosition.x,
-            top: wordMenuPosition.y,
-            zIndex: 1000,
-            bgcolor: 'white',
-            border: '1px solid #ccc',
-            borderRadius: 1,
-            boxShadow: 3,
-            p: 1,
-            minWidth: 150
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Typography variant="caption" sx={{ color: '#666', px: 1, display: 'block', mb: 1 }}>
-            选中单词: "{selectedWord}"
-          </Typography>
-          <Button
-            size="small"
-            variant="contained"
-            fullWidth
-            disabled={isAddingWord}
-            onClick={handleAddWord}
+              {/* 添加成功提示 */}
+        {wordAddSuccess && (
+          <Box
             sx={{
-              bgcolor: '#4c9a4c',
-              '&:hover': { bgcolor: '#3a7a3a' },
-              fontSize: '0.75rem',
-              py: 0.5
+              position: 'fixed',
+              top: 20,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 1001,
+              bgcolor: '#4caf50',
+              color: 'white',
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              boxShadow: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
             }}
           >
-            {isAddingWord ? (
-              <>
-                <CircularProgress size={14} sx={{ color: 'white', mr: 1 }} />
-                添加中...
-              </>
-            ) : (
-              <>
-                <BookmarkAddIcon sx={{ fontSize: 14, mr: 0.5 }} />
-                添加到词汇表
-              </>
-            )}
-          </Button>
-        </Box>
-      )}
+            <Typography variant="body2">
+              {wordAddSuccess}
+            </Typography>
+          </Box>
+        )}
 
-      {/* 添加成功提示 */}
-      {wordAddSuccess && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 20,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1001,
-            bgcolor: '#4caf50',
-            color: 'white',
-            px: 3,
-            py: 1,
-            borderRadius: 2,
-            boxShadow: 3,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1
-          }}
-        >
-          <Typography variant="body2">
-            单词 "{wordAddSuccess}" 已添加到词汇表
-          </Typography>
+      {/* 使用提示 - 仅在登录状态下首次显示 */}
+      {isAuthenticated && showUsageTip && messages.some(m => m.sender === 'ai') && (
+        <Box sx={{ px: 2, py: 1 }}>
+          <Alert 
+            severity="info" 
+            onClose={() => setShowUsageTip(false)}
+            sx={{ 
+              bgcolor: '#e8f5e9', 
+              color: '#2e7d32',
+              fontSize: '0.85rem',
+              '& .MuiAlert-icon': { color: '#4caf50' }
+            }}
+          >
+            💡 双击AI回复中的英文单词可快速添加到词汇表
+          </Alert>
         </Box>
       )}
 
