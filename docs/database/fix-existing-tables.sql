@@ -28,6 +28,15 @@ BEGIN
     END IF;
 END $$;
 
+-- 添加bookmarked字段用于对话收藏功能 - 2025-01-30 15:45:12
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name='conversation_history' AND column_name='bookmarked') THEN
+        ALTER TABLE conversation_history ADD COLUMN bookmarked BOOLEAN DEFAULT false;
+    END IF;
+END $$;
+
 -- 创建缺失的表(如果不存在)
 CREATE TABLE IF NOT EXISTS phrases (
   id SERIAL PRIMARY KEY,
@@ -54,5 +63,7 @@ CREATE TABLE IF NOT EXISTS grammar_progress (
 -- 创建索引(如果不存在)
 CREATE INDEX IF NOT EXISTS idx_conversation_history_user_id ON conversation_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_conversation_history_created_at ON conversation_history(created_at DESC);
+-- 为bookmarked字段创建索引以优化查询性能 - 2025-01-30 15:45:12
+CREATE INDEX IF NOT EXISTS idx_conversation_history_bookmarked ON conversation_history(bookmarked);
 CREATE INDEX IF NOT EXISTS idx_phrases_user_id ON phrases(user_id);
 CREATE INDEX IF NOT EXISTS idx_grammar_progress_user_id ON grammar_progress(user_id);

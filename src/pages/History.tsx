@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Container, Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Paper, Button, CircularProgress, Pagination, Alert, Checkbox, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import { getConversationHistory, deleteConversationHistory, deleteMultipleConversations } from '../services/historyService';
+import { getConversationHistory, deleteConversationHistory, deleteMultipleConversations, toggleBookmarkConversation } from '../services/historyService';
 import type { Message } from '../types/chat';
 
 interface ConversationHistory {
@@ -12,6 +14,7 @@ interface ConversationHistory {
   topic: string;
   messages: Message[];
   created_at: string;
+  bookmarked?: boolean; // 添加收藏字段 - 2025-01-30 15:45:30
 }
 
 function History() {
@@ -159,6 +162,26 @@ function History() {
     }
   };
 
+  // 处理收藏/取消收藏 - 2025-01-30 15:47:00
+  const handleToggleBookmark = async (id: string, currentBookmarked: boolean) => {
+    try {
+      const newBookmarked = !currentBookmarked;
+      await toggleBookmarkConversation(id, newBookmarked);
+      
+      // 更新本地状态
+      setHistory(prev => 
+        prev.map(item => 
+          item.id === id 
+            ? { ...item, bookmarked: newBookmarked }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error('Toggle bookmark error:', error);
+      setError(t('history.bookmarkFailed'));
+    }
+  };
+
   return (
     <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0, width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>
       {/* 顶部标题栏 */}
@@ -257,6 +280,24 @@ function History() {
                       }
                       onClick={() => handleHistoryClick(conversation)}
                     />
+                    {/* 收藏按钮 - 2025-01-30 15:47:30 */}
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleBookmark(conversation.id, conversation.bookmarked || false);
+                      }}
+                      sx={{ 
+                        color: conversation.bookmarked ? '#FFD700' : '#DDD',
+                        '&:hover': { 
+                          color: conversation.bookmarked ? '#FFC107' : '#FFD700',
+                          bgcolor: 'rgba(255, 255, 255, 0.1)',
+                          transform: 'scale(1.1)'
+                        },
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      {conversation.bookmarked ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+                    </IconButton>
                     <IconButton
                       onClick={(e) => {
                         e.stopPropagation();

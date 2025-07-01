@@ -731,3 +731,323 @@ ProfileMenu.tsx
 1. 高级交互动画
 2. 性能优化
 3. 无障碍功能支持
+
+## 14. 界面优化与用户体验改进 (2025-01-30 新增)
+
+### 14.1 路由系统优化
+
+#### 14.1.1 重复路由清理
+**问题**: 存在 `/my` 和 `/profile` 两个重复路由指向同一个Profile页面，造成用户困惑。
+
+**解决方案**:
+- ✅ 删除 `/my` 路由，统一使用 `/profile` 
+- ✅ 更新底部导航从 `/my` 改为 `/profile`
+- ✅ 更新顶部导航头像点击从 `/profile` 保持不变
+- ✅ 更新国际化翻译文件保持一致性
+
+**用户体验提升**:
+- 消除路由混乱，用户访问个人页面路径统一
+- 简化导航逻辑，提升用户理解度
+
+#### 14.1.2 导航翻译优化
+**更新内容**:
+```json
+// 英文翻译更新
+"bottomNav": {
+  "profile": "Profile"  // 原 "my": "My"
+}
+
+// 中文翻译更新  
+"bottomNav": {
+  "profile": "个人资料"  // 原 "my": "我的"
+}
+```
+
+### 14.2 Profile页面用户体验优化
+
+#### 14.2.1 功能冗余清理
+**删除重复logout按钮**:
+- ✅ 移除Profile页面底部的独立logout按钮
+- ✅ 保留右上角ProfileMenu中的logout功能
+- ✅ 避免功能重复，简化用户操作
+
+**删除错误标题**:
+- ✅ 移除Profile页面左上角的"Friend Profile"标题
+- ✅ 调整布局为右对齐菜单按钮
+- ✅ 消除误导性信息，提升用户体验
+
+#### 14.2.2 界面简化设计
+- **顶部栏**: 只保留右上角ProfileMenu，布局更简洁
+- **底部按钮**: 专注于Message和Start Conversation功能
+- **一致性**: 所有设置和退出功能统一在ProfileMenu中
+
+### 14.3 Vocabulary页面功能简化
+
+#### 14.3.1 Tab结构优化
+**原有结构** (5个tab):
+- Vocabulary
+- Phrases  ❌ 已移除
+- Grammar  ❌ 已移除  
+- Topics
+- Bookmarks
+
+**优化后结构** (3个tab):
+- Vocabulary ✅ 核心词汇管理
+- Topics ✅ 话题学习
+- Bookmarks ✅ 收藏管理
+
+#### 14.3.2 功能专注化设计
+**删除内容**:
+- ✅ 移除Phrases tab及相关功能代码
+- ✅ 移除Grammar tab及相关功能代码
+- ✅ 清理相关类型定义和状态管理
+- ✅ 修复因删除组件导致的渲染错误
+
+**用户体验提升**:
+- 简化界面，专注核心词汇学习功能
+- 减少功能过载，提升使用效率
+- 消除混乱，明确功能定位
+
+#### 14.3.3 搜索功能优化
+- 更新搜索占位符：`"Search vocabulary..."` (原`"Search phrases, vocabulary, grammar..."`)
+- 专注词汇搜索，提升搜索精准度
+
+## 15. History页面收藏功能 (2025-01-30 新增)
+
+### 15.1 功能背景
+为了让用户能够将有价值的对话转化为可重复学习的话题，在History页面增加收藏功能，收藏的对话将在Vocabulary页面的Topics tab下作为个性化学习话题展示。
+
+### 15.2 核心功能设计
+
+#### 15.2.1 History页面收藏交互
+**视觉设计**:
+```
+对话条目布局:
+┌─────────────────────────────────────────┐
+│ 对话标题              [⭐] 收藏按钮     │
+│ 对话时间 · 消息数量                     │  
+│ 对话预览内容...                         │
+└─────────────────────────────────────────┘
+```
+
+**交互逻辑**:
+- 默认状态：空心星形图标 ☆
+- 收藏状态：实心金色星形图标 ⭐
+- 点击切换：收藏 ↔ 取消收藏
+- 即时反馈：点击后立即更新图标状态
+
+#### 15.2.2 Topics Tab集成显示
+**Vocabulary页面Topics tab更新**:
+```
+Topics Tab 布局:
+┌─────────────────────────────────────────┐
+│ 🎯 我的收藏话题                         │
+├─────────────────────────────────────────┤
+│ ┌─────────────────────────────────────┐ │
+│ │ 话题：Travel Planning               │ │
+│ │ 时间：2025-01-29 14:30             │ │
+│ │ [进入对话] [取消收藏]               │ │
+│ └─────────────────────────────────────┘ │
+│ ┌─────────────────────────────────────┐ │
+│ │ 话题：Business Meeting             │ │
+│ │ 时间：2025-01-28 09:15             │ │
+│ │ [进入对话] [取消收藏]               │ │
+│ └─────────────────────────────────────┘ │
+└─────────────────────────────────────────┘
+```
+
+#### 15.2.3 数据同步逻辑
+**收藏状态管理**:
+1. History页面收藏 → 立即显示在Topics tab
+2. Topics tab取消收藏 → 立即从Topics移除，History中保持显示
+3. 对话删除 → 同时从History和Topics中移除
+4. 数据持久化 → 收藏状态保存到数据库
+
+### 15.3 技术实现设计
+
+#### 15.3.1 数据库表结构
+```sql
+-- 对话收藏表
+ALTER TABLE conversations 
+ADD COLUMN bookmarked BOOLEAN DEFAULT FALSE;
+
+-- 创建索引优化查询
+CREATE INDEX idx_conversations_bookmarked 
+ON conversations(user_id, bookmarked, created_at DESC);
+```
+
+#### 15.3.2 API接口设计
+```typescript
+// 收藏/取消收藏对话
+interface BookmarkConversationRequest {
+  conversationId: string;
+  bookmarked: boolean;
+}
+
+// 获取收藏的对话列表
+interface GetBookmarkedConversationsResponse {
+  conversations: Array<{
+    id: string;
+    title: string;
+    createdAt: string;
+    messageCount: number;
+    preview: string;
+  }>;
+}
+```
+
+#### 15.3.3 组件设计
+```typescript
+// History页面组件更新
+interface ConversationItem {
+  id: string;
+  title: string;
+  createdAt: string;
+  bookmarked: boolean;
+  // ... 其他字段
+}
+
+// 收藏按钮组件
+const BookmarkButton: React.FC<{
+  conversationId: string;
+  bookmarked: boolean;
+  onToggle: (id: string, bookmarked: boolean) => void;
+}> = ({ conversationId, bookmarked, onToggle }) => {
+  return (
+    <IconButton
+      onClick={() => onToggle(conversationId, !bookmarked)}
+      sx={{ color: bookmarked ? '#FFD700' : '#DDD' }}
+    >
+      {bookmarked ? <Star /> : <StarBorder />}
+    </IconButton>
+  );
+};
+```
+
+### 15.4 用户体验设计
+
+#### 15.4.1 视觉反馈
+- **收藏动画**: 点击收藏时星形图标有放大→缩小的动画效果
+- **颜色系统**: 
+  - 未收藏：浅灰色空心星 `#DDD`
+  - 已收藏：金色实心星 `#FFD700`
+  - 悬停状态：轻微放大和高亮
+
+#### 15.4.2 操作反馈
+- **Toast提示**: 
+  - 收藏成功：`"对话已收藏到学习话题"`
+  - 取消收藏：`"已从学习话题中移除"`
+- **状态同步**: 跨页面状态实时更新，无需刷新
+
+#### 15.4.3 空状态设计
+**Topics tab无收藏时**:
+```
+┌─────────────────────────────────────────┐
+│              📚                         │
+│        还没有收藏任何话题                │
+│    去历史页面收藏感兴趣的对话吧          │
+│        [前往历史页面]                    │
+└─────────────────────────────────────────┘
+```
+
+### 15.5 国际化支持
+
+#### 15.5.1 翻译文件更新
+```json
+// en/common.json
+{
+  "bookmark": {
+    "add": "Bookmark conversation",
+    "remove": "Remove bookmark", 
+    "success": "Conversation bookmarked",
+    "removed": "Removed from topics"
+  }
+}
+
+// zh/common.json  
+{
+  "bookmark": {
+    "add": "收藏对话",
+    "remove": "取消收藏",
+    "success": "对话已收藏到学习话题", 
+    "removed": "已从学习话题中移除"
+  }
+}
+```
+
+#### 15.5.2 Topics tab翻译
+```json
+// en/learning.json
+{
+  "topics": {
+    "myBookmarks": "My Bookmarked Topics",
+    "enterConversation": "Enter Conversation",
+    "removeBookmark": "Remove Bookmark",
+    "emptyState": "No bookmarked topics yet",
+    "emptyDescription": "Bookmark interesting conversations from your history"
+  }
+}
+```
+
+### 15.6 开发优先级
+
+#### 高优先级 (P0)
+1. History页面收藏按钮UI实现
+2. 收藏状态数据库保存和同步
+3. Topics tab收藏列表显示
+
+#### 中优先级 (P1)  
+1. 收藏/取消收藏的动画效果
+2. Toast提示消息
+3. 空状态页面设计
+
+#### 低优先级 (P2)
+1. 收藏数量统计
+2. 收藏话题排序功能
+3. 批量收藏操作
+
+### 15.7 测试用例设计
+
+#### 15.7.1 功能测试
+- [ ] History页面收藏按钮点击正常
+- [ ] 收藏状态在页面间同步
+- [ ] Topics tab正确显示收藏的对话
+- [ ] 取消收藏后Topics中移除
+- [ ] 对话删除后收藏同步清理
+
+#### 15.7.2 用户体验测试  
+- [ ] 收藏动画流畅自然
+- [ ] Toast提示信息准确
+- [ ] 空状态引导清晰
+- [ ] 跨页面操作无延迟
+
+#### 15.7.3 数据一致性测试
+- [ ] 收藏状态持久化正确
+- [ ] 多设备间收藏状态同步
+- [ ] 网络异常时状态恢复
+
+## 16. 总结与下阶段规划
+
+### 16.1 本次优化成果总结
+
+#### UI/UX优化
+✅ **路由系统简化**: 删除重复路由，统一用户访问路径  
+✅ **Profile页面优化**: 删除冗余功能，简化界面布局  
+✅ **Vocabulary页面简化**: 专注核心功能，提升使用效率  
+✅ **导航一致性**: 更新翻译文件，保持界面文本统一
+
+#### 新功能设计
+🔄 **History收藏功能**: 将对话转化为可重复学习的话题资源  
+🔄 **Topics个性化**: 基于用户收藏的个性化学习话题推荐
+
+### 16.2 用户体验提升
+- **简化操作流程**: 减少冗余步骤，提升操作效率
+- **功能定位明确**: 每个页面专注核心功能，避免混乱  
+- **数据价值最大化**: 历史对话可转化为学习资源
+- **个性化学习**: 基于用户兴趣的话题推荐机制
+
+### 16.3 下阶段开发重点
+1. **History收藏功能开发** (当前优先级)
+2. **国际化体验完善** (持续优化)  
+3. **移动端响应式适配** (用户体验)
+4. **AI对话质量提升** (核心功能)

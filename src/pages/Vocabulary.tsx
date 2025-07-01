@@ -16,6 +16,7 @@ import {
   topicsService,
   bookmarksService
 } from '../services/learningService';
+import { getBookmarkedConversations } from '../services/historyService';
 import {
   Container, 
   Box, 
@@ -87,6 +88,8 @@ function Vocabulary() {
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  // 收藏对话相关状态 - 2025-01-30 15:50:00
+  const [bookmarkedConversations, setBookmarkedConversations] = useState<any[]>([]);
   
   // 添加单词状态
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -124,13 +127,15 @@ function Vocabulary() {
   const loadUserData = async () => {
     setLoading(true);
     try {
-      const [vocabData, bookmarksData] = await Promise.all([
+      const [vocabData, bookmarksData, conversationsData] = await Promise.all([
         vocabularyService.getUserVocabulary(user?.id || 'guest'),
-        user ? bookmarksService.getUserBookmarks(user.id) : Promise.resolve([])
+        user ? bookmarksService.getUserBookmarks(user.id) : Promise.resolve([]),
+        user ? getBookmarkedConversations(user.id) : Promise.resolve({ data: [] })
       ]);
       
       setVocabulary(vocabData);
       setBookmarks(bookmarksData);
+      setBookmarkedConversations(conversationsData.data || []);
     } catch (err) {
       console.error('Error loading user data:', err);
       setError('加载数据失败');
@@ -1143,7 +1148,7 @@ function Vocabulary() {
             </Box>
           )}
 
-          {/* Topics Tab */}
+          {/* Topics Tab - 收藏对话 - 2025-01-30 15:51:00 */}
           {activeTab === 'topics' && (
             <Box>
               <Typography variant="h5" sx={{ 
@@ -1154,25 +1159,95 @@ function Vocabulary() {
                 alignItems: 'center',
                 gap: 1
               }}>
-                🎯 推荐话题
+                ⭐ 收藏的对话
               </Typography>
               
-              <Paper sx={{ 
-                p: 6, 
-                textAlign: 'center', 
-                borderRadius: 4,
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
-                border: '1px solid rgba(202, 236, 202, 0.3)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
-              }}>
-                <Box sx={{ fontSize: '4rem', mb: 2 }}>✨</Box>
-                <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  话题功能即将推出
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  我们正在准备更多有趣的学习话题，让学习更加生动有趣！
-                </Typography>
-              </Paper>
+              {bookmarkedConversations.length === 0 ? (
+                <Paper sx={{ 
+                  p: 6, 
+                  textAlign: 'center', 
+                  borderRadius: 4,
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
+                  border: '1px solid rgba(202, 236, 202, 0.3)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+                }}>
+                  <Box sx={{ fontSize: '4rem', mb: 2 }}>⭐</Box>
+                  <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                    暂无收藏的对话
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                    在对话历史页面点击星标图标即可收藏有价值的对话，方便日后复习
+                  </Typography>
+                  <Button 
+                    variant="contained" 
+                    onClick={() => navigate('/history')}
+                    sx={{ 
+                      bgcolor: '#4c9a4c',
+                      '&:hover': { bgcolor: '#3d7a3d' },
+                      borderRadius: 20
+                    }}
+                  >
+                    前往对话历史
+                  </Button>
+                </Paper>
+              ) : (
+                <Grid container spacing={2}>
+                  {bookmarkedConversations.map((conversation) => (
+                    <Grid item xs={12} md={6} key={conversation.id}>
+                      <Card sx={{ 
+                        borderRadius: 3,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                        '&:hover': {
+                          boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                          transform: 'translateY(-2px)',
+                          transition: 'all 0.3s ease'
+                        }
+                      }}>
+                        <CardContent>
+                          <Typography variant="h6" sx={{ 
+                            fontWeight: 'bold', 
+                            color: '#0D1C0D',
+                            mb: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1
+                          }}>
+                            💬 {conversation.topic}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            {conversation.messages?.length || 0} 条消息 • {new Date(conversation.created_at).toLocaleDateString()}
+                          </Typography>
+                          <Typography variant="body2" sx={{ 
+                            color: '#5D895D',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}>
+                            {conversation.messages?.[conversation.messages.length - 1]?.text || '暂无消息预览'}
+                          </Typography>
+                        </CardContent>
+                        <CardActions>
+                          <Button 
+                            size="small" 
+                            onClick={() => navigate('/dialogue', {
+                              state: {
+                                topic: conversation.topic,
+                                initialMessages: conversation.messages,
+                                isHistory: true,
+                                conversationId: conversation.id
+                              }
+                            })}
+                            sx={{ color: '#4c9a4c' }}
+                          >
+                            继续对话
+                          </Button>
+                        </CardActions>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
             </Box>
           )}
         </Box>

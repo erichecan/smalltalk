@@ -44,7 +44,11 @@
     "messagesCount": "{{count}} 条消息",
     "timeJustNow": "刚刚",
     "timeHoursAgo": "{{hours}}小时前",
-    "loadingError": "加载历史失败"
+    "loadingError": "加载历史失败",
+    "bookmark": "收藏",
+    "bookmarked": "已收藏",
+    "removeBookmark": "取消收藏",
+    "bookmarkFailed": "收藏对话失败"
   },
   "buttons": {
     "cancel": "取消",

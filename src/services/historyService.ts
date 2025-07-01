@@ -64,4 +64,21 @@ export async function deleteMultipleConversations(ids: string[]) {
     .from('conversation_history')
     .delete()
     .in('id', ids);
+}
+
+// 收藏相关API - 2025-01-30 15:46:00
+export async function toggleBookmarkConversation(id: string, bookmarked: boolean) {
+  return supabase
+    .from('conversation_history')
+    .update({ bookmarked })
+    .eq('id', id);
+}
+
+export async function getBookmarkedConversations(user_id: string) {
+  return supabase
+    .from('conversation_history')
+    .select('*')
+    .eq('user_id', user_id)
+    .eq('bookmarked', true)
+    .order('created_at', { ascending: false });
 } 

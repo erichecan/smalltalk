@@ -44,7 +44,11 @@
     "messagesCount": "{{count}} messages",
     "timeJustNow": "Just now",
     "timeHoursAgo": "{{hours}}h ago",
-    "loadingError": "Failed to load history"
+    "loadingError": "Failed to load history",
+    "bookmark": "Bookmark",
+    "bookmarked": "Bookmarked",
+    "removeBookmark": "Remove bookmark",
+    "bookmarkFailed": "Failed to bookmark conversation"
   },
   "buttons": {
     "cancel": "Cancel",
