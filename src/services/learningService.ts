@@ -104,8 +104,12 @@ export const vocabularyService = {
         chinese_translation: item.chinese_translation,
         phonetic: item.phonetic,
         part_of_speech: item.part_of_speech,
-        synonyms: item.synonyms,
-        antonyms: item.antonyms,
+        synonyms: typeof item.synonyms === 'string' 
+          ? (item.synonyms ? item.synonyms.split(',').map(s => s.trim()) : [])
+          : (item.synonyms || []),
+        antonyms: typeof item.antonyms === 'string'
+          ? (item.antonyms ? item.antonyms.split(',').map(s => s.trim()) : [])
+          : (item.antonyms || []),
         difficulty_level: item.difficulty_level,
         usage_notes: item.usage_notes
       })) || MOCK_VOCABULARY;
@@ -235,8 +239,12 @@ export const vocabularyService = {
             chinese_translation: vocabularyItem.chinese_translation,
             phonetic: vocabularyItem.phonetic,
             part_of_speech: vocabularyItem.part_of_speech,
-            synonyms: vocabularyItem.synonyms,
-            antonyms: vocabularyItem.antonyms,
+            synonyms: Array.isArray(vocabularyItem.synonyms) 
+              ? vocabularyItem.synonyms.join(',') 
+              : vocabularyItem.synonyms,
+            antonyms: Array.isArray(vocabularyItem.antonyms)
+              ? vocabularyItem.antonyms.join(',')
+              : vocabularyItem.antonyms,
             difficulty_level: vocabularyItem.difficulty_level,
             usage_notes: vocabularyItem.usage_notes
           }])
@@ -259,8 +267,12 @@ export const vocabularyService = {
           chinese_translation: data.chinese_translation,
           phonetic: data.phonetic,
           part_of_speech: data.part_of_speech,
-          synonyms: data.synonyms,
-          antonyms: data.antonyms,
+          synonyms: typeof data.synonyms === 'string' 
+            ? (data.synonyms ? data.synonyms.split(',').map(s => s.trim()) : [])
+            : (data.synonyms || []),
+          antonyms: typeof data.antonyms === 'string'
+            ? (data.antonyms ? data.antonyms.split(',').map(s => s.trim()) : [])
+            : (data.antonyms || []),
           difficulty_level: data.difficulty_level,
           usage_notes: data.usage_notes
         };
