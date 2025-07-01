@@ -71,6 +71,7 @@ function Vocabulary() {
   
   // 定义loadUserData函数
   const loadUserData = async () => {
+    console.log('loadUserData called, current loading state:', loading);
     setLoading(true);
     try {
       const [vocabData, phrasesData, bookmarksData] = await Promise.all([
@@ -80,23 +81,25 @@ function Vocabulary() {
       ]);
       
       // 只显示未掌握的词汇（masteryLevel !== 2）
-      setVocabulary(vocabData.filter(v => v.masteryLevel !== 2));
+      const filteredVocab = vocabData.filter(v => v.masteryLevel !== 2);
+      setVocabulary(filteredVocab);
       setPhrases(phrasesData);
       setBookmarks(bookmarksData);
       
-      console.log(`Loaded ${vocabData.length} vocabulary, ${phrasesData.length} phrases from database`);
+      console.log(`Loaded ${filteredVocab.length} vocabulary (${vocabData.length} total), ${phrasesData.length} phrases from database`);
     } catch (err) {
       console.error('Error loading user data:', err);
       setError(t('errors.loadFailed'));
     } finally {
+      console.log('loadUserData finished, setting loading to false');
       setLoading(false);
     }
   };
   
   // 监听tab切换，当切换到vocabulary时重新加载数据（但不要频繁重载）
   useEffect(() => {
-    if (activeTab === 'vocabulary') {
-      loadUserData(); // 每次切换到vocabulary tab都重新加载，确保获取最新数据
+    if (activeTab === 'vocabulary' && vocabulary.length === 0) {
+      loadUserData(); // 只有当数据为空时才重新加载
     } else if (activeTab === 'bookmarks') {
       // 切换到收藏页面时从本地状态刷新收藏数据
       const refreshBookmarks = () => {

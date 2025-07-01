@@ -175,7 +175,10 @@ function Dialogue() {
     
     setIsAddingWord(true);
     try {
-      await vocabularyService.addVocabularyWithAI(user.id, selectedWord);
+      console.log('Starting to add word:', selectedWord, 'for user:', user.id);
+      const result = await vocabularyService.addVocabularyWithAI(user.id, selectedWord);
+      console.log('Word added successfully:', result);
+      
       setWordAddSuccess(selectedWord);
       setShowWordMenu(false);
       
@@ -185,6 +188,8 @@ function Dialogue() {
       }, 3000);
     } catch (error) {
       console.error('Error adding word to vocabulary:', error);
+      // 显示错误给用户
+      setWordAddSuccess(null);
     } finally {
       setIsAddingWord(false);
     }
