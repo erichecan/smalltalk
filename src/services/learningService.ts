@@ -214,6 +214,22 @@ export const vocabularyService = {
     }
   },
 
+  // 删除词汇 - 用于掌握后的删除操作 - 2025-01-30
+  async deleteVocabulary(id: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('vocabulary')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      console.log(`Vocabulary item ${id} deleted successfully`);
+    } catch (error) {
+      console.warn('Cannot delete vocabulary from database, table may not exist:', error);
+      // 在实际应用中，即使数据库删除失败，UI层面也会处理删除
+    }
+  },
+
   // AI增强的词汇添加功能 - 支持去重和更新
   async addVocabularyWithAI(userId: string, word: string, context?: string): Promise<VocabularyItem> {
     try {

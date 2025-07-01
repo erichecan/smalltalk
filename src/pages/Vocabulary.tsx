@@ -213,26 +213,52 @@ function Vocabulary() {
     }
   }, [user]);
 
-  // 切换掌握状态
+  // 掌握单词 - 点击掌握后删除单词 - 2025-01-30
   const toggleMastery = useCallback(async (vocabularyItem: VocabularyItem) => {
-    const newLevel = vocabularyItem.masteryLevel === 2 ? 0 : 2;
-    
-    try {
-      await vocabularyService.updateVocabulary(vocabularyItem.id, { 
-        masteryLevel: newLevel,
-        lastReviewed: new Date().toISOString()
-      });
-      
-      setVocabulary(prev => prev.map(v => 
-        v.id === vocabularyItem.id ? { ...v, masteryLevel: newLevel } : v
-      ));
-      
-      setSuccess(newLevel === 2 ? '已标记为掌握' : '已标记为未掌握');
-    } catch (err) {
-      console.error('Error toggling mastery:', err);
-      setError('更新学习状态失败');
+    // 如果已经掌握，取消掌握（恢复单词）
+    if (vocabularyItem.masteryLevel === 2) {
+      try {
+        await vocabularyService.updateVocabulary(vocabularyItem.id, { 
+          masteryLevel: 0,
+          lastReviewed: new Date().toISOString()
+        });
+        
+        setVocabulary(prev => prev.map(v => 
+          v.id === vocabularyItem.id ? { ...v, masteryLevel: 0 } : v
+        ));
+        
+        setAlert({ type: 'info', message: '已取消掌握，单词恢复到学习列表' });
+        setShowAlert(true);
+      } catch (err) {
+        console.error('Error updating mastery:', err);
+        setAlert({ type: 'error', message: '操作失败，请稍后重试' });
+        setShowAlert(true);
+      }
+      return;
     }
-  }, []);
+
+    // 点击掌握 - 删除单词
+    try {
+      // 从数据库删除
+      await vocabularyService.deleteVocabulary(vocabularyItem.id);
+      
+      // 从本地状态删除
+      setVocabulary(prev => prev.filter(v => v.id !== vocabularyItem.id));
+      
+      // 同时从收藏列表删除（如果有的话）
+      if (user) {
+        const newBookmarks = await bookmarksService.getUserBookmarks(user.id);
+        setBookmarks(newBookmarks);
+      }
+      
+      setAlert({ type: 'success', message: `单词 "${vocabularyItem.word}" 已掌握并移除` });
+      setShowAlert(true);
+    } catch (err) {
+      console.error('Error mastering vocabulary:', err);
+      setAlert({ type: 'error', message: '标记掌握失败，请稍后重试' });
+      setShowAlert(true);
+    }
+  }, [user]);
 
   // 播放发音
   const playPronunciation = (word: string) => {
@@ -271,12 +297,13 @@ function Vocabulary() {
     }
   };
 
-  // 添加单词到词汇表 - 从对话页面选择的单词 - 2025-01-30 16:40:22
+  // 添加单词到词汇表 - 支持手动添加和对话选择 - 2025-01-30
   const handleAddWord = async (word: string, definition?: string) => {
     if (!isAuthenticated || !user) {
       setAlert({ type: 'error', message: '请先登录后再添加词汇' });
       setShowAlert(true);
       setShowWordMenu(false);
+      setAddWordError('请先登录后再添加词汇');
       return;
     }
 
@@ -284,6 +311,7 @@ function Vocabulary() {
       setAlert({ type: 'error', message: '单词不能为空' });
       setShowAlert(true);
       setShowWordMenu(false);
+      setAddWordError('单词不能为空');
       return;
     }
 
@@ -293,29 +321,39 @@ function Vocabulary() {
       setAlert({ type: 'info', message: '该单词已在词汇表中' });
       setShowAlert(true);
       setShowWordMenu(false);
+      setAddWordError('该单词已在词汇表中');
       return;
     }
 
-    const newWord: VocabularyItem = {
-      id: Date.now().toString(),
-      word: word.trim(),
-      definition: definition || '',
-      part_of_speech: '',
-      pronunciation: '',
-      example: '',
-      usage_notes: '',
-      masteryLevel: 0,
-      bookmarked: false,
-      source: 'conversation' as const,
-      synonyms: [],
-      antonyms: [],
-      createdAt: new Date().toISOString()
-    };
+    // 开始添加流程
+    setIsAddingWord(true);
+    setAddWordError(null);
 
-    setVocabulary(prev => [newWord, ...prev]);
-    setAlert({ type: 'success', message: '词汇已添加' });
-    setShowAlert(true);
-    setShowWordMenu(false);
+    try {
+      // 使用AI获取单词详细信息
+      const result = await vocabularyService.addVocabularyWithAI(user.id, word.trim());
+      
+      // 添加到本地状态
+      setVocabulary(prev => [result, ...prev]);
+      
+      // 显示成功消息
+      setAlert({ type: 'success', message: `单词 "${word}" 已成功添加到词汇表` });
+      setShowAlert(true);
+      
+      // 清理状态
+      setShowWordMenu(false);
+      setShowAddDialog(false);
+      setNewWord('');
+      
+    } catch (error) {
+      console.error('添加单词失败:', error);
+      const errorMessage = '添加单词失败，请稍后重试';
+      setAlert({ type: 'error', message: errorMessage });
+      setShowAlert(true);
+      setAddWordError(errorMessage);
+    } finally {
+      setIsAddingWord(false);
+    }
   };
 
   // 关闭选词菜单
@@ -468,8 +506,6 @@ function Vocabulary() {
               sx={{ 
                 color: '#0D1C0D',
                 fontWeight: 'bold',
-                textDecoration: item.masteryLevel === 2 ? 'line-through' : 'none',
-                opacity: item.masteryLevel === 2 ? 0.7 : 1,
                 mb: 1,
                 wordBreak: 'break-word'
               }}
@@ -676,19 +712,20 @@ function Vocabulary() {
           <IconButton
             onClick={() => toggleMastery(item)}
             sx={{
-              color: item.masteryLevel === 2 ? '#4CAF50' : '#DDD',
+              color: '#DDD',
               bgcolor: 'rgba(255, 255, 255, 0.9)',
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
               '&:hover': {
-                color: item.masteryLevel === 2 ? '#66BB6A' : '#4CAF50',
+                color: '#4CAF50',
                 bgcolor: 'rgba(255, 255, 255, 1)',
                 transform: 'scale(1.1)',
                 boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
               },
               transition: 'all 0.3s ease'
             }}
+            title="标记为掌握（将删除此单词）"
           >
-            {item.masteryLevel === 2 ? <CheckCircleIcon /> : <CheckCircleOutlineIcon />}
+            <CheckCircleOutlineIcon />
           </IconButton>
         </Box>
       </Box>
@@ -979,29 +1016,54 @@ function Vocabulary() {
                 }}>
                   📚 我的词汇表
                 </Typography>
-                <Button
-                  variant="contained"
-                  size="medium"
-                  onClick={() => setShowImportDialog(true)}
-                  startIcon={<UploadIcon />}
-                  sx={{ 
-                    bgcolor: '#4c9a4c',
-                    color: 'white',
-                    borderRadius: 3,
-                    px: 3,
-                    py: 1.5,
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    '&:hover': { 
-                      bgcolor: '#3d7a3d',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 8px 25px rgba(76, 154, 76, 0.4)'
-                    },
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  导入词汇
-                </Button>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    size="medium"
+                    onClick={() => setShowAddDialog(true)}
+                    sx={{ 
+                      color: '#4c9a4c',
+                      borderColor: '#4c9a4c',
+                      borderRadius: 3,
+                      px: 3,
+                      py: 1.5,
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      '&:hover': { 
+                        bgcolor: 'rgba(76, 154, 76, 0.1)',
+                        borderColor: '#3d7a3d',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 25px rgba(76, 154, 76, 0.2)'
+                      },
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    + 添加单词
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="medium"
+                    onClick={() => setShowImportDialog(true)}
+                    startIcon={<UploadIcon />}
+                    sx={{ 
+                      bgcolor: '#4c9a4c',
+                      color: 'white',
+                      borderRadius: 3,
+                      px: 3,
+                      py: 1.5,
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      '&:hover': { 
+                        bgcolor: '#3d7a3d',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 25px rgba(76, 154, 76, 0.4)'
+                      },
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    导入词汇
+                  </Button>
+                </Box>
               </Box>
               
               {vocabulary.length === 0 ? (
@@ -1292,6 +1354,76 @@ function Vocabulary() {
             </Button>
           </Paper>
         )}
+
+        {/* 手动添加单词对话框 - 2025-01-30 */}
+        <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ pb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#0D1C0D' }}>
+              添加新单词
+            </Typography>
+          </DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              fullWidth
+              label="输入单词"
+              value={newWord}
+              onChange={(e) => setNewWord(e.target.value)}
+              placeholder="例如：hello"
+              variant="outlined"
+              margin="normal"
+              disabled={isAddingWord}
+              sx={{ 
+                mt: 1,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2
+                }
+              }}
+            />
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2, mb: 1 }}>
+              AI 将自动为您生成单词的释义、例句和发音信息
+            </Typography>
+            {addWordError && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {addWordError}
+              </Alert>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 3 }}>
+            <Button 
+              onClick={() => {
+                setShowAddDialog(false);
+                setNewWord('');
+                setAddWordError(null);
+              }}
+              disabled={isAddingWord}
+            >
+              取消
+            </Button>
+            <Button 
+              variant="contained"
+              onClick={() => {
+                if (newWord.trim()) {
+                  handleAddWord(newWord.trim());
+                }
+              }}
+              disabled={!newWord.trim() || isAddingWord}
+              sx={{ 
+                bgcolor: '#4c9a4c',
+                '&:hover': { bgcolor: '#3d7a3d' }
+              }}
+            >
+              {isAddingWord ? (
+                <>
+                  <CircularProgress size={16} sx={{ color: 'white', mr: 1 }} />
+                  添加中...
+                </>
+              ) : (
+                '添加单词'
+              )}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {/* 文件导入对话框 */}
         <Dialog open={showImportDialog} onClose={() => setShowImportDialog(false)}>
