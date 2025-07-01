@@ -155,17 +155,28 @@ function Dialogue() {
 
   // 处理文本选择
   const handleTextSelection = (event: React.MouseEvent) => {
-    if (!isAuthenticated) return; // 只有登录用户才能使用选词功能
+    console.log('handleTextSelection called, isAuthenticated:', isAuthenticated);
+    if (!isAuthenticated) {
+      console.log('User not authenticated, skipping word selection');
+      return; // 只有登录用户才能使用选词功能
+    }
     
     const selection = window.getSelection();
+    console.log('Selection:', selection?.toString());
     if (selection && selection.toString().trim()) {
       const selectedText = selection.toString().trim();
+      console.log('Selected text:', selectedText);
       // 检查是否为英文单词（包含字母的单词）
       if (/^[a-zA-Z'-]+$/.test(selectedText) && selectedText.length > 1) {
+        console.log('Valid word selected, showing menu');
         setSelectedWord(selectedText);
         setWordMenuPosition({ x: event.clientX, y: event.clientY });
         setShowWordMenu(true);
+      } else {
+        console.log('Invalid word pattern or too short');
       }
+    } else {
+      console.log('No selection or empty selection');
     }
   };
 
