@@ -19,7 +19,10 @@ const Layout = () => {
     <Box sx={{ 
       minHeight: '100vh',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      width: '100%',
+      maxWidth: '100vw',
+      overflowX: 'hidden'
     }}>
       {/* 顶部导航 */}
       {showTopNav && <TopNav />}

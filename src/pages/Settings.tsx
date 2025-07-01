@@ -263,7 +263,10 @@ function Settings() {
       sx={{
         minHeight: '100vh',
         backgroundColor: 'white',
-        fontFamily: 'Inter, "Noto Sans", sans-serif'
+        fontFamily: 'Inter, "Noto Sans", sans-serif',
+        width: '100%',
+        maxWidth: '100vw',
+        overflowX: 'hidden'
       }}
     >
       {/* Header */}

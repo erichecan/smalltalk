@@ -644,10 +644,11 @@ function Vocabulary() {
 
       {/* 使用提示 */}
       {item.usage_notes && (
-        <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+        <div className="mt-2 p-2 bg-blue-50 rounded-lg" style={{ maxWidth: '100%', wordBreak: 'break-word' }}>
           <p 
             className="text-blue-700 text-xs cursor-text hover:bg-blue-100 rounded p-1 -m-1"
             onMouseUp={handleTextSelection}
+            style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
           >
             <span className="material-icons text-sm mr-1">lightbulb</span>
             {item.usage_notes}
@@ -739,7 +740,7 @@ function Vocabulary() {
       });
 
   return (
-    <div className="relative flex size-full min-h-screen flex-col bg-[#F8FCF8] justify-between overflow-x-hidden" style={{ fontFamily: '"Spline Sans", "Noto Sans", sans-serif' }}>
+    <div className="relative flex size-full min-h-screen flex-col bg-[#F8FCF8] justify-between overflow-x-hidden" style={{ fontFamily: '"Spline Sans", "Noto Sans", sans-serif', width: '100%', maxWidth: '100vw' }}>
       {/* Header with Language Switcher */}
       <header className="sticky top-0 z-10 bg-[#F8FCF8]">
         <div className="flex items-center p-4 pb-2 justify-between">

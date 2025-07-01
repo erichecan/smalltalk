@@ -17,7 +17,7 @@ function Profile() {
   };
 
   return (
-    <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0, fontFamily: 'Spline Sans, Noto Sans, sans-serif' }}>
+    <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0, fontFamily: 'Spline Sans, Noto Sans, sans-serif', width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>
       {/* 顶部栏 */}
       <Box sx={{ position: 'sticky', top: 0, zIndex: 10, bgcolor: 'rgba(248,252,248,0.8)', backdropFilter: 'blur(8px)', px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 0 }}>
         <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>{t('profile.friendProfile')}</Typography>

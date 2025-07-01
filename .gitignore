@@ -54,3 +54,5 @@ Desktop.ini
 
 # IDE
 .cursor/
+# Google OAuth credentials
+docs/config/client_secret_*.json

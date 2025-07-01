@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import GoogleIcon from '@mui/icons-material/Google';
 
-// 迁移 original-html/Login.html 设计稿，使用 MUI 组件还原设计，并集成 Firebase Auth 登录功能
+// 迁移 original-html/Login.html 设计稿，使用 MUI 组件还原设计，并集成 Supabase Auth 登录功能 - 2025-01-30 14:25:30
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,16 +17,20 @@ function Login() {
   const navigate = useNavigate();
   const { t } = useTranslation('auth');
 
-  // Google 登录（假设 useAuth 里有 googleLogin 方法）
+  // Google OAuth 登录处理 - 2025-01-30 14:25:30
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError(null);
     try {
+      console.log('Initiating Google OAuth login...');
       await googleLogin();
+      console.log('Google login successful, navigating to topic page');
       navigate('/topic');
     } catch (error) {
       console.error('Google login error:', error);
-      setError(t('login.errors.googleLoginFailed'));
+      // 提供更详细的错误信息
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setError(`${t('login.errors.googleLoginFailed')}: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -51,7 +55,7 @@ function Login() {
   };
 
   return (
-    <Container sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: '#F9FBF9', p: 2 }}>
+    <Container sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: '#F9FBF9', p: 2, width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>
       <Box sx={{ width: '100%', maxWidth: 400, textAlign: 'center', mt: 6 }}>
         {/* 顶部图标 */}
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
@@ -93,7 +97,33 @@ function Login() {
             <Divider sx={{ borderColor: '#D0E0D0' }} />
             <Typography variant="body2" sx={{ bgcolor: '#F9FBF9', px: 2, color: '#708C70', position: 'absolute', left: '50%', top: -14, transform: 'translateX(-50%)' }}>{mode === 'login' ? t('login.orContinueWith') : t('register.orContinueWith')}</Typography>
           </Box>
-          <Button variant="outlined" fullWidth sx={{ borderColor: '#D0E0D0', color: '#111811', borderRadius: 28, py: 1.5, mb: 2, '&:hover': { bgcolor: 'grey.50' } }} onClick={handleGoogleLogin} startIcon={<GoogleIcon />}>{t('login.googleButton')}</Button>
+          <Button 
+            variant="outlined" 
+            fullWidth 
+            sx={{ 
+              borderColor: '#dadce0', 
+              color: '#3c4043', 
+              borderRadius: 28, 
+              py: 1.5, 
+              mb: 2, 
+              fontWeight: 500,
+              textTransform: 'none',
+              '&:hover': { 
+                bgcolor: '#f8f9fa',
+                borderColor: '#dadce0',
+                boxShadow: '0 1px 2px 0 rgba(60,64,67,.30), 0 1px 3px 1px rgba(60,64,67,.15)'
+              },
+              '&:disabled': {
+                borderColor: '#dadce0',
+                color: '#5f6368'
+              }
+            }} 
+            onClick={handleGoogleLogin} 
+            startIcon={loading ? <CircularProgress size={20} sx={{ color: '#4285f4' }} /> : <GoogleIcon sx={{ color: '#4285f4' }} />}
+            disabled={loading}
+          >
+            {loading ? t('login.loggingIn') : t('login.googleButton')}
+          </Button>
           <Button variant="text" fullWidth sx={{ color: '#111811', borderRadius: 28, py: 1.5, '&:hover': { bgcolor: '#EAF1EA' } }} onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
             {mode === 'login' ? t('login.switchToRegister') : t('register.switchToLogin')}
           </Button>

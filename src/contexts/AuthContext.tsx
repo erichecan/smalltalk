@@ -70,8 +70,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const googleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-    if (error) throw error;
+    // Google OAuth 登录 - 配置重定向URL以支持本地开发和生产环境 - 2025-01-30 14:26:45
+    const { error } = await supabase.auth.signInWithOAuth({ 
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/topic'
+      }
+    });
+    if (error) {
+      console.error('Supabase Google OAuth error:', error);
+      throw error;
+    }
   };
 
   const updateUserProfile = async (data: { displayName?: string; photoURL?: string }) => {

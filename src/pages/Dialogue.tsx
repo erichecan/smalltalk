@@ -322,7 +322,7 @@ function Dialogue() {
   };
 
   return (
-    <Container sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f8fcf8', p: 0 }}>
+    <Container sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f8fcf8', p: 0, width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>
       {/* 顶部话题栏 - 微信风格 */}
       <Box sx={{ 
         bgcolor: '#CAECCA', 
@@ -407,7 +407,7 @@ function Dialogue() {
                     />
                   )}
                   <Paper sx={{
-                    px: 2, py: 1, maxWidth: 320,
+                    px: 2, py: 1, maxWidth: 'min(320px, calc(100vw - 100px))', wordBreak: 'break-word',
                     bgcolor: msg.sender === 'user' ? '#CAECCA' : (msg.bubbleColor || '#fff'),
                     color: '#0d1b0d',
                     borderRadius: msg.sender === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',

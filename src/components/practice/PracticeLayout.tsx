@@ -32,7 +32,7 @@ export default function PracticeLayout() {
   };
 
   return (
-    <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0 }}>
+    <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0, width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>
       {/* Header */}
       <Box sx={{
         position: 'sticky',
