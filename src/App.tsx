@@ -26,7 +26,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_relativeSplatPath: true }}>
           <Suspense fallback={<div>Loading...</div>}>
             <Routes>
               <Route path="/test" element={<TestPage />} />
