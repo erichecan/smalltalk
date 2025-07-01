@@ -82,23 +82,39 @@ CREATE INDEX IF NOT EXISTS idx_conversation_history_created_at ON conversation_h
 
 -- 为了数据完整性，添加一些约束
 -- vocabulary表约束
-ALTER TABLE vocabulary 
-ADD CONSTRAINT IF NOT EXISTS chk_mastery_level 
-CHECK (mastery_level >= 0 AND mastery_level <= 2);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_mastery_level') THEN
+    ALTER TABLE vocabulary ADD CONSTRAINT chk_mastery_level 
+    CHECK (mastery_level >= 0 AND mastery_level <= 2);
+  END IF;
+END $$;
 
 -- grammar_progress表约束
-ALTER TABLE grammar_progress 
-ADD CONSTRAINT IF NOT EXISTS chk_progress_percentage 
-CHECK (progress_percentage >= 0 AND progress_percentage <= 100);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_progress_percentage') THEN
+    ALTER TABLE grammar_progress ADD CONSTRAINT chk_progress_percentage 
+    CHECK (progress_percentage >= 0 AND progress_percentage <= 100);
+  END IF;
+END $$;
 
 -- 创建唯一约束避免重复数据
-ALTER TABLE vocabulary 
-ADD CONSTRAINT IF NOT EXISTS unq_vocabulary_user_word 
-UNIQUE (user_id, word);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'unq_vocabulary_user_word') THEN
+    ALTER TABLE vocabulary ADD CONSTRAINT unq_vocabulary_user_word 
+    UNIQUE (user_id, word);
+  END IF;
+END $$;
 
-ALTER TABLE grammar_progress 
-ADD CONSTRAINT IF NOT EXISTS unq_grammar_progress_user_topic 
-UNIQUE (user_id, grammar_topic);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'unq_grammar_progress_user_topic') THEN
+    ALTER TABLE grammar_progress ADD CONSTRAINT unq_grammar_progress_user_topic 
+    UNIQUE (user_id, grammar_topic);
+  END IF;
+END $$;
 
 -- 注释说明
 COMMENT ON TABLE vocabulary IS '用户词汇表';
