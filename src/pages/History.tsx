@@ -14,7 +14,7 @@ interface ConversationHistory {
   created_at: string;
 }
 
-export default function History() {
+function History() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation('chat');
@@ -340,4 +340,6 @@ export default function History() {
       </Dialog>
     </Container>
   );
-} 
+}
+
+export default History; 

@@ -49,7 +49,7 @@ const slateColors = {
   red700: '#b91c1c'
 };
 
-export default function Settings() {
+function Settings() {
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
   const { user } = useAuth();
@@ -394,4 +394,6 @@ export default function Settings() {
       </Container>
     </Box>
   );
-} 
+}
+
+export default Settings; 

@@ -1,7 +1,7 @@
 import { Container, Box, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
-export default function NotFound() {
+function NotFound() {
   const navigate = useNavigate();
   return (
     <Container sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: '#f8fcf8' }}>
@@ -13,4 +13,6 @@ export default function NotFound() {
       </Box>
     </Container>
   );
-} 
+}
+
+export default NotFound; 

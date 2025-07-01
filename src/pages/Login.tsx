@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import GoogleIcon from '@mui/icons-material/Google';
 
 // 迁移 original-html/Login.html 设计稿，使用 MUI 组件还原设计，并集成 Firebase Auth 登录功能
-export default function Login() {
+function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -106,4 +106,6 @@ export default function Login() {
       )}
     </Container>
   );
-} 
+}
+
+export default Login; 

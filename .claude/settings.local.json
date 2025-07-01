@@ -15,7 +15,20 @@
       "Bash(lsof:*)",
       "Bash(pkill:*)",
       "Bash(true)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(gh pr view:*)",
+      "Bash(git checkout:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(git tag:*)",
+      "Bash(find:*)",
+      "Bash(node:*)",
+      "Bash(for file in src/pages/*.tsx)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(tail:*)",
+      "Bash(done)",
+      "Bash(npm run build:*)",
+      "Bash(git restore:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

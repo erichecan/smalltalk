@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { saveConversationHistory } from '../services/historyService';
 import TopNav from '../components/TopNav';
 
-export default function TopicInput() {
+function TopicInput() {
   const { t } = useTranslation('chat');
   const [topic, setTopic] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +90,7 @@ export default function TopicInput() {
         user_id: user.id,
         topic: trimmed,
         messages: [
-          { id: 1, sender: 'user', text: trimmed },
+          { id: 1, sender: 'user' as const, text: trimmed },
           ...aiMessages
         ]
       });
@@ -187,4 +187,6 @@ export default function TopicInput() {
       </Container>
     </>
   );
-} 
+}
+
+export default TopicInput; 

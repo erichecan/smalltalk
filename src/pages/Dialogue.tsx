@@ -12,7 +12,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { saveConversationHistory, updateConversationHistory } from '../services/historyService';
 import { vocabularyService } from '../services/learningService';
 
-export default function Dialogue() {
+function Dialogue() {
   const { t } = useTranslation('chat');
   const location = useLocation();
   const navigate = useNavigate();
@@ -704,3 +704,5 @@ export default function Dialogue() {
     </Container>
   );
 }
+
+export default Dialogue;

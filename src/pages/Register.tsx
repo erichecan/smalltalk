@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
 // 迁移 original-html/Registration.html 设计稿，使用 MUI 组件还原设计，并集成 Firebase Auth 注册功能
-export default function Register() {
+function Register() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -84,4 +84,6 @@ export default function Register() {
       )}
     </Container>
   );
-} 
+}
+
+export default Register; 

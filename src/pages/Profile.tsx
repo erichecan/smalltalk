@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileMenu from '../components/ProfileMenu';
 
-export default function Profile() {
+function Profile() {
   const navigate = useNavigate();
   const { logout, isAuthenticated } = useAuth();
   const { t } = useTranslation('auth');
@@ -84,4 +84,6 @@ export default function Profile() {
       </Box>
     </Container>
   );
-} 
+}
+
+export default Profile; 

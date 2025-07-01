@@ -19,7 +19,7 @@ import {
   bookmarksService
 } from '../services/learningService';
 
-export default function Vocabulary() {
+function Vocabulary() {
   const { t } = useTranslation('learning');
   const { changeLanguage, currentLanguage, supportedLanguages } = useLanguage();
   const { user, isAuthenticated } = useAuth();
@@ -55,6 +55,82 @@ export default function Vocabulary() {
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   
+  // 添加单词状态
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newWord, setNewWord] = useState('');
+  const [isAddingWord, setIsAddingWord] = useState(false);
+  const [addWordError, setAddWordError] = useState<string | null>(null);
+  
+  // 批量导入状态
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importResults, setImportResults] = useState<{ success: VocabularyItem[], errors: string[] } | null>(null);
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
+  
+  // 定义loadUserData函数
+  const loadUserData = async () => {
+    setLoading(true);
+    try {
+      const [vocabData, phrasesData, bookmarksData] = await Promise.all([
+        vocabularyService.getUserVocabulary(user?.id || 'guest'),
+        phrasesService.getUserPhrases(user?.id || 'guest'),
+        user ? bookmarksService.getUserBookmarks(user.id) : Promise.resolve([])
+      ]);
+      
+      // 只显示未掌握的词汇（masteryLevel !== 2）
+      setVocabulary(vocabData.filter(v => v.masteryLevel !== 2));
+      setPhrases(phrasesData);
+      setBookmarks(bookmarksData);
+    } catch (err) {
+      console.error('Error loading user data:', err);
+      setError(t('errors.loadFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // 监听tab切换，当切换到vocabulary时重新加载数据（但不要频繁重载）
+  useEffect(() => {
+    if (activeTab === 'vocabulary' && vocabulary.length === 0) {
+      loadUserData(); // 只有当数据为空时才重新加载
+    } else if (activeTab === 'bookmarks') {
+      // 切换到收藏页面时从本地状态刷新收藏数据
+      const refreshBookmarks = () => {
+        const updatedBookmarks: BookmarkItem[] = [];
+        
+        // 从本地vocabulary状态获取收藏
+        vocabulary.filter(v => v.bookmarked).forEach(v => {
+          updatedBookmarks.push({
+            id: `vocab_${v.id}`,
+            type: 'vocabulary',
+            itemId: v.id,
+            content: v,
+            createdAt: v.createdAt
+          });
+        });
+        
+        // 从本地phrases状态获取收藏
+        phrases.filter(p => p.bookmarked).forEach(p => {
+          updatedBookmarks.push({
+            id: `phrase_${p.id}`,
+            type: 'phrase',
+            itemId: p.id,
+            content: p,
+            createdAt: p.createdAt
+          });
+        });
+        
+        // 按时间排序并更新状态
+        updatedBookmarks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setBookmarks(updatedBookmarks);
+      };
+      
+      refreshBookmarks();
+    }
+  }, [activeTab, user, vocabulary, phrases]);
+  
   // 添加词汇状态
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newWord, setNewWord] = useState('');
@@ -73,6 +149,16 @@ export default function Vocabulary() {
   const [selectedPhraseCategory, setSelectedPhraseCategory] = useState(t('phrases.categories.all'));
   const [selectedGrammarCategory, setSelectedGrammarCategory] = useState(t('grammar.categories.all'));
 
+  // 选词功能状态
+  const [selectedWord, setSelectedWord] = useState<string | null>(null);
+  const [showWordMenu, setShowWordMenu] = useState(false);
+  const [wordMenuPosition, setWordMenuPosition] = useState({ x: 0, y: 0 });
+  const [isAddingSelectedWord, setIsAddingSelectedWord] = useState(false);
+  const [wordAddSuccess, setWordAddSuccess] = useState<string | null>(null);
+  
+  // 成功提示状态
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   // 当语言切换时重置过滤器状态
   useEffect(() => {
     setSelectedPhraseCategory(t('phrases.categories.all'));
@@ -88,25 +174,62 @@ export default function Vocabulary() {
     }
   }, [isAuthenticated, user]);
 
-  const loadUserData = async () => {
-    setLoading(true);
-    try {
-      const [vocabData, phrasesData, bookmarksData] = await Promise.all([
-        vocabularyService.getUserVocabulary(user?.id || 'guest'),
-        phrasesService.getUserPhrases(user?.id || 'guest'),
-        user ? bookmarksService.getUserBookmarks(user.id) : Promise.resolve([])
-      ]);
+  // 监听页面可见性变化，增量同步数据而不是完全重新加载
+  useEffect(() => {
+    const syncNewVocabulary = async () => {
+      if (!user) return;
       
-      setVocabulary(vocabData);
-      setPhrases(phrasesData);
-      setBookmarks(bookmarksData);
-    } catch (err) {
-      console.error('Error loading user data:', err);
-      setError(t('errors.loadFailed'));
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        // 只获取新的词汇数据进行增量更新
+        const allVocabData = await vocabularyService.getUserVocabulary(user.id);
+        const currentVocabIds = new Set(vocabulary.map(v => v.id));
+        
+        // 找出新添加的词汇（未掌握的）
+        const newVocab = allVocabData.filter(v => 
+          v.masteryLevel !== 2 && !currentVocabIds.has(v.id)
+        );
+        
+        if (newVocab.length > 0) {
+          console.log('Found new vocabulary items:', newVocab);
+          setVocabulary(prev => [...newVocab, ...prev]);
+        }
+      } catch (err) {
+        console.error('Error syncing vocabulary:', err);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && vocabulary.length > 0) {
+        console.log('Page became visible, syncing new vocabulary...');
+        syncNewVocabulary();
+      }
+    };
+
+    const handleFocus = () => {
+      if (vocabulary.length > 0) {
+        console.log('Page gained focus, syncing new vocabulary...');
+        syncNewVocabulary();
+      }
+    };
+
+    // 添加popstate事件监听，当从其他页面返回时增量同步
+    const handlePopState = () => {
+      if (vocabulary.length > 0) {
+        console.log('Browser back/forward navigation, syncing new vocabulary...');
+        setTimeout(() => syncNewVocabulary(), 100);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isAuthenticated, user, vocabulary]);
 
   // 搜索功能
   useEffect(() => {
@@ -135,26 +258,61 @@ export default function Vocabulary() {
     try {
       if (type === 'vocabulary') {
         await vocabularyService.updateVocabulary(item.id, { bookmarked: newBookmarked });
+        // 更新vocabulary列表
         setVocabulary(prev => prev.map(v => 
           v.id === item.id ? { ...v, bookmarked: newBookmarked } : v
         ));
       } else {
         await phrasesService.updatePhraseBookmark(item.id, newBookmarked);
+        // 更新phrases列表
         setPhrases(prev => prev.map(p => 
           p.id === item.id ? { ...p, bookmarked: newBookmarked } : p
         ));
       }
       
-      // 更新收藏列表
-      if (user) {
-        const newBookmarks = await bookmarksService.getUserBookmarks(user.id);
-        setBookmarks(newBookmarks);
-      }
+      // 立即更新收藏列表 - 使用本地状态构建收藏列表以确保同步
+      const updatedBookmarks: BookmarkItem[] = [];
+      
+      // 从本地vocabulary状态获取收藏
+      vocabulary.filter(v => v.bookmarked).forEach(v => {
+        updatedBookmarks.push({
+          id: `vocab_${v.id}`,
+          type: 'vocabulary',
+          itemId: v.id,
+          content: v,
+          createdAt: v.createdAt
+        });
+      });
+      
+      // 从本地phrases状态获取收藏
+      phrases.filter(p => p.bookmarked).forEach(p => {
+        updatedBookmarks.push({
+          id: `phrase_${p.id}`,
+          type: 'phrase',
+          itemId: p.id,
+          content: p,
+          createdAt: p.createdAt
+        });
+      });
+      
+      // 按时间排序并更新状态
+      updatedBookmarks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setBookmarks(updatedBookmarks);
+      console.log('Updated bookmarks from local state:', updatedBookmarks);
+      
+      // 显示收藏状态提示
+      const itemName = 'word' in item ? item.word : item.phrase;
+      setSuccessMessage(newBookmarked ? `"${itemName}" 已添加到收藏` : `"${itemName}" 已从收藏中移除`);
+      setError(null);
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+      
     } catch (err) {
       console.error('Error toggling bookmark:', err);
       setError(t('errors.bookmarkFailed'));
     }
-  }, [user]);
+  }, [user, t, vocabulary, phrases]);
 
   // 切换掌握状态
   const toggleMastery = useCallback(async (vocabularyItem: VocabularyItem) => {
@@ -166,14 +324,27 @@ export default function Vocabulary() {
         lastReviewed: new Date().toISOString()
       });
       
-      setVocabulary(prev => prev.map(v => 
-        v.id === vocabularyItem.id ? { ...v, masteryLevel: newLevel } : v
-      ));
+      if (newLevel === 2) {
+        // 已掌握的单词从词汇列表中移除
+        setVocabulary(prev => prev.filter(v => v.id !== vocabularyItem.id));
+        
+        // 显示成功消息
+        setSuccessMessage(`单词 "${vocabularyItem.word}" 已标记为已掌握！`);
+        setError(null);
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
+      } else {
+        // 重新添加到词汇列表
+        setVocabulary(prev => prev.map(v => 
+          v.id === vocabularyItem.id ? { ...v, masteryLevel: newLevel } : v
+        ));
+      }
     } catch (err) {
       console.error('Error toggling mastery:', err);
       setError(t('errors.masteryFailed'));
     }
-  }, []);
+  }, [t]);
 
   // 添加新词汇
   const handleAddVocabulary = async () => {
@@ -293,6 +464,59 @@ export default function Vocabulary() {
     }
   };
 
+  // 处理文本选择
+  const handleTextSelection = (event: React.MouseEvent) => {
+    if (!isAuthenticated) return; // 只有登录用户才能使用选词功能
+    
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+      const selectedText = selection.toString().trim();
+      // 检查是否为英文单词（包含字母的单词）
+      if (/^[a-zA-Z'-]+$/.test(selectedText) && selectedText.length > 1) {
+        setSelectedWord(selectedText);
+        setWordMenuPosition({ x: event.clientX, y: event.clientY });
+        setShowWordMenu(true);
+      }
+    }
+  };
+
+  // 添加选中的单词到词汇表
+  const handleAddSelectedWord = async () => {
+    if (!selectedWord || !user) return;
+    
+    setIsAddingSelectedWord(true);
+    try {
+      const vocabularyItem = await vocabularyService.addVocabularyWithAI(user.id, selectedWord);
+      
+      // 添加到本地状态
+      setVocabulary(prev => [vocabularyItem, ...prev]);
+      
+      setWordAddSuccess(selectedWord);
+      setShowWordMenu(false);
+      
+      // 3秒后清除成功消息
+      setTimeout(() => {
+        setWordAddSuccess(null);
+      }, 3000);
+    } catch (error) {
+      console.error('Error adding word to vocabulary:', error);
+    } finally {
+      setIsAddingSelectedWord(false);
+    }
+  };
+
+  // 点击其他地方关闭选词菜单
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowWordMenu(false);
+    };
+
+    if (showWordMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showWordMenu]);
+
   // 获取话题图标
   const getTopicIcon = (iconName: string) => {
     const iconMap: { [key: string]: string } = {
@@ -375,11 +599,17 @@ export default function Vocabulary() {
 
       {/* 定义和翻译 */}
       <div className="mb-2">
-        <p className="text-gray-700 text-sm font-normal leading-normal mb-1">
+        <p 
+          className="text-gray-700 text-sm font-normal leading-normal mb-1 cursor-text hover:bg-gray-50 rounded p-1 -m-1"
+          onMouseUp={handleTextSelection}
+        >
           {item.definition}
         </p>
         {item.chinese_translation && (
-          <p className="text-blue-600 text-sm font-normal leading-normal">
+          <p 
+            className="text-blue-600 text-sm font-normal leading-normal cursor-text hover:bg-gray-50 rounded p-1 -m-1"
+            onMouseUp={handleTextSelection}
+          >
             {item.chinese_translation}
           </p>
         )}
@@ -387,7 +617,10 @@ export default function Vocabulary() {
 
       {/* 例句 */}
       <div className="mb-3">
-        <p className="text-gray-500 text-sm italic leading-normal">
+        <p 
+          className="text-gray-500 text-sm italic leading-normal cursor-text hover:bg-gray-50 rounded p-1 -m-1"
+          onMouseUp={handleTextSelection}
+        >
           "{item.example}"
         </p>
       </div>
@@ -425,7 +658,10 @@ export default function Vocabulary() {
       {/* 使用提示 */}
       {item.usage_notes && (
         <div className="mt-2 p-2 bg-blue-50 rounded-lg">
-          <p className="text-blue-700 text-xs">
+          <p 
+            className="text-blue-700 text-xs cursor-text hover:bg-blue-100 rounded p-1 -m-1"
+            onMouseUp={handleTextSelection}
+          >
             <span className="material-icons text-sm mr-1">lightbulb</span>
             {item.usage_notes}
           </p>
@@ -442,13 +678,22 @@ export default function Vocabulary() {
       </div>
       
       <div className="flex-1">
-        <p className="text-[#0D1C0D] text-base font-medium leading-normal">
+        <p 
+          className="text-[#0D1C0D] text-base font-medium leading-normal cursor-text hover:bg-gray-50 rounded p-1 -m-1"
+          onMouseUp={handleTextSelection}
+        >
           {item.phrase}
         </p>
-        <p className="text-gray-600 text-sm font-normal leading-normal">
+        <p 
+          className="text-gray-600 text-sm font-normal leading-normal cursor-text hover:bg-gray-50 rounded p-1 -m-1"
+          onMouseUp={handleTextSelection}
+        >
           {item.translation}
         </p>
-        <p className="text-gray-500 text-xs italic leading-normal mt-1">
+        <p 
+          className="text-gray-500 text-xs italic leading-normal mt-1 cursor-text hover:bg-gray-50 rounded p-1 -m-1"
+          onMouseUp={handleTextSelection}
+        >
           "{item.usageExample}"
         </p>
       </div>
@@ -582,6 +827,19 @@ export default function Vocabulary() {
           </div>
         </div>
       </header>
+
+      {/* Success Alert */}
+      {successMessage && (
+        <div className="mx-4 mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-green-600 text-sm">{successMessage}</p>
+          <button 
+            onClick={() => setSuccessMessage(null)}
+            className="text-green-400 hover:text-green-600 float-right p-1 rounded-lg hover:bg-green-100"
+          >
+            <span className="material-icons text-sm">close</span>
+          </button>
+        </div>
+      )}
 
       {/* Error Alert */}
       {error && (
@@ -843,6 +1101,13 @@ export default function Vocabulary() {
                 <div className="space-y-2 px-2">
                   {vocabulary.map(renderVocabularyCard)}
                 </div>
+                {vocabulary.length === 0 && (
+                  <div className="bg-white mx-4 p-8 rounded-xl shadow-sm text-center">
+                    <span className="material-icons text-gray-400 text-5xl mb-4 block">check_circle</span>
+                    <h3 className="text-[#0D1C0D] text-lg font-semibold mb-2">太棒了！</h3>
+                    <p className="text-gray-600">你已经掌握了所有词汇，继续加油学习新单词吧！</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -981,7 +1246,10 @@ export default function Vocabulary() {
                         <div className="space-y-2">
                           {bookmarks
                             .filter(b => b.type === 'vocabulary')
-                            .map(bookmark => renderVocabularyCard(bookmark.content as VocabularyItem))
+                            .map(bookmark => {
+                              const vocabItem = bookmark.content as VocabularyItem;
+                              return renderVocabularyCard(vocabItem);
+                            })
                           }
                         </div>
                       </div>
@@ -994,7 +1262,10 @@ export default function Vocabulary() {
                         <div className="space-y-2">
                           {bookmarks
                             .filter(b => b.type === 'phrase')
-                            .map(bookmark => renderPhraseCard(bookmark.content as PhraseItem))
+                            .map(bookmark => {
+                              const phraseItem = bookmark.content as PhraseItem;
+                              return renderPhraseCard(phraseItem);
+                            })
                           }
                         </div>
                       </div>
@@ -1034,3 +1305,5 @@ export default function Vocabulary() {
     </div>
   );
 }
+
+export default Vocabulary;
