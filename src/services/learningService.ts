@@ -76,6 +76,23 @@ const MOCK_PHRASES: PhraseItem[] = [
 
 // 词汇相关服务
 export const vocabularyService = {
+  // 解析字符串数组（支持JSON格式和逗号分隔格式）
+  parseStringArray(str: string): string[] {
+    if (!str) return [];
+    
+    try {
+      // 尝试解析JSON格式
+      const parsed = JSON.parse(str);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(item => typeof item === 'string');
+      }
+    } catch (e) {
+      // JSON解析失败，尝试逗号分隔
+    }
+    
+    // 逗号分隔格式
+    return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+  },
   // 获取用户词汇
   async getUserVocabulary(userId: string): Promise<VocabularyItem[]> {
     try {
@@ -105,10 +122,10 @@ export const vocabularyService = {
         phonetic: item.phonetic,
         part_of_speech: item.part_of_speech,
         synonyms: typeof item.synonyms === 'string' 
-          ? (item.synonyms ? item.synonyms.split(',').map(s => s.trim()) : [])
+          ? (item.synonyms ? this.parseStringArray(item.synonyms) : [])
           : (item.synonyms || []),
         antonyms: typeof item.antonyms === 'string'
-          ? (item.antonyms ? item.antonyms.split(',').map(s => s.trim()) : [])
+          ? (item.antonyms ? this.parseStringArray(item.antonyms) : [])
           : (item.antonyms || []),
         difficulty_level: item.difficulty_level,
         usage_notes: item.usage_notes
@@ -240,10 +257,10 @@ export const vocabularyService = {
             phonetic: vocabularyItem.phonetic,
             part_of_speech: vocabularyItem.part_of_speech,
             synonyms: Array.isArray(vocabularyItem.synonyms) 
-              ? vocabularyItem.synonyms.join(',') 
+              ? JSON.stringify(vocabularyItem.synonyms) 
               : vocabularyItem.synonyms,
             antonyms: Array.isArray(vocabularyItem.antonyms)
-              ? vocabularyItem.antonyms.join(',')
+              ? JSON.stringify(vocabularyItem.antonyms)
               : vocabularyItem.antonyms,
             difficulty_level: vocabularyItem.difficulty_level,
             usage_notes: vocabularyItem.usage_notes
@@ -268,10 +285,10 @@ export const vocabularyService = {
           phonetic: data.phonetic,
           part_of_speech: data.part_of_speech,
           synonyms: typeof data.synonyms === 'string' 
-            ? (data.synonyms ? data.synonyms.split(',').map(s => s.trim()) : [])
+            ? (data.synonyms ? this.parseStringArray(data.synonyms) : [])
             : (data.synonyms || []),
           antonyms: typeof data.antonyms === 'string'
-            ? (data.antonyms ? data.antonyms.split(',').map(s => s.trim()) : [])
+            ? (data.antonyms ? this.parseStringArray(data.antonyms) : [])
             : (data.antonyms || []),
           difficulty_level: data.difficulty_level,
           usage_notes: data.usage_notes
