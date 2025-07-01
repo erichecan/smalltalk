@@ -188,9 +188,11 @@ function Dialogue() {
     try {
       console.log('Starting to add word:', selectedWord, 'for user:', user.id);
       const result = await vocabularyService.addVocabularyWithAI(user.id, selectedWord);
-      console.log('Word added successfully:', result);
+      console.log('Word operation result:', result);
       
-      setWordAddSuccess(selectedWord);
+      // 根据是否是已存在的单词显示不同的成功消息
+      const isUpdate = result.lastReviewed && new Date(result.lastReviewed).getTime() > Date.now() - 10000; // 10秒内更新的
+      setWordAddSuccess(isUpdate ? `已更新: ${selectedWord}` : `已添加: ${selectedWord}`);
       setShowWordMenu(false);
       
       // 3秒后清除成功消息

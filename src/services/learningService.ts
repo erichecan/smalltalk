@@ -214,10 +214,21 @@ export const vocabularyService = {
     }
   },
 
-  // AI增强的词汇添加功能
+  // AI增强的词汇添加功能 - 支持去重和更新
   async addVocabularyWithAI(userId: string, word: string, context?: string): Promise<VocabularyItem> {
     try {
       console.log(`Adding vocabulary with AI enhancement: ${word}`);
+      
+      // 先检查单词是否已存在
+      const { data: existingWords, error: checkError } = await supabase
+        .from('vocabulary')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('word', word.toLowerCase());
+      
+      if (checkError) {
+        console.warn('Error checking existing vocabulary:', checkError);
+      }
       
       // 调用AI获取词汇信息
       const aiInfo = await getVocabularyInfo(word);
@@ -240,19 +251,18 @@ export const vocabularyService = {
         usage_notes: aiInfo.usage_notes
       };
 
-      // 尝试保存到数据库
-      try {
+      // 如果单词已存在，更新现有记录
+      if (existingWords && existingWords.length > 0) {
+        const existingWord = existingWords[0];
+        console.log(`Word "${word}" already exists, updating existing record`);
+        
         const { data, error } = await supabase
           .from('vocabulary')
-          .insert([{
-            user_id: userId,
-            word: vocabularyItem.word,
+          .update({
+            // 更新定义等信息为最新的AI生成内容
             definition: vocabularyItem.definition,
             example: vocabularyItem.example,
             pronunciation: vocabularyItem.pronunciation,
-            source: vocabularyItem.source,
-            mastery_level: vocabularyItem.masteryLevel,
-            bookmarked: vocabularyItem.bookmarked,
             chinese_translation: vocabularyItem.chinese_translation,
             phonetic: vocabularyItem.phonetic,
             part_of_speech: vocabularyItem.part_of_speech,
@@ -263,10 +273,71 @@ export const vocabularyService = {
               ? JSON.stringify(vocabularyItem.antonyms)
               : vocabularyItem.antonyms,
             difficulty_level: vocabularyItem.difficulty_level,
-            usage_notes: vocabularyItem.usage_notes
-          }])
+            usage_notes: vocabularyItem.usage_notes,
+            // 重置掌握等级（重新遇到说明需要复习）
+            mastery_level: Math.max(0, existingWord.mastery_level - 1),
+            // 更新最后复习时间
+            last_reviewed: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingWord.id)
           .select()
           .single();
+          
+        if (error) throw error;
+        
+        return {
+          id: data.id,
+          word: data.word,
+          definition: data.definition,
+          example: data.example,
+          pronunciation: data.pronunciation,
+          source: data.source,
+          masteryLevel: data.mastery_level,
+          bookmarked: data.bookmarked,
+          createdAt: data.created_at,
+          lastReviewed: data.last_reviewed,
+          chinese_translation: data.chinese_translation,
+          phonetic: data.phonetic,
+          part_of_speech: data.part_of_speech,
+          synonyms: typeof data.synonyms === 'string' 
+            ? (data.synonyms ? this.parseStringArray(data.synonyms) : [])
+            : (data.synonyms || []),
+          antonyms: typeof data.antonyms === 'string'
+            ? (data.antonyms ? this.parseStringArray(data.antonyms) : [])
+            : (data.antonyms || []),
+          difficulty_level: data.difficulty_level,
+          usage_notes: data.usage_notes
+        };
+      }
+
+      // 如果单词不存在，创建新记录
+      console.log(`Creating new vocabulary record for: ${word}`);
+      const { data, error } = await supabase
+        .from('vocabulary')
+        .insert([{
+          user_id: userId,
+          word: vocabularyItem.word.toLowerCase(), // 统一小写存储
+          definition: vocabularyItem.definition,
+          example: vocabularyItem.example,
+          pronunciation: vocabularyItem.pronunciation,
+          source: vocabularyItem.source,
+          mastery_level: vocabularyItem.masteryLevel,
+          bookmarked: vocabularyItem.bookmarked,
+          chinese_translation: vocabularyItem.chinese_translation,
+          phonetic: vocabularyItem.phonetic,
+          part_of_speech: vocabularyItem.part_of_speech,
+          synonyms: Array.isArray(vocabularyItem.synonyms) 
+            ? JSON.stringify(vocabularyItem.synonyms) 
+            : vocabularyItem.synonyms,
+          antonyms: Array.isArray(vocabularyItem.antonyms)
+            ? JSON.stringify(vocabularyItem.antonyms)
+            : vocabularyItem.antonyms,
+          difficulty_level: vocabularyItem.difficulty_level,
+          usage_notes: vocabularyItem.usage_notes
+        }])
+        .select()
+        .single();
         
         if (error) throw error;
         
