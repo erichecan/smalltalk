@@ -8,18 +8,30 @@
     "bookmarks": "Bookmarks"
   },
   "search": {
-    "placeholder": "Search phrases, vocabulary, grammar...",
+    "placeholder": "Search vocabulary...",
     "results": "Search Results",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "vocabularyResults": "Vocabulary",
+    "topicsResults": "Bookmarked Conversations",
+    "foundVocabulary": "📚 Found {{count}} words",
+    "foundTopics": "🎯 Found {{count}} topics"
   },
   "vocabulary": {
-    "title": "Vocabulary from Conversations",
+    "title": "My Vocabulary",
     "mastered": "Mastered",
     "learning": "Learning",
     "notLearned": "Not Learned",
     "playPronunciation": "Play pronunciation",
-    "markAsMastered": "Mark as mastered",
+    "markAsMastered": "Mark as mastered (will remove word)",
+    "markAsMasteredTooltip": "Mark as mastered (will remove word)",
     "markAsLearning": "Mark as learning",
+    "bookmark": "Bookmark",
+    "unbookmark": "Remove bookmark",
+    "bookmarked": "Bookmarked",
+    "unbookmarked": "Removed from bookmarks",
+    "mastered": "Word \"{{word}}\" mastered and removed",
+    "unmastered": "Cancelled mastery, word restored to learning list",
+    "doubleClickTip": "Double-click words in text to quickly add to vocabulary",
     "add": {
       "title": "Add New Word",
       "wordLabel": "English Word",
@@ -28,7 +40,13 @@
       "submit": "Add Word",
       "adding": "Adding...",
       "emptyWord": "Please enter a word",
-      "failed": "Failed to add word. Please try again."
+      "success": "Word \"{{word}}\" successfully added to vocabulary",
+      "failed": "Failed to add word. Please try again.",
+      "inputLabel": "Enter word",
+      "inputPlaceholder": "e.g.: hello",
+      "aiHelp": "AI will automatically generate word definitions, examples and pronunciation",
+      "cancel": "Cancel",
+      "adding": "Adding..."
     },
     "import": {
       "title": "Import Vocabulary",
@@ -47,7 +65,23 @@
       "moreErrors": "...and {{count}} more errors",
       "invalidFileType": "Please select a TXT or CSV file",
       "fileTooLarge": "File size must be less than 1MB",
-      "failed": "Failed to import file. Please try again."
+      "readFailed": "Failed to read file, please check file format",
+      "wordExists": "\"{{word}}\" already exists",
+      "invalidFormat": "\"{{word}}\" invalid format",
+      "processingError": "Error processing \"{{line}}\"",
+      "failed": "Failed to import file. Please try again.",
+      "dialogDescription": "Supports .txt and .csv format files. One word per line, or comma separated.",
+      "selectFile": "Select File",
+      "importing": "Importing...",
+      "cancel": "Cancel"
+    },
+    "empty": {
+      "title": "Start Your Learning Journey",
+      "description": "No vocabulary added yet. Select words in conversations or use the import feature to start building your personal vocabulary collection."
+    },
+    "actions": {
+      "addWord": "Add Word",
+      "importVocabulary": "Import Vocabulary"
     }
   },
   "phrases": {
@@ -96,20 +130,20 @@
     }
   },
   "topics": {
-    "title": "Learning Topics",
-    "smallTalk": "Small Talk",
-    "orderingFood": "Ordering Food",
-    "travel": "Travel",
-    "work": "Work",
-    "shopping": "Shopping",
-    "healthcare": "Healthcare",
-    "descriptions": {
-      "smallTalk": "Daily conversations",
-      "orderingFood": "Restaurant phrases",
-      "travel": "Travel English",
-      "work": "Business English",
-      "shopping": "Shopping English",
-      "healthcare": "Medical English"
+    "title": "Bookmarked Conversations",
+    "empty": {
+      "title": "No bookmarked conversations yet",
+      "description": "Click the star icon on conversation history page to bookmark valuable conversations for easy review later",
+      "action": "Go to History"
+    },
+    "conversationInfo": "{{count}} messages • {{date}}",
+    "noPreview": "No message preview",
+    "continueConversation": "Continue Conversation",
+    "selectedWord": "Selected word: \"{{word}}\"",
+    "addToVocabulary": "Add to Vocabulary",
+    "actions": {
+      "enterConversation": "Enter Conversation",
+      "removeBookmark": "Remove Bookmark"
     }
   },
   "bookmarks": {
@@ -127,6 +161,10 @@
     "loadFailed": "Failed to load data",
     "updateFailed": "Failed to update",
     "bookmarkFailed": "Failed to update bookmark status",
-    "masteryFailed": "Failed to update learning status"
+    "masteryFailed": "Failed to update learning status",
+    "addWordFailed": "Failed to add word, please try again",
+    "loginRequired": "Please login first to add vocabulary",
+    "wordExists": "This word is already in your vocabulary",
+    "operationFailed": "Operation failed, please try again"
   }
 }

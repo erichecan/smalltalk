@@ -8,18 +8,30 @@
     "bookmarks": "收藏"
   },
   "search": {
-    "placeholder": "搜索短语、词汇、语法...",
+    "placeholder": "搜索词汇...",
     "results": "搜索结果",
-    "noResults": "未找到结果"
+    "noResults": "未找到结果",
+    "vocabularyResults": "词汇",
+    "topicsResults": "收藏对话",
+    "foundVocabulary": "📚 找到 {{count}} 个单词",
+    "foundTopics": "🎯 找到 {{count}} 个话题"
   },
   "vocabulary": {
-    "title": "来自对话的词汇",
+    "title": "我的词汇表",
     "mastered": "已掌握",
     "learning": "学习中",
     "notLearned": "未学习",
     "playPronunciation": "播放发音",
-    "markAsMastered": "标记为已掌握",
+    "markAsMastered": "标记为已掌握（将删除此单词）",
+    "markAsMasteredTooltip": "标记为掌握（将删除此单词）",
     "markAsLearning": "标记为学习中",
+    "bookmark": "收藏",
+    "unbookmark": "取消收藏",
+    "bookmarked": "已收藏",
+    "unbookmarked": "已取消收藏",
+    "mastered": "单词 \"{{word}}\" 已掌握并移除",
+    "unmastered": "已取消掌握，单词恢复到学习列表",
+    "doubleClickTip": "双击文本中的单词可快速添加到词汇表",
     "add": {
       "title": "添加新单词",
       "wordLabel": "英文单词",
@@ -28,7 +40,13 @@
       "submit": "添加单词",
       "adding": "添加中...",
       "emptyWord": "请输入单词",
-      "failed": "添加单词失败，请重试。"
+      "success": "单词 \"{{word}}\" 已成功添加到词汇表",
+      "failed": "添加单词失败，请重试。",
+      "inputLabel": "输入单词",
+      "inputPlaceholder": "例如：hello",
+      "aiHelp": "AI 将自动为您生成单词的释义、例句和发音信息",
+      "cancel": "取消",
+      "adding": "添加中..."
     },
     "import": {
       "title": "导入词汇表",
@@ -46,8 +64,24 @@
       "errorCount": "{{count}}个单词导入失败",
       "moreErrors": "...还有{{count}}个错误",
       "invalidFileType": "请选择TXT或CSV文件",
-      "fileTooLarge": "文件大小不能超过1MB",
-      "failed": "导入文件失败，请重试。"
+      "fileTooLarge": "文件大小不能超过1MB", 
+      "readFailed": "文件读取失败，请检查文件格式",
+      "wordExists": "\"{{word}}\" 已存在",
+      "invalidFormat": "\"{{word}}\" 格式无效",
+      "processingError": "处理 \"{{line}}\" 时出错",
+      "failed": "导入文件失败，请重试。",
+      "dialogDescription": "支持 .txt 和 .csv 格式的文件。每行一个单词，或使用逗号分隔。",
+      "selectFile": "选择文件",
+      "importing": "导入中...",
+      "cancel": "取消"
+    },
+    "empty": {
+      "title": "开始你的学习之旅",
+      "description": "还没有添加任何词汇。在对话中选择单词或通过导入功能添加词汇，开始建立你的个人词汇库。"
+    },
+    "actions": {
+      "addWord": "添加单词",
+      "importVocabulary": "导入词汇"
     }
   },
   "phrases": {
@@ -96,20 +130,20 @@
     }
   },
   "topics": {
-    "title": "学习话题",
-    "smallTalk": "日常聊天",
-    "orderingFood": "点餐用语",
-    "travel": "旅行英语",
-    "work": "职场英语",
-    "shopping": "购物英语",
-    "healthcare": "医疗英语",
-    "descriptions": {
-      "smallTalk": "日常对话",
-      "orderingFood": "餐厅用语",
-      "travel": "旅行英语",
-      "work": "商务英语",
-      "shopping": "购物英语",
-      "healthcare": "医疗英语"
+    "title": "收藏的对话",
+    "empty": {
+      "title": "暂无收藏的对话",
+      "description": "在对话历史页面点击星标图标即可收藏有价值的对话，方便日后复习",
+      "action": "前往对话历史"
+    },
+    "conversationInfo": "{{count}} 条消息 • {{date}}",
+    "noPreview": "暂无消息预览",
+    "continueConversation": "继续对话",
+    "selectedWord": "选中的单词: \"{{word}}\"",
+    "addToVocabulary": "添加到词汇表",
+    "actions": {
+      "enterConversation": "进入对话",
+      "removeBookmark": "取消收藏"
     }
   },
   "bookmarks": {
@@ -127,6 +161,10 @@
     "loadFailed": "加载数据失败",
     "updateFailed": "更新失败",
     "bookmarkFailed": "更新收藏状态失败",
-    "masteryFailed": "更新学习状态失败"
+    "masteryFailed": "更新学习状态失败",
+    "addWordFailed": "添加单词失败，请稍后重试",
+    "loginRequired": "请先登录后再添加词汇",
+    "wordExists": "该单词已在词汇表中",
+    "operationFailed": "操作失败，请稍后重试"
   }
 }

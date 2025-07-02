@@ -139,7 +139,7 @@ function Vocabulary() {
       setBookmarkedConversations(conversationsData.data || []);
     } catch (err) {
       console.error('Error loading user data:', err);
-      setError('加载数据失败');
+      setError(t('errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -187,7 +187,10 @@ function Vocabulary() {
           id: conv.id,
           name: conv.topic,
           icon: '💬',
-          description: `${conv.messages?.length || 0} 条消息 • ${new Date(conv.created_at).toLocaleDateString()}`,
+          description: t('topics.conversationInfo', { 
+          count: conv.messages?.length || 0, 
+          date: new Date(conv.created_at).toLocaleDateString() 
+        }),
           conversation: conv
         }))
       });
@@ -213,10 +216,10 @@ function Vocabulary() {
         setBookmarks(newBookmarks);
       }
       
-      setSuccess(newBookmarked ? '已收藏' : '已取消收藏');
+      setSuccess(newBookmarked ? t('vocabulary.bookmarked') : t('vocabulary.unbookmarked'));
     } catch (err) {
       console.error('Error toggling bookmark:', err);
-      setError('更新收藏状态失败');
+      setError(t('errors.bookmarkFailed'));
     }
   }, [user]);
 
@@ -234,11 +237,11 @@ function Vocabulary() {
           v.id === vocabularyItem.id ? { ...v, masteryLevel: 0 } : v
         ));
         
-        setAlert({ type: 'info', message: '已取消掌握，单词恢复到学习列表' });
+        setAlert({ type: 'info', message: t('vocabulary.unmastered') });
         setShowAlert(true);
       } catch (err) {
         console.error('Error updating mastery:', err);
-        setAlert({ type: 'error', message: '操作失败，请稍后重试' });
+        setAlert({ type: 'error', message: t('errors.operationFailed') });
         setShowAlert(true);
       }
       return;
@@ -258,11 +261,11 @@ function Vocabulary() {
         setBookmarks(newBookmarks);
       }
       
-      setAlert({ type: 'success', message: `单词 "${vocabularyItem.word}" 已掌握并移除` });
+      setAlert({ type: 'success', message: t('vocabulary.mastered', { word: vocabularyItem.word }) });
       setShowAlert(true);
     } catch (err) {
       console.error('Error mastering vocabulary:', err);
-      setAlert({ type: 'error', message: '标记掌握失败，请稍后重试' });
+      setAlert({ type: 'error', message: t('errors.masteryFailed') });
       setShowAlert(true);
     }
   }, [user]);
@@ -425,28 +428,29 @@ function Vocabulary() {
   // 添加单词到词汇表 - 支持手动添加和对话选择 - 2025-01-30
   const handleAddWord = async (word: string, definition?: string) => {
     if (!isAuthenticated || !user) {
-      setAlert({ type: 'error', message: '请先登录后再添加词汇' });
+      setAlert({ type: 'error', message: t('errors.loginRequired') });
       setShowAlert(true);
       setShowWordMenu(false);
-      setAddWordError('请先登录后再添加词汇');
+      setAddWordError(t('errors.loginRequired'));
       return;
     }
 
     if (!word.trim()) {
-      setAlert({ type: 'error', message: '单词不能为空' });
+      const emptyWordMessage = t('vocabulary.add.emptyWord');
+      setAlert({ type: 'error', message: emptyWordMessage });
       setShowAlert(true);
       setShowWordMenu(false);
-      setAddWordError('单词不能为空');
+      setAddWordError(emptyWordMessage);
       return;
     }
 
     // 检查是否已存在
     const existingWord = vocabulary.find(v => v.word.toLowerCase() === word.toLowerCase());
     if (existingWord) {
-      setAlert({ type: 'info', message: '该单词已在词汇表中' });
+      setAlert({ type: 'info', message: t('errors.wordExists') });
       setShowAlert(true);
       setShowWordMenu(false);
-      setAddWordError('该单词已在词汇表中');
+      setAddWordError(t('errors.wordExists'));
       return;
     }
 
@@ -462,7 +466,7 @@ function Vocabulary() {
       setVocabulary(prev => [result, ...prev]);
       
       // 显示成功消息
-      setAlert({ type: 'success', message: `单词 "${word}" 已成功添加到词汇表` });
+      setAlert({ type: 'success', message: t('vocabulary.add.success', { word }) });
       setShowAlert(true);
       
       // 清理状态
@@ -472,7 +476,7 @@ function Vocabulary() {
       
     } catch (error) {
       console.error('添加单词失败:', error);
-      const errorMessage = '添加单词失败，请稍后重试';
+      const errorMessage = t('errors.addWordFailed');
       setAlert({ type: 'error', message: errorMessage });
       setShowAlert(true);
       setAddWordError(errorMessage);
@@ -551,20 +555,20 @@ function Vocabulary() {
               setVocabulary(prev => [newItem, ...prev]);
               results.success.push(word);
             } else {
-              results.errors.push(`"${word}" 已存在`);
+              results.errors.push(t('vocabulary.import.wordExists', { word }));
             }
           } else {
-            results.errors.push(`"${word}" 格式无效`);
+            results.errors.push(t('vocabulary.import.invalidFormat', { word }));
           }
         } catch (err) {
-          results.errors.push(`处理 "${line}" 时出错`);
+          results.errors.push(t('vocabulary.import.processingError', { line }));
         }
       }
       
       setImportResults(results);
       
     } catch (err) {
-      setImportError('文件读取失败，请检查文件格式');
+      setImportError(t('vocabulary.import.readFailed'));
     } finally {
       setIsImporting(false);
     }
@@ -751,7 +755,7 @@ function Vocabulary() {
               transition: 'all 0.3s ease'
             }}
             onDoubleClick={(e) => handleDoubleClick(e, item.usage_notes || '')}
-            title="双击文本中的单词可快速添加到词汇表"
+                            title={t('vocabulary.doubleClickTip')}
           >
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
               <LightbulbIcon sx={{ fontSize: 18, color: '#1976D2', mt: 0.1, flexShrink: 0 }} />
@@ -835,7 +839,7 @@ function Vocabulary() {
               },
               transition: 'all 0.3s ease'
             }}
-            title="标记为掌握（将删除此单词）"
+                            title={t('vocabulary.markAsMasteredTooltip')}
           >
             <CheckCircleOutlineIcon />
           </IconButton>
@@ -870,7 +874,7 @@ function Vocabulary() {
               textAlign: 'center',
               textShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}>
-              Learning Center
+{t('title')}
             </Typography>
           </Box>
 
@@ -878,7 +882,7 @@ function Vocabulary() {
           <Box sx={{ px: 3, pb: 3 }}>
             <TextField
               fullWidth
-              placeholder="Search vocabulary..."
+              placeholder={t('search.placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               InputProps={{
@@ -945,9 +949,9 @@ function Vocabulary() {
                 }
               }}
             >
-              <Tab label="Vocabulary" value="vocabulary" />
-              <Tab label="Bookmarks" value="bookmarks" />
-              <Tab label="Topics" value="topics" />
+              <Tab label={t('tabs.vocabulary')} value="vocabulary" />
+              <Tab label={t('tabs.bookmarks')} value="bookmarks" />
+              <Tab label={t('tabs.topics')} value="topics" />
             </Tabs>
           </Box>
         </Paper>
@@ -981,7 +985,7 @@ function Vocabulary() {
                 gap: 1
               }}>
                 <SearchIcon />
-                搜索结果
+{t('search.results')}
               </Typography>
               
               {/* 单词搜索结果 */}
@@ -995,7 +999,7 @@ function Vocabulary() {
                     alignItems: 'center',
                     gap: 1
                   }}>
-                    📚 找到 {searchResults.vocabulary.length} 个单词
+{t('search.foundVocabulary', { count: searchResults.vocabulary.length })}
                   </Typography>
                   <Box sx={{ 
                     display: 'grid', 
@@ -1018,7 +1022,7 @@ function Vocabulary() {
                     alignItems: 'center',
                     gap: 1
                   }}>
-                    🎯 找到 {searchResults.topics.length} 个话题
+{t('search.foundTopics', { count: searchResults.topics.length })}
                   </Typography>
                   <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(300px, 1fr))' } }}>
                     {searchResults.topics.map((topic) => (
@@ -1085,7 +1089,7 @@ function Vocabulary() {
                   alignItems: 'center',
                   gap: 1
                 }}>
-                  📚 我的词汇表
+📚 {t('vocabulary.title')}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <Button
@@ -1109,7 +1113,7 @@ function Vocabulary() {
                       transition: 'all 0.3s ease'
                     }}
                   >
-                    + 添加单词
++ {t('vocabulary.actions.addWord')}
                   </Button>
                   <Button
                     variant="contained"
@@ -1132,7 +1136,7 @@ function Vocabulary() {
                       transition: 'all 0.3s ease'
                     }}
                   >
-                    导入词汇
+{t('vocabulary.actions.importVocabulary')}
                   </Button>
                 </Box>
               </Box>
@@ -1152,10 +1156,10 @@ function Vocabulary() {
                 }}>
                   <Box sx={{ fontSize: '4rem', mb: 2 }}>📖</Box>
                   <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    开始你的学习之旅
+                    {t('vocabulary.empty.title')}
                   </Typography>
                   <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto' }}>
-                    还没有添加任何词汇。在对话中选择单词或通过导入功能添加词汇，开始建立你的个人词汇库。
+                    {t('vocabulary.empty.description')}
                   </Typography>
                 </Paper>
               ) : (
@@ -1185,7 +1189,7 @@ function Vocabulary() {
                 alignItems: 'center',
                 gap: 1
               }}>
-                ⭐ 我的收藏
+⭐ {t('bookmarks.title')}
               </Typography>
               
               {bookmarks.length === 0 ? (
@@ -1198,10 +1202,10 @@ function Vocabulary() {
                 }}>
                   <BookmarkBorderIcon sx={{ fontSize: '4rem', color: 'text.secondary', mb: 2 }} />
                   <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    还没有收藏任何内容
+                    {t('bookmarks.empty.title')}
                   </Typography>
                   <Typography variant="body1" color="text.secondary">
-                    点击书签图标来收藏你喜欢的学习材料
+                    {t('bookmarks.empty.description')}
                   </Typography>
                 </Paper>
               ) : (
@@ -1217,7 +1221,7 @@ function Vocabulary() {
                         alignItems: 'center',
                         gap: 1
                       }}>
-                        📚 词汇收藏
+📚 {t('bookmarks.sections.vocabulary')}
                       </Typography>
                       <Box sx={{ 
                         display: 'grid', 
@@ -1248,7 +1252,7 @@ function Vocabulary() {
                 alignItems: 'center',
                 gap: 1
               }}>
-                ⭐ 收藏的对话
+⭐ {t('topics.title')}
               </Typography>
               
               {bookmarkedConversations.length === 0 ? (
@@ -1262,10 +1266,10 @@ function Vocabulary() {
                 }}>
                   <Box sx={{ fontSize: '4rem', mb: 2 }}>⭐</Box>
                   <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    暂无收藏的对话
+                    {t('topics.empty.title')}
                   </Typography>
                   <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                    在对话历史页面点击星标图标即可收藏有价值的对话，方便日后复习
+                    {t('topics.empty.description')}
                   </Typography>
                   <Button 
                     variant="contained" 
@@ -1276,7 +1280,7 @@ function Vocabulary() {
                       borderRadius: 20
                     }}
                   >
-                    前往对话历史
+                    {t('topics.empty.action')}
                   </Button>
                 </Paper>
               ) : (
@@ -1304,7 +1308,10 @@ function Vocabulary() {
                             💬 {conversation.topic}
                           </Typography>
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            {conversation.messages?.length || 0} 条消息 • {new Date(conversation.created_at).toLocaleDateString()}
+{t('topics.conversationInfo', { 
+                              count: conversation.messages?.length || 0, 
+                              date: new Date(conversation.created_at).toLocaleDateString() 
+                            })}
                           </Typography>
                           <Typography variant="body2" sx={{ 
                             color: '#5D895D',
@@ -1313,7 +1320,7 @@ function Vocabulary() {
                             WebkitBoxOrient: 'vertical',
                             overflow: 'hidden'
                           }}>
-                            {conversation.messages?.[conversation.messages.length - 1]?.text || '暂无消息预览'}
+{conversation.messages?.[conversation.messages.length - 1]?.text || t('topics.noPreview')}
                           </Typography>
                         </CardContent>
                         <CardActions>
@@ -1329,7 +1336,7 @@ function Vocabulary() {
                             })}
                             sx={{ color: '#4c9a4c' }}
                           >
-                            继续对话
+{t('topics.continueConversation')}
                           </Button>
                         </CardActions>
                       </Card>
@@ -1356,7 +1363,7 @@ function Vocabulary() {
             }}
           >
             <Typography variant="subtitle2" gutterBottom>
-              选中的单词: "{selectedWord}"
+              {t('topics.selectedWord', { word: selectedWord })}
             </Typography>
             <Button
               variant="contained"
@@ -1372,7 +1379,7 @@ function Vocabulary() {
                 '&:hover': { bgcolor: '#B8E0B8' }
               }}
             >
-              添加到词汇表
+{t('topics.addToVocabulary')}
             </Button>
           </Paper>
         )}
@@ -1381,17 +1388,17 @@ function Vocabulary() {
         <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} maxWidth="sm" fullWidth>
           <DialogTitle sx={{ pb: 2 }}>
             <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#0D1C0D' }}>
-              添加新单词
+              {t('vocabulary.add.title')}
             </Typography>
           </DialogTitle>
           <DialogContent>
             <TextField
               autoFocus
               fullWidth
-              label="输入单词"
+              label={t('vocabulary.add.inputLabel')}
               value={newWord}
               onChange={(e) => setNewWord(e.target.value)}
-              placeholder="例如：hello"
+              placeholder={t('vocabulary.add.inputPlaceholder')}
               variant="outlined"
               margin="normal"
               disabled={isAddingWord}
@@ -1403,7 +1410,7 @@ function Vocabulary() {
               }}
             />
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2, mb: 1 }}>
-              AI 将自动为您生成单词的释义、例句和发音信息
+              {t('vocabulary.add.aiHelp')}
             </Typography>
             {addWordError && (
               <Alert severity="error" sx={{ mt: 2 }}>
@@ -1420,7 +1427,7 @@ function Vocabulary() {
               }}
               disabled={isAddingWord}
             >
-              取消
+{t('vocabulary.add.cancel')}
             </Button>
             <Button 
               variant="contained"
@@ -1438,10 +1445,10 @@ function Vocabulary() {
               {isAddingWord ? (
                 <>
                   <CircularProgress size={16} sx={{ color: 'white', mr: 1 }} />
-                  添加中...
+                  {t('vocabulary.add.adding')}
                 </>
               ) : (
-                '添加单词'
+                t('vocabulary.add.submit')
               )}
             </Button>
           </DialogActions>
@@ -1449,11 +1456,11 @@ function Vocabulary() {
 
         {/* 文件导入对话框 */}
         <Dialog open={showImportDialog} onClose={() => setShowImportDialog(false)}>
-          <DialogTitle>导入词汇</DialogTitle>
+          <DialogTitle>{t('vocabulary.import.title')}</DialogTitle>
           <DialogContent>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              支持 .txt 和 .csv 格式的文件。每行一个单词，或使用逗号分隔。
-            </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {t('vocabulary.import.dialogDescription')}
+              </Typography>
             <Button
               variant="outlined"
               component="label"
@@ -1461,7 +1468,7 @@ function Vocabulary() {
               disabled={isImporting}
               sx={{ mb: 2 }}
             >
-              {isImporting ? '导入中...' : '选择文件'}
+{isImporting ? t('vocabulary.import.importing') : t('vocabulary.import.selectFile')}
               <input
                 type="file"
                 accept=".txt,.csv"
@@ -1477,7 +1484,7 @@ function Vocabulary() {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setShowImportDialog(false)}>取消</Button>
+            <Button onClick={() => setShowImportDialog(false)}>{t('vocabulary.import.cancel')}</Button>
           </DialogActions>
         </Dialog>
 
