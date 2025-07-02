@@ -6,6 +6,7 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { usePageContext } from '../contexts/PageContext';
 import { getConversationHistory, deleteConversationHistory, deleteMultipleConversations, toggleBookmarkConversation } from '../services/historyService';
 import type { Message } from '../types/chat';
 
@@ -21,6 +22,7 @@ function History() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation('chat');
+  const { setPageState } = usePageContext();
   const [history, setHistory] = useState<ConversationHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +67,14 @@ function History() {
   useEffect(() => {
     loadHistory(currentPage);
   }, [user, currentPage, loadHistory]);
+
+  // 初始化页面状态 - 2025-01-30 08:47:00
+  useEffect(() => {
+    setPageState({
+      page: '/history'
+      // 移除subPage，避免干扰正常导航
+    });
+  }, [setPageState]);
 
   // 处理分页变化
   const handlePageChange = (_event: React.ChangeEvent<unknown>, page: number) => {

@@ -2,10 +2,20 @@ import { Container, Box, Typography, Avatar, Paper, LinearProgress, Chip, Stack,
 import ChatIcon from '@mui/icons-material/Chat';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
+import { usePageContext } from '../contexts/PageContext';
 import ProfileMenu from '../components/ProfileMenu';
 
 function Profile() {
   const { t } = useTranslation('auth');
+  const { setPageState } = usePageContext();
+
+  // 初始化页面状态 - 2025-01-30 08:48:00
+  useEffect(() => {
+    setPageState({
+      page: '/profile'
+    });
+  }, [setPageState]);
 
   return (
     <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0, fontFamily: 'Spline Sans, Noto Sans, sans-serif', width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>

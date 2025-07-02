@@ -128,7 +128,14 @@ export const vocabularyService = {
           ? (item.antonyms ? this.parseStringArray(item.antonyms) : [])
           : (item.antonyms || []),
         difficulty_level: item.difficulty_level,
-        usage_notes: item.usage_notes
+        usage_notes: item.usage_notes,
+        // 遗忘曲线字段 - 2025-01-30 23:05:00
+        ease_factor: item.ease_factor || 2.5,
+        interval: item.interval || 0,
+        repetitions: item.repetitions || 0,
+        next_review: item.next_review,
+        total_reviews: item.total_reviews || 0,
+        correct_reviews: item.correct_reviews || 0
       })) || MOCK_VOCABULARY;
     } catch (error) {
       console.warn('Error fetching vocabulary, using mock data:', error);
@@ -136,7 +143,7 @@ export const vocabularyService = {
     }
   },
 
-  // 添加词汇
+  // 添加词汇 - 2025-01-30 23:00:00 增加遗忘曲线字段初始化
   async addVocabulary(userId: string, vocabulary: Omit<VocabularyItem, 'id' | 'createdAt'>): Promise<VocabularyItem> {
     try {
       const { data, error } = await supabase
@@ -157,7 +164,14 @@ export const vocabularyService = {
           synonyms: vocabulary.synonyms,
           antonyms: vocabulary.antonyms,
           difficulty_level: vocabulary.difficulty_level,
-          usage_notes: vocabulary.usage_notes
+          usage_notes: vocabulary.usage_notes,
+          // 遗忘曲线字段初始化 - 2025-01-30 23:00:00
+          ease_factor: vocabulary.ease_factor || 2.5,
+          interval: vocabulary.interval || 0,
+          repetitions: vocabulary.repetitions || 0,
+          next_review: vocabulary.next_review || null,
+          total_reviews: vocabulary.total_reviews || 0,
+          correct_reviews: vocabulary.correct_reviews || 0
         }])
         .select()
         .single();
@@ -181,7 +195,14 @@ export const vocabularyService = {
         synonyms: data.synonyms,
         antonyms: data.antonyms,
         difficulty_level: data.difficulty_level,
-        usage_notes: data.usage_notes
+        usage_notes: data.usage_notes,
+        // 遗忘曲线字段 - 2025-01-30 23:05:00
+        ease_factor: data.ease_factor,
+        interval: data.interval,
+        repetitions: data.repetitions,
+        next_review: data.next_review,
+        total_reviews: data.total_reviews,
+        correct_reviews: data.correct_reviews
       };
     } catch (error) {
       console.warn('Cannot add vocabulary to database, table may not exist:', error);

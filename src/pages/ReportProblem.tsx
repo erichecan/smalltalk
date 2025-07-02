@@ -10,8 +10,9 @@ import {
   InputLabel,
   Alert
 } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageContext } from '../contexts/PageContext';
 
 const customStyles = {
   colors: {
@@ -24,6 +25,7 @@ const customStyles = {
 
 function ReportProblem() {
   const { t } = useTranslation();
+  const { setPageState } = usePageContext();
   const [formData, setFormData] = useState({
     category: '',
     subject: '',
@@ -32,6 +34,13 @@ function ReportProblem() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // 初始化页面状态 - 2025-01-30 08:49:00
+  useEffect(() => {
+    setPageState({
+      page: '/report-problem'
+    });
+  }, [setPageState]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

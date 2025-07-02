@@ -6,6 +6,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import BookmarkAddIcon from '@mui/icons-material/BookmarkAdd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageContext } from '../contexts/PageContext';
 import type { Message } from '../types/chat';
 import { getAIResponse } from '../services/ai';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,6 +17,7 @@ function Dialogue() {
   const { t } = useTranslation('chat');
   const location = useLocation();
   const navigate = useNavigate();
+  const { setPageState } = usePageContext();
   const topic = location.state?.topic || '';
   const initialMessages = location.state?.initialMessages || '';
   const isHistory = location.state?.isHistory || false;
@@ -396,6 +398,13 @@ function Dialogue() {
       navigate('/topic');
     }
   }, [topic, navigate]);
+
+  // 初始化页面状态 - 2025-01-30 08:46:30
+  useEffect(() => {
+    setPageState({
+      page: '/dialogue'
+    });
+  }, [setPageState]);
 
   if (!topic) {
     return null;

@@ -13,8 +13,9 @@ import {
   IconButton
 } from '@mui/material';
 import { ExpandMore, ChevronRight } from '@mui/icons-material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageContext } from '../contexts/PageContext';
 
 const customStyles = {
   colors: {
@@ -30,7 +31,15 @@ const customStyles = {
 
 function Help() {
   const { t } = useTranslation();
+  const { setPageState } = usePageContext();
   const [searchTerm, setSearchTerm] = useState('');
+
+  // 初始化页面状态 - 2025-01-30 08:48:30
+  useEffect(() => {
+    setPageState({
+      page: '/help'
+    });
+  }, [setPageState]);
 
   const helpData = [
     {

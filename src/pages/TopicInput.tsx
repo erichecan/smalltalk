@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, TextField, Button, Typography, Box, Alert, Snackbar, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageContext } from '../contexts/PageContext';
 import { getAIResponse } from '../services/ai';
 import { useAuth } from '../contexts/AuthContext';
 import { saveConversationHistory } from '../services/historyService';
@@ -9,11 +10,19 @@ import TopNav from '../components/TopNav';
 
 function TopicInput() {
   const { t } = useTranslation('chat');
+  const { setPageState } = usePageContext();
   const [topic, setTopic] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+
+  // 初始化页面状态 - 2025-01-30 08:49:30
+  useEffect(() => {
+    setPageState({
+      page: '/topic'
+    });
+  }, [setPageState]);
   console.log('TopicInput user:', user, 'isAuthenticated:', isAuthenticated);
 
   const handleSubmit = async (e: React.FormEvent) => {

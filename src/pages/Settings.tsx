@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageContext } from '../contexts/PageContext';
 import {
   Box,
   Typography,
@@ -52,7 +53,15 @@ function Settings() {
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
   const { user } = useAuth();
+  const { setPageState } = usePageContext();
   const [notifications, setNotifications] = useState(true);
+
+  // 初始化页面状态 - 2025-01-30 08:47:30
+  useEffect(() => {
+    setPageState({
+      page: '/settings'
+    });
+  }, [setPageState]);
 
   const settingsSections = [
     {

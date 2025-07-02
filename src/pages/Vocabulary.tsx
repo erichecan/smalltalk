@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { usePageContext } from '../contexts/PageContext';
 import { useLanguage } from '../hooks/useLanguage';
 import type { 
   VocabularyItem, 
@@ -74,6 +75,7 @@ function Vocabulary() {
   const { changeLanguage, currentLanguage, supportedLanguages } = useLanguage();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { pageState, setPageState } = usePageContext();
 
 
   
@@ -115,6 +117,14 @@ function Vocabulary() {
   useEffect(() => {
     loadUserData();
   }, [isAuthenticated, user]);
+
+  // 初始化页面状态 - 2025-01-30 08:46:00
+  useEffect(() => {
+    setPageState({
+      page: '/vocabulary'
+      // 移除subPage，避免干扰正常导航
+    });
+  }, [setPageState]);
 
   const loadUserData = async () => {
     setLoading(true);

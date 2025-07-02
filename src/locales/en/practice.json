@@ -1,33 +1,67 @@
 {
   "title": "Practice Center",
+  "loginRequired": {
+    "title": "Please Login to Use Practice Features",
+    "description": "Login to access the intelligent review system based on spaced repetition for optimal learning"
+  },
+  "stats": {
+    "title": "Learning Statistics",
+    "totalVocabulary": "Total Vocabulary",
+    "accuracyRate": "Accuracy Rate",
+    "masteredWords": "Mastered",
+    "learningWords": "Learning",
+    "dailyReviews": "Daily Reviews"
+  },
+  "dailyPractice": {
+    "title": "Daily Practice Plan",
+    "startButton": "Start Daily Practice",
+    "reviewWords": "Review",
+    "newWords": "New",
+    "completed": "Completed",
+    "noWords": "No vocabulary available for practice. Please add some words through conversations first."
+  },
+  "practiceMode": {
+    "title": "Practice Modes",
+    "intensivePractice": "Intensive Practice",
+    "weakPoints": "Weak Points"
+  },
+  "exercise": {
+    "inProgress": "Practice in Progress",
+    "correct": "Correct!",
+    "incorrect": "Correct answer is:",
+    "submitAnswer": "Submit Answer",
+    "nextQuestion": "Next...",
+    "completed": "Practice Completed!"
+  },
+  "loading": "Loading...",
+  "progress": "Progress",
+  "accuracy": "Accuracy",
+  "enterAnswer": "Enter your answer",
+  "correctAnswer": "Correct Answer",
+  "submit": "Submit",
+  "next": "Next",
+  "finish": "Finish",
+  "back": "Back",
+  "sessionComplete": "Session Complete",
+  "correctAnswers": "Correct Answers",
+  "exerciseType": "Exercise Type",
+  "learningStats": "Learning Statistics",
+  "totalVocabulary": "Total Vocabulary",
+  "totalSessions": "Total Sessions",
+  "averageAccuracy": "Average Accuracy",
+  "todayPlan": "Today's Practice Plan",
+  "planDescription": "Based on spaced repetition algorithm, recommended vocabulary for today's review",
+  "close": "Close",
   "tabs": {
     "exercises": "Exercises",
     "plan": "Learning Plan",
     "history": "History"
   },
-  "exercises": {
-    "title": "Choose Your Practice",
-    "quiz": {
-      "title": "Quiz Practice",
-      "description": "Test your knowledge with multiple choice questions"
-    },
-    "fillBlanks": {
-      "title": "Fill in the Blanks",
-      "description": "Complete sentences by filling in missing words"
-    },
-    "matching": {
-      "title": "Matching Exercise",
-      "description": "Match words with their correct meanings or pairs"
-    },
-    "pronunciation": {
-      "title": "Pronunciation Practice",
-      "description": "Improve your speaking skills with voice exercises"
-    },
-    "sentenceConstruction": {
-      "title": "Sentence Construction",
-      "description": "Build correct sentences using given words"
-    }
-  },
+  "chooseExercise": "Choose Your Practice",
+  "quiz": "Quizzes",
+  "quizDescription": "Test your understanding with multiple-choice or true/false questions",
+  "matching": "Matching",
+  "matchingDescription": "Match vocabulary/phrases with their definitions or examples",
   "plan": {
     "goals": {
       "title": "Learning Goals",

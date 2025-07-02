@@ -1,6 +1,7 @@
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { PageProvider } from './contexts/PageContext';
 import { lazy, Suspense } from 'react';
 import Layout from './components/Layout';
 import TestPage from './pages/TestPage';
@@ -26,28 +27,30 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <BrowserRouter future={{ v7_relativeSplatPath: true }}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Routes>
-              <Route path="/test" element={<TestPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route element={<Layout />}>
-                <Route index element={<TopicInput />} />
-                <Route path="/topic" element={<TopicInput />} />
-                <Route path="/dialogue" element={<Dialogue />} />
-                <Route path="/practice" element={<Practice />} />
-                <Route path="/vocabulary" element={<Vocabulary />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/history" element={<History />} />
-                <Route path="/help" element={<Help />} />
-                <Route path="/report-problem" element={<ReportProblem />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
+        <PageProvider>
+          <BrowserRouter future={{ v7_relativeSplatPath: true }}>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Routes>
+                <Route path="/test" element={<TestPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route element={<Layout />}>
+                  <Route index element={<TopicInput />} />
+                  <Route path="/topic" element={<TopicInput />} />
+                  <Route path="/dialogue" element={<Dialogue />} />
+                  <Route path="/practice" element={<Practice />} />
+                  <Route path="/vocabulary" element={<Vocabulary />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/history" element={<History />} />
+                  <Route path="/help" element={<Help />} />
+                  <Route path="/report-problem" element={<ReportProblem />} />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </PageProvider>
       </AuthProvider>
     </ThemeProvider>
   );

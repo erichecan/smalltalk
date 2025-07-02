@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon, Person as PersonIcon } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import { usePageContext } from '../contexts/PageContext';
 
 // 2025-01-30 17:35:00: 重新设计返回键逻辑 - 只有主入口页面不显示返回键
 // 其他所有页面统一显示返回键，提供一致的用户体验
@@ -19,13 +20,33 @@ const TopNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
+  const { pageState, goBack, canGoBack } = usePageContext();
 
   // 判断是否显示返回按钮
   const showBackButton = !noBackButtonPaths.includes(location.pathname);
 
-  // 处理返回按钮点击
+  // 处理返回按钮点击 - 2025-01-30 09:12:00
   const handleBack = () => {
-    navigate(-1);
+    console.log('TopNav handleBack called', { 
+      currentPath: location.pathname, 
+      pageState, 
+      canGoBack: canGoBack() 
+    });
+
+    // 只有在有内部导航状态时才使用PageContext，否则使用正常浏览器历史
+    if (canGoBack()) {
+      console.log('Using PageContext internal navigation goBack');
+      const handled = goBack();
+      if (!handled) {
+        // PageContext没有处理，fallback到浏览器历史
+        console.log('PageContext didn\'t handle, using browser history');
+        navigate(-1);
+      }
+    } else {
+      console.log('Using browser history navigation');
+      // 正常的浏览器历史返回
+      navigate(-1);
+    }
   };
 
   // 处理头像点击
