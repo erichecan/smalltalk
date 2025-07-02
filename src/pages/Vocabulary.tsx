@@ -61,6 +61,7 @@ import {
   CheckCircleOutline as CheckCircleOutlineIcon,
   ExpandMore as ExpandMoreIcon,
   Upload as UploadIcon,
+  Add as AddIcon,
   Error as ErrorIcon,
   CheckCircle as SuccessIcon,
   Info as InfoIcon,
@@ -917,8 +918,16 @@ function Vocabulary() {
             />
           </Box>
 
-          {/* Modern Tab Navigation */}
-          <Box sx={{ px: 3, pb: 1 }}>
+          {/* Modern Tab Navigation with Action Buttons - 2025-01-30 21:15:00 */}
+          <Box sx={{ 
+            px: 3, 
+            pb: 1, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            flexWrap: { xs: 'wrap', sm: 'nowrap' },
+            gap: { xs: 2, sm: 0 }
+          }}>
             <Tabs
               value={activeTab}
               onChange={(e, newValue) => setActiveTab(newValue)}
@@ -953,6 +962,86 @@ function Vocabulary() {
               <Tab label={t('tabs.bookmarks')} value="bookmarks" />
               <Tab label={t('tabs.topics')} value="topics" />
             </Tabs>
+            
+            {/* Vocabulary Action Buttons - 只在 vocabulary tab 显示 - 2025-01-30 21:16:00 */}
+            {activeTab === 'vocabulary' && (
+              <Box sx={{ 
+                display: 'flex', 
+                gap: { xs: 1, sm: 1.5 }, 
+                ml: { xs: 1, sm: 2 },
+                flexShrink: 0
+              }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => setShowAddDialog(true)}
+                  startIcon={<AddIcon />}
+                  sx={{ 
+                    color: '#4c9a4c',
+                    borderColor: '#4c9a4c',
+                    borderRadius: 2,
+                    px: { xs: 1.5, sm: 2 },
+                    py: 1,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    minWidth: 'auto',
+                    '& .MuiButton-startIcon': {
+                      marginLeft: 0,
+                      marginRight: { xs: 0.5, sm: 1 }
+                    },
+                    '&:hover': { 
+                      bgcolor: 'rgba(76, 154, 76, 0.1)',
+                      borderColor: '#3d7a3d',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 12px rgba(76, 154, 76, 0.2)'
+                    },
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                    {t('vocabulary.actions.addWord')}
+                  </Box>
+                  <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                    {t('vocabulary.add.submit')}
+                  </Box>
+                </Button>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => setShowImportDialog(true)}
+                  startIcon={<UploadIcon />}
+                  sx={{ 
+                    bgcolor: '#4c9a4c',
+                    color: 'white',
+                    borderRadius: 2,
+                    px: { xs: 1.5, sm: 2 },
+                    py: 1,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    minWidth: 'auto',
+                    '& .MuiButton-startIcon': {
+                      marginLeft: 0,
+                      marginRight: { xs: 0.5, sm: 1 }
+                    },
+                    '&:hover': { 
+                      bgcolor: '#3d7a3d',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 12px rgba(76, 154, 76, 0.4)'
+                    },
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                    {t('vocabulary.actions.importVocabulary')}
+                  </Box>
+                  <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                    {t('vocabulary.import.title')}
+                  </Box>
+                </Button>
+              </Box>
+            )}
           </Box>
         </Paper>
 
@@ -1081,65 +1170,17 @@ function Vocabulary() {
           {/* Vocabulary Tab */}
           {activeTab === 'vocabulary' && (
             <Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h5" sx={{ 
-                  color: '#0D1C0D', 
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1
-                }}>
-📚 {t('vocabulary.title')}
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Button
-                    variant="outlined"
-                    size="medium"
-                    onClick={() => setShowAddDialog(true)}
-                    sx={{ 
-                      color: '#4c9a4c',
-                      borderColor: '#4c9a4c',
-                      borderRadius: 3,
-                      px: 3,
-                      py: 1.5,
-                      fontWeight: 600,
-                      textTransform: 'none',
-                      '&:hover': { 
-                        bgcolor: 'rgba(76, 154, 76, 0.1)',
-                        borderColor: '#3d7a3d',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 8px 25px rgba(76, 154, 76, 0.2)'
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-+ {t('vocabulary.actions.addWord')}
-                  </Button>
-                  <Button
-                    variant="contained"
-                    size="medium"
-                    onClick={() => setShowImportDialog(true)}
-                    startIcon={<UploadIcon />}
-                    sx={{ 
-                      bgcolor: '#4c9a4c',
-                      color: 'white',
-                      borderRadius: 3,
-                      px: 3,
-                      py: 1.5,
-                      fontWeight: 600,
-                      textTransform: 'none',
-                      '&:hover': { 
-                        bgcolor: '#3d7a3d',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 8px 25px rgba(76, 154, 76, 0.4)'
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-{t('vocabulary.actions.importVocabulary')}
-                  </Button>
-                </Box>
-              </Box>
+              {/* 简化标题区域，按钮已移到tab栏 - 2025-01-30 21:16:00 */}
+              <Typography variant="h5" sx={{ 
+                color: '#0D1C0D', 
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mb: 3
+              }}>
+                📚 {t('vocabulary.title')}
+              </Typography>
               
               {vocabulary.length === 0 ? (
                 <Paper sx={{ 
