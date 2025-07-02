@@ -2,7 +2,7 @@
   "name": "smalltalk",
   "description": "AI-powered English conversation practice app built with React, TypeScript, and Firebase",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "keywords": [
     "ai",
