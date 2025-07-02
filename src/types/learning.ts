@@ -64,6 +64,11 @@ export interface TopicItem {
   learningProgress?: number;
 }
 
+// 扩展的话题项，支持收藏对话 - 2025-01-30 18:42:00
+export interface ExtendedTopicItem extends TopicItem {
+  conversation?: any; // 如果存在，表示这是一个收藏的对话
+}
+
 export interface BookmarkItem {
   id: string;
   type: 'vocabulary' | 'phrase' | 'grammar';

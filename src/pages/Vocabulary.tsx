@@ -7,6 +7,7 @@ import type {
   VocabularyItem, 
   LearningTab, 
   TopicItem,
+  ExtendedTopicItem,
   BookmarkItem
 } from '../types/learning';
 import {
@@ -87,7 +88,7 @@ function Vocabulary() {
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   // 搜索结果状态优化 - 2025-01-30 18:30:30
-  const [searchResults, setSearchResults] = useState<{ vocabulary: VocabularyItem[], topics: TopicItem[] }>({ vocabulary: [], topics: [] });
+  const [searchResults, setSearchResults] = useState<{ vocabulary: VocabularyItem[], topics: ExtendedTopicItem[] }>({ vocabulary: [], topics: [] });
   // 收藏对话相关状态 - 2025-01-30 15:50:00
   const [bookmarkedConversations, setBookmarkedConversations] = useState<any[]>([]);
   
@@ -165,8 +166,31 @@ function Vocabulary() {
     if (!user && !isAuthenticated) return;
     
     try {
+      // 搜索词汇 - 2025-01-30 18:45:00
       const results = await searchService.search(searchQuery, user?.id || 'guest');
-      setSearchResults(results);
+      
+      // 搜索收藏的对话 - 2025-01-30 18:45:00
+      const searchTerm = searchQuery.toLowerCase();
+      const matchedConversations = bookmarkedConversations.filter(conversation => {
+        const searchableContent = [
+          conversation.topic,
+          conversation.messages?.map((msg: any) => msg.text).join(' ') || '',
+        ].join(' ').toLowerCase();
+        
+        return searchableContent.includes(searchTerm);
+      });
+      
+      // 设置搜索结果（移除预设话题，只保留收藏对话）
+      setSearchResults({
+        vocabulary: results.vocabulary,
+        topics: matchedConversations.map(conv => ({
+          id: conv.id,
+          name: conv.topic,
+          icon: '💬',
+          description: `${conv.messages?.length || 0} 条消息 • ${new Date(conv.created_at).toLocaleDateString()}`,
+          conversation: conv
+        }))
+      });
     } catch (err) {
       console.error('Search error:', err);
       setSearchResults({ vocabulary: [], topics: [] });
@@ -515,16 +539,15 @@ function Vocabulary() {
                 definition: definition,
                 example: example,
                 pronunciation: '',
-                difficulty_level: 1,
+                difficulty_level: 'beginner' as const,
                 masteryLevel: 0,
                 bookmarked: false,
-                addedAt: new Date().toISOString(),
-                lastReviewed: null,
-                source: 'import',
-                userId: user.id
+                createdAt: new Date().toISOString(),
+                lastReviewed: undefined,
+                source: 'manual' as const
               };
               
-              await vocabularyService.addVocabulary(newItem);
+              await vocabularyService.addVocabulary(user?.id || 'guest', newItem);
               setVocabulary(prev => [newItem, ...prev]);
               results.success.push(word);
             } else {
@@ -770,8 +793,8 @@ function Vocabulary() {
               label={`Level ${item.difficulty_level}/5`} 
               size="small"
               sx={{
-                bgcolor: item.difficulty_level <= 2 ? '#E8F5E8' : item.difficulty_level <= 3 ? '#FFF3E0' : '#FFEBEE',
-                color: item.difficulty_level <= 2 ? '#2E7D32' : item.difficulty_level <= 3 ? '#F57C00' : '#C62828',
+                bgcolor: item.difficulty_level === 'beginner' ? '#E8F5E8' : item.difficulty_level === 'intermediate' ? '#FFF3E0' : '#FFEBEE',
+                color: item.difficulty_level === 'beginner' ? '#2E7D32' : item.difficulty_level === 'intermediate' ? '#F57C00' : '#C62828',
                 fontWeight: 600,
                 '&:hover': {
                   transform: 'scale(1.05)'
@@ -1009,7 +1032,24 @@ function Vocabulary() {
                         },
                         cursor: 'pointer'
                       }}
-                      onClick={() => navigate('/topic', { state: { selectedTopic: topic.name } })}
+                      onClick={() => {
+                        // 区分预设话题和收藏对话 - 2025-01-30 18:41:00
+                        if (topic.conversation) {
+                          // 收藏的对话，跳转到对话页面
+                          const conv = topic.conversation;
+                          navigate('/dialogue', {
+                            state: {
+                              topic: conv.topic,
+                              initialMessages: conv.messages,
+                              isHistory: true,
+                              conversationId: conv.id
+                            }
+                          });
+                        } else {
+                          // 预设话题，跳转到话题选择页面
+                          navigate('/topic', { state: { selectedTopic: topic.name } });
+                        }
+                      }}
                       >
                         <CardContent>
                           <Typography variant="h6" sx={{ 
@@ -1020,7 +1060,7 @@ function Vocabulary() {
                             alignItems: 'center',
                             gap: 1
                           }}>
-                            🎯 {topic.name}
+                            {topic.conversation ? '💬' : '🎯'} {topic.name}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             {topic.description}

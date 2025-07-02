@@ -197,15 +197,140 @@ Vocabulary.tsx (主页面)
 - Supabase实时同步用户学习数据
 - 本地缓存优化用户体验
 
+#### 10.3.4 搜索功能技术实现 (2025-01-30 新增)
+
+**搜索服务架构**:
+```typescript
+// 搜索结果类型定义
+interface SearchResults {
+  vocabulary: VocabularyItem[];
+  topics: ExtendedTopicItem[]; // 包含收藏对话
+}
+
+// 搜索服务实现
+export const searchService = {
+  async search(query: string, userId: string): Promise<SearchResults> {
+    // 1. 搜索用户词汇（仅匹配单词名称）
+    const vocabulary = await vocabularyService.getUserVocabulary(userId);
+    const matchedVocabulary = vocabulary.filter(v => 
+      v.word.toLowerCase().includes(query.toLowerCase())
+    );
+
+    // 2. 搜索收藏对话（匹配标题+消息内容）
+    const bookmarkedConversations = await getBookmarkedConversations(userId);
+    const matchedConversations = bookmarkedConversations.filter(conv => {
+      const searchableContent = [
+        conv.topic,
+        conv.messages?.map(msg => msg.text).join(' ') || ''
+      ].join(' ').toLowerCase();
+      
+      return searchableContent.includes(query.toLowerCase());
+    });
+
+    return {
+      vocabulary: matchedVocabulary,
+      topics: matchedConversations.map(conv => ({
+        id: conv.id,
+        name: conv.topic,
+        icon: '💬',
+        description: `${conv.messages?.length || 0} 条消息 • ${new Date(conv.created_at).toLocaleDateString()}`,
+        conversation: conv
+      }))
+    };
+  }
+};
+```
+
+**搜索状态管理**:
+```typescript
+// Vocabulary.tsx中的搜索状态
+const [searchQuery, setSearchQuery] = useState('');
+const [searchResults, setSearchResults] = useState<SearchResults>({ 
+  vocabulary: [], 
+  topics: [] 
+});
+
+// 实时搜索实现
+useEffect(() => {
+  if (searchQuery.trim()) {
+    handleSearch();
+  } else {
+    setSearchResults({ vocabulary: [], topics: [] });
+  }
+}, [searchQuery]);
+
+// Tab切换时清空搜索
+useEffect(() => {
+  setSearchQuery('');
+  setSearchResults({ vocabulary: [], topics: [] });
+}, [activeTab]);
+```
+
+**数据库查询优化**:
+```sql
+-- 词汇搜索索引
+CREATE INDEX idx_vocabulary_word_search 
+ON vocabulary(user_id, LOWER(word));
+
+-- 收藏对话搜索索引  
+CREATE INDEX idx_conversations_bookmarked_search
+ON conversation_history(user_id, bookmarked, topic, created_at DESC);
+```
+
 ### 10.4 用户体验设计
 
 #### 10.4.1 交互流程
 1. **首次进入**: 默认显示词汇tab，展示来自对话的词汇
 2. **Tab切换**: 流畅的tab切换动画和状态保持
-3. **搜索体验**: 全局搜索支持跨类型智能匹配
+3. **搜索体验**: 精准搜索用户词汇和收藏对话内容
 4. **状态反馈**: 即时的视觉反馈和状态更新
 
-#### 10.4.2 个性化功能
+#### 10.4.2 搜索功能设计 (2025-01-30 更新)
+
+**搜索范围定义**:
+- **词汇搜索**: 搜索用户词汇库中的单词名称
+- **收藏对话搜索**: 搜索用户收藏对话的标题和消息内容
+- **搜索逻辑**: 不包含预设话题，只搜索用户个人学习内容
+
+**搜索交互设计**:
+```
+搜索框布局:
+┌─────────────────────────────────────────┐
+│ 🔍 Search vocabulary...                 │
+└─────────────────────────────────────────┘
+
+搜索结果布局:
+┌─────────────────────────────────────────┐
+│ 🔍 搜索结果                             │
+├─────────────────────────────────────────┤
+│ 📚 词汇 (3)                             │
+│ ┌─────────────────────────────────────┐ │
+│ │ Travel (名词)                       │ │
+│ │ 旅行，出行                           │ │
+│ └─────────────────────────────────────┘ │
+├─────────────────────────────────────────┤
+│ 💬 收藏对话 (2)                         │
+│ ┌─────────────────────────────────────┐ │
+│ │ 💬 Travel Planning                  │ │
+│ │ 5条消息 • 2025-01-29               │ │
+│ └─────────────────────────────────────┘ │
+└─────────────────────────────────────────┘
+```
+
+**搜索逻辑实现**:
+1. **词汇匹配**: 用户输入关键词 → 匹配词汇表中的单词名称
+2. **对话匹配**: 用户输入关键词 → 匹配收藏对话的标题+消息内容
+3. **结果展示**: 按类型分组展示，词汇显示完整卡片，对话显示话题卡片
+4. **点击交互**: 
+   - 词汇结果：直接在当前页面展示词汇详情
+   - 对话结果：跳转到对话页面，恢复历史对话
+
+**搜索状态管理**:
+- **实时搜索**: 输入关键词立即触发搜索
+- **Tab切换清空**: 切换tab时自动清空搜索状态
+- **空状态提示**: 无搜索结果时显示友好提示
+
+#### 10.4.3 个性化功能
 - **学习偏好**: 记住用户常用的tab和分类
 - **智能推荐**: 基于学习历史推荐相关内容
 - **进度可视化**: 直观展示学习进度和成就
@@ -808,9 +933,11 @@ ProfileMenu.tsx
 - 减少功能过载，提升使用效率
 - 消除混乱，明确功能定位
 
-#### 14.3.3 搜索功能优化
-- 更新搜索占位符：`"Search vocabulary..."` (原`"Search phrases, vocabulary, grammar..."`)
-- 专注词汇搜索，提升搜索精准度
+#### 14.3.3 搜索功能优化 (2025-01-30 更新)
+- **搜索范围明确**: 仅搜索用户词汇和收藏对话，移除预设话题搜索
+- **搜索占位符**: 更新为`"Search vocabulary..."` (原`"Search phrases, vocabulary, grammar..."`)
+- **逻辑优化**: 修复搜索结果与显示内容不一致的问题
+- **用户体验**: 搜索结果与Topics tab内容保持一致，提升使用逻辑性
 
 ## 15. History页面收藏功能 (2025-01-30 新增)
 
