@@ -60,7 +60,6 @@ import {
   CheckCircle as CheckCircleIcon,
   CheckCircleOutline as CheckCircleOutlineIcon,
   ExpandMore as ExpandMoreIcon,
-  Upload as UploadIcon,
   Add as AddIcon,
   Error as ErrorIcon,
   CheckCircle as SuccessIcon,
@@ -99,16 +98,7 @@ function Vocabulary() {
   const [isAddingWord, setIsAddingWord] = useState(false);
   const [addWordError, setAddWordError] = useState<string | null>(null);
   
-  // 批量导入状态
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
-  const [importError, setImportError] = useState<string | null>(null);
-  const [importResults, setImportResults] = useState<{
-    success: string[];
-    errors: string[];
-  } | null>(null);
-  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
+
   
   // 选词菜单状态
   const [showWordMenu, setShowWordMenu] = useState(false);
@@ -492,88 +482,7 @@ function Vocabulary() {
     setSelectedWord('');
   };
 
-  // 文件导入功能 - 2025-01-30 16:40:22
-  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setImportError(null);
-      setImportResults(null);
-    }
-  };
 
-  const handleImport = async () => {
-    if (!selectedFile || !user) return;
-    
-    setIsImporting(true);
-    setImportError(null);
-    
-    try {
-      const text = await selectedFile.text();
-      const lines = text.split('\n').filter(line => line.trim());
-      
-      const results = {
-        success: [] as string[],
-        errors: [] as string[]
-      };
-      
-      for (const line of lines) {
-        try {
-          let word, definition, example = '';
-          
-          if (selectedFile.name.endsWith('.csv')) {
-            const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
-            word = parts[0];
-            definition = parts[1] || '待添加定义';
-            example = parts[2] || '';
-          } else {
-            const parts = line.split('-').map(p => p.trim());
-            word = parts[0];
-            definition = parts[1] || '待添加定义';
-          }
-          
-          if (word && /^[a-zA-Z\s'-]+$/.test(word)) {
-            const exists = vocabulary.some(item => 
-              item.word.toLowerCase() === word.toLowerCase()
-            );
-            
-            if (!exists) {
-              const newItem: VocabularyItem = {
-                id: `vocab_${Date.now()}_${Math.random()}`,
-                word: word,
-                definition: definition,
-                example: example,
-                pronunciation: '',
-                difficulty_level: 'beginner' as const,
-                masteryLevel: 0,
-                bookmarked: false,
-                createdAt: new Date().toISOString(),
-                lastReviewed: undefined,
-                source: 'manual' as const
-              };
-              
-              await vocabularyService.addVocabulary(user?.id || 'guest', newItem);
-              setVocabulary(prev => [newItem, ...prev]);
-              results.success.push(word);
-            } else {
-              results.errors.push(t('vocabulary.import.wordExists', { word }));
-            }
-          } else {
-            results.errors.push(t('vocabulary.import.invalidFormat', { word }));
-          }
-        } catch (err) {
-          results.errors.push(t('vocabulary.import.processingError', { line }));
-        }
-      }
-      
-      setImportResults(results);
-      
-    } catch (err) {
-      setImportError(t('vocabulary.import.readFailed'));
-    } finally {
-      setIsImporting(false);
-    }
-  };
 
 
 
@@ -963,84 +872,27 @@ function Vocabulary() {
               <Tab label={t('tabs.topics')} value="topics" />
             </Tabs>
             
-            {/* Vocabulary Action Buttons - 只在 vocabulary tab 显示 - 2025-01-30 21:16:00 */}
+            {/* Vocabulary Action Button - 简化为单个添加按钮 - 2025-01-30 21:20:00 */}
             {activeTab === 'vocabulary' && (
-              <Box sx={{ 
-                display: 'flex', 
-                gap: { xs: 1, sm: 1.5 }, 
-                ml: { xs: 1, sm: 2 },
-                flexShrink: 0
-              }}>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => setShowAddDialog(true)}
-                  startIcon={<AddIcon />}
-                  sx={{ 
-                    color: '#4c9a4c',
-                    borderColor: '#4c9a4c',
-                    borderRadius: 2,
-                    px: { xs: 1.5, sm: 2 },
-                    py: 1,
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    minWidth: 'auto',
-                    '& .MuiButton-startIcon': {
-                      marginLeft: 0,
-                      marginRight: { xs: 0.5, sm: 1 }
-                    },
-                    '&:hover': { 
-                      bgcolor: 'rgba(76, 154, 76, 0.1)',
-                      borderColor: '#3d7a3d',
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 12px rgba(76, 154, 76, 0.2)'
-                    },
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                    {t('vocabulary.actions.addWord')}
-                  </Box>
-                  <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                    {t('vocabulary.add.submit')}
-                  </Box>
-                </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={() => setShowImportDialog(true)}
-                  startIcon={<UploadIcon />}
-                  sx={{ 
-                    bgcolor: '#4c9a4c',
-                    color: 'white',
-                    borderRadius: 2,
-                    px: { xs: 1.5, sm: 2 },
-                    py: 1,
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    minWidth: 'auto',
-                    '& .MuiButton-startIcon': {
-                      marginLeft: 0,
-                      marginRight: { xs: 0.5, sm: 1 }
-                    },
-                    '&:hover': { 
-                      bgcolor: '#3d7a3d',
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 12px rgba(76, 154, 76, 0.4)'
-                    },
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                    {t('vocabulary.actions.importVocabulary')}
-                  </Box>
-                  <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                    {t('vocabulary.import.title')}
-                  </Box>
-                </Button>
-              </Box>
+              <IconButton
+                onClick={() => setShowAddDialog(true)}
+                sx={{ 
+                  bgcolor: '#4c9a4c',
+                  color: 'white',
+                  width: 40,
+                  height: 40,
+                  ml: { xs: 1, sm: 2 },
+                  '&:hover': { 
+                    bgcolor: '#3d7a3d',
+                    transform: 'scale(1.1)',
+                    boxShadow: '0 4px 12px rgba(76, 154, 76, 0.4)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+                title={t('vocabulary.actions.addWord')}
+              >
+                <AddIcon />
+              </IconButton>
             )}
           </Box>
         </Paper>
@@ -1495,39 +1347,7 @@ function Vocabulary() {
           </DialogActions>
         </Dialog>
 
-        {/* 文件导入对话框 */}
-        <Dialog open={showImportDialog} onClose={() => setShowImportDialog(false)}>
-          <DialogTitle>{t('vocabulary.import.title')}</DialogTitle>
-          <DialogContent>
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {t('vocabulary.import.dialogDescription')}
-              </Typography>
-            <Button
-              variant="outlined"
-              component="label"
-              fullWidth
-              disabled={isImporting}
-              sx={{ mb: 2 }}
-            >
-{isImporting ? t('vocabulary.import.importing') : t('vocabulary.import.selectFile')}
-              <input
-                type="file"
-                accept=".txt,.csv"
-                onChange={handleFileImport}
-                disabled={isImporting}
-                style={{ display: 'none' }}
-              />
-            </Button>
-            {isImporting && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-                <CircularProgress size={24} />
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowImportDialog(false)}>{t('vocabulary.import.cancel')}</Button>
-          </DialogActions>
-        </Dialog>
+
 
         {/* Global Alert Notification - 2025-01-30 16:40:22 */}
         <Snackbar 
