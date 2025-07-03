@@ -18,11 +18,12 @@ i18n
     debug: process.env.NODE_ENV === 'development',
     fallbackLng: 'en',
     defaultNS: 'common',
+    lng: 'en', // Force default language to English
     
     resources,
     
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      order: ['localStorage'],
       caches: ['localStorage'],
       lookupLocalStorage: 'smalltalk_language'
     },
