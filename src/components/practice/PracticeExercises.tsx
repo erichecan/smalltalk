@@ -66,18 +66,18 @@ import type {
 
 // 题型定义 - 游戏化版本 - 2025-01-30 11:15:00
 const EXERCISE_TYPES = [
-  {
-    id: 'quiz',
+    {
+      id: 'quiz',
     name: 'quiz',
     description: 'quizDescription',
-    icon: QuizIcon,
+      icon: QuizIcon,
     color: '#3b82f6',
     modes: [
       { id: 'classic', name: 'classicMode' }
     ]
-  },
-  {
-    id: 'matching',
+    },
+    {
+      id: 'matching',
     name: 'matching',
     description: 'matchingDescription',
     icon: MatchIcon,
@@ -338,7 +338,7 @@ const ExerciseSession: React.FC<{
             variant="contained"
             onClick={handleNext}
             disabled={!userAnswer.trim()}
-            sx={{ 
+          sx={{ 
               flex: 1,
               borderRadius: 2,
               py: 1.5,
@@ -593,9 +593,9 @@ const PracticeExercises: React.FC = () => {
           return (
             <Box key={exercise.id}>
               <Box 
-                sx={{ 
-                  display: 'flex',
-                  alignItems: 'center',
+              sx={{
+                  display: 'flex', 
+                  alignItems: 'center', 
                   gap: 2,
                   p: 2,
                   cursor: 'pointer',
@@ -609,37 +609,37 @@ const PracticeExercises: React.FC = () => {
                 }}
                 onClick={() => handleExerciseSelect(exercise.id)}
               >
-                <Box
-                  sx={{
+                  <Box
+                    sx={{
                     width: 48,
                     height: 48,
                     borderRadius: 3,
                     bgcolor: `${exercise.color}20`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: exercise.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: exercise.color,
                     flexShrink: 0
-                  }}
-                >
+                    }}
+                  >
                   <IconComponent sx={{ fontSize: 28 }} />
-                </Box>
+                  </Box>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="h6" sx={{ 
                     fontWeight: 500, 
                     color: '#1e293b',
-                    mb: 0.5
+                        mb: 0.5
                   }}>
                     {t(exercise.name)}
-                  </Typography>
+                    </Typography>
                   <Typography variant="body2" sx={{ 
                     color: '#64748b',
                     lineHeight: 1.5,
                     mb: 1
                   }}>
                     {t(exercise.description)}
-                  </Typography>
-                </Box>
+                    </Typography>
+                  </Box>
                 <Box sx={{ color: '#94a3b8' }}>
                   <ChevronRightIcon />
                 </Box>

@@ -45,7 +45,7 @@ const TopNav = () => {
     } else {
       console.log('Using browser history navigation');
       // 正常的浏览器历史返回
-      navigate(-1);
+    navigate(-1);
     }
   };
 

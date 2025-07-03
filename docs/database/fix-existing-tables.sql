@@ -1,3 +1,45 @@
+-- SmallTalk 数据库修复脚本 - 最终版本
+-- 创建时间: 2024-03-21 15:30:00
+
+-- 第一步：删除已存在的表（如果存在）
+DROP TABLE IF EXISTS user_points CASCADE;
+
+-- 第二步：创建新的表结构
+CREATE TABLE user_points (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    total_points INTEGER DEFAULT 0,
+    level INTEGER DEFAULT 1, -- 使用 level 而不是 user_level
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT user_points_user_id_key UNIQUE (user_id)
+);
+
+-- 第三步：创建索引
+CREATE INDEX idx_user_points_user_id ON user_points(user_id);
+CREATE INDEX idx_user_points_total_points ON user_points(total_points DESC);
+CREATE INDEX idx_user_points_level ON user_points(level DESC);
+
+-- 第四步：添加触发器以自动更新 updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_user_points_updated_at
+    BEFORE UPDATE ON user_points
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- 第五步：添加基础数据（如果需要）
+INSERT INTO user_points (user_id, total_points, level)
+VALUES 
+    ('system', 0, 1)
+ON CONFLICT (user_id) DO NOTHING;
+
 -- 修复现有表结构
 -- 为已存在的表添加缺失的列
 
