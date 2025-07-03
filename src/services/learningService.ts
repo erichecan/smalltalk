@@ -100,6 +100,7 @@ export const vocabularyService = {
         .from('vocabulary')
         .select('*')
         .eq('user_id', userId)
+        .neq('mastery_level', 2) // 过滤掉已掌握的单词
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -140,6 +141,56 @@ export const vocabularyService = {
     } catch (error) {
       console.warn('Error fetching vocabulary, using mock data:', error);
       return MOCK_VOCABULARY;
+    }
+  },
+
+  // 获取用户已掌握的词汇
+  async getMasteredVocabulary(userId: string): Promise<VocabularyItem[]> {
+    try {
+      const { data, error } = await supabase
+        .from('vocabulary')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('mastery_level', 2) // 只获取已掌握的单词
+        .order('last_reviewed', { ascending: false });
+      
+      if (error) {
+        console.warn('Vocabulary table not found:', error.message);
+        return [];
+      }
+      
+      return data?.map(item => ({
+        id: item.id,
+        word: item.word,
+        definition: item.definition,
+        example: item.example,
+        pronunciation: item.pronunciation,
+        source: item.source,
+        masteryLevel: item.mastery_level,
+        bookmarked: item.bookmarked,
+        createdAt: item.created_at,
+        lastReviewed: item.last_reviewed,
+        chinese_translation: item.chinese_translation,
+        phonetic: item.phonetic,
+        part_of_speech: item.part_of_speech,
+        synonyms: typeof item.synonyms === 'string' 
+          ? (item.synonyms ? this.parseStringArray(item.synonyms) : [])
+          : (item.synonyms || []),
+        antonyms: typeof item.antonyms === 'string'
+          ? (item.antonyms ? this.parseStringArray(item.antonyms) : [])
+          : (item.antonyms || []),
+        difficulty_level: item.difficulty_level,
+        usage_notes: item.usage_notes,
+        ease_factor: item.ease_factor || 2.5,
+        interval: item.interval || 0,
+        repetitions: item.repetitions || 0,
+        next_review: item.next_review,
+        total_reviews: item.total_reviews || 0,
+        correct_reviews: item.correct_reviews || 0
+      })) || [];
+    } catch (error) {
+      console.warn('Error fetching mastered vocabulary:', error);
+      return [];
     }
   },
 
@@ -619,36 +670,115 @@ export const grammarService = {
 export const bookmarksService = {
   // 获取用户收藏
   async getUserBookmarks(userId: string): Promise<BookmarkItem[]> {
-    // 这里需要联合查询多个表，为简化实现，先使用本地状态
-    // 实际项目中应该建立专门的收藏表
-    const [vocabulary, phrases] = await Promise.all([
-      vocabularyService.getUserVocabulary(userId),
-      phrasesService.getUserPhrases(userId)
-    ]);
+    try {
+      // 获取收藏的词汇（排除已掌握的）
+      const { data: vocabData, error: vocabError } = await supabase
+        .from('vocabulary')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('bookmarked', true)
+        .neq('mastery_level', 2) // 排除已掌握的单词
+        .order('created_at', { ascending: false });
 
-    const bookmarks: BookmarkItem[] = [];
-    
-    vocabulary.filter(v => v.bookmarked).forEach(v => {
-      bookmarks.push({
-        id: `vocab_${v.id}`,
-        type: 'vocabulary',
-        itemId: v.id,
-        content: v,
-        createdAt: v.createdAt
+      // 获取收藏的短语
+      const phrases = await phrasesService.getUserPhrases(userId);
+
+      const bookmarks: BookmarkItem[] = [];
+      
+      // 添加词汇收藏
+      if (vocabData && !vocabError) {
+        vocabData.forEach(item => {
+          bookmarks.push({
+            id: `vocab_${item.id}`,
+            type: 'vocabulary',
+            itemId: item.id,
+            content: {
+              id: item.id,
+              word: item.word,
+              definition: item.definition,
+              example: item.example,
+              pronunciation: item.pronunciation,
+              source: item.source,
+              masteryLevel: item.mastery_level,
+              bookmarked: item.bookmarked,
+              createdAt: item.created_at,
+              lastReviewed: item.last_reviewed,
+              chinese_translation: item.chinese_translation,
+              phonetic: item.phonetic,
+              part_of_speech: item.part_of_speech,
+              synonyms: typeof item.synonyms === 'string' 
+                ? (item.synonyms ? vocabularyService.parseStringArray(item.synonyms) : [])
+                : (item.synonyms || []),
+              antonyms: typeof item.antonyms === 'string'
+                ? (item.antonyms ? vocabularyService.parseStringArray(item.antonyms) : [])
+                : (item.antonyms || []),
+              difficulty_level: item.difficulty_level,
+              usage_notes: item.usage_notes
+            },
+            createdAt: item.created_at
+          });
+        });
+      } else {
+        // 如果数据库查询失败，使用原来的方法
+        const vocabulary = await vocabularyService.getUserVocabulary(userId);
+        vocabulary.filter(v => v.bookmarked).forEach(v => {
+          bookmarks.push({
+            id: `vocab_${v.id}`,
+            type: 'vocabulary',
+            itemId: v.id,
+            content: v,
+            createdAt: v.createdAt
+          });
+        });
+      }
+
+      // 添加短语收藏
+      phrases.filter(p => p.bookmarked).forEach(p => {
+        bookmarks.push({
+          id: `phrase_${p.id}`,
+          type: 'phrase',
+          itemId: p.id,
+          content: p,
+          createdAt: p.createdAt
+        });
       });
-    });
 
-    phrases.filter(p => p.bookmarked).forEach(p => {
-      bookmarks.push({
-        id: `phrase_${p.id}`,
-        type: 'phrase',
-        itemId: p.id,
-        content: p,
-        createdAt: p.createdAt
-      });
-    });
+      return bookmarks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } catch (error) {
+      console.warn('Error fetching bookmarks:', error);
+      return [];
+    }
+  },
 
-    return bookmarks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  // 切换收藏状态
+  async toggleBookmark(userId: string, itemId: string, type: 'vocabulary' | 'phrase'): Promise<void> {
+    if (type === 'vocabulary') {
+      // 获取当前词汇项
+      const vocabulary = await vocabularyService.getUserVocabulary(userId);
+      const item = vocabulary.find(v => v.id === itemId);
+      if (item) {
+        await vocabularyService.updateVocabulary(itemId, { bookmarked: !item.bookmarked });
+      }
+    } else if (type === 'phrase') {
+      // 获取当前短语项
+      const phrases = await phrasesService.getUserPhrases(userId);
+      const item = phrases.find(p => p.id === itemId);
+      if (item) {
+        await phrasesService.updatePhraseBookmark(itemId, !item.bookmarked);
+      }
+    }
+  },
+
+  // 删除收藏
+  async deleteBookmark(id: string): Promise<void> {
+    // 解析ID类型
+    if (id.startsWith('vocab_')) {
+      const itemId = id.replace('vocab_', '');
+      await vocabularyService.updateVocabulary(itemId, { bookmarked: false });
+    } else if (id.startsWith('phrase_')) {
+      const itemId = id.replace('phrase_', '');
+      await phrasesService.updatePhraseBookmark(itemId, false);
+    }
   }
 };
 
@@ -669,12 +799,16 @@ export const topicsService = {
 
 // 搜索服务 - 2025-01-30 18:30:00
 export const searchService = {
-  // 优化的搜索功能：只搜索单词名称和话题名称
-  async search(query: string, userId: string): Promise<{ vocabulary: VocabularyItem[], topics: TopicItem[] }> {
-    if (!query.trim()) return { vocabulary: [], topics: [] };
+  // 完整的搜索功能：搜索单词名称、话题模板和收藏的对话
+  async search(query: string, userId: string): Promise<{ vocabulary: VocabularyItem[], topics: TopicItem[], conversations: any[] }> {
+    if (!query.trim()) return { vocabulary: [], topics: [], conversations: [] };
 
     const searchTerm = query.toLowerCase();
-    const results: { vocabulary: VocabularyItem[], topics: TopicItem[] } = { vocabulary: [], topics: [] };
+    const results: { vocabulary: VocabularyItem[], topics: TopicItem[], conversations: any[] } = { 
+      vocabulary: [], 
+      topics: [], 
+      conversations: [] 
+    };
 
     try {
       // 搜索词汇 - 仅匹配单词名称
@@ -683,18 +817,46 @@ export const searchService = {
         v.word.toLowerCase().includes(searchTerm)
       );
       
-      // 搜索话题 - 搜索话题的全部内容 - 2025-01-30 18:35:00
+      // 搜索话题模板 - 搜索话题的全部内容
       const topics = topicsService.getTopics();
       const matchedTopics = topics.filter(t => {
         const searchableContent = [
           t.name,
           t.description || '',
           t.icon || '',
-          // 可以根据需要添加更多话题相关的内容字段
         ].join(' ').toLowerCase();
         
         return searchableContent.includes(searchTerm);
       });
+
+      // 搜索收藏的对话 - 搜索对话的所有内容
+      try {
+        const { getBookmarkedConversations } = await import('../services/historyService');
+        const conversationsResult = await getBookmarkedConversations(userId);
+        
+        if (conversationsResult.data) {
+          const matchedConversations = conversationsResult.data.filter(conversation => {
+            // 搜索对话主题
+            if (conversation.topic.toLowerCase().includes(searchTerm)) {
+              return true;
+            }
+            
+            // 搜索对话消息内容
+            if (conversation.messages && Array.isArray(conversation.messages)) {
+              return conversation.messages.some(message => 
+                message.text && message.text.toLowerCase().includes(searchTerm)
+              );
+            }
+            
+            return false;
+          });
+          
+          results.conversations = matchedConversations;
+        }
+      } catch (error) {
+        console.warn('Error searching conversations:', error);
+        results.conversations = [];
+      }
 
       results.vocabulary = matchedVocabulary;
       results.topics = matchedTopics;

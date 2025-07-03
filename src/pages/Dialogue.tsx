@@ -502,50 +502,60 @@ function Dialogue() {
   };
 
   return (
-    <Container sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f8fcf8', p: 0, width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>
-      {/* 顶部话题栏 - 微信风格 */}
+    <Container sx={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      bgcolor: '#f8fcf8', 
+      p: 0, 
+      fontFamily: 'Spline Sans, Noto Sans, sans-serif', 
+      width: '100%', 
+      maxWidth: '100vw', 
+      overflowX: 'hidden' 
+    }}>
+      {/* 顶部栏 */}
       <Box sx={{ 
-        bgcolor: '#CAECCA', 
-        py: 1.5, 
+        position: 'sticky', 
+        top: 0, 
+        zIndex: 10, 
+        bgcolor: 'rgba(248,252,248,0.95)', 
+        backdropFilter: 'blur(8px)', 
         px: 2, 
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        width: '100%'
+        py: 1.5, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        borderBottom: '1px solid #e7f3e7' 
       }}>
         {/* 左上角 History 按钮 */}
         <IconButton 
           onClick={() => navigate('/history')} 
           sx={{ 
-            position: 'absolute', 
-            left: 8, 
-            color: '#0d1b0d' 
+            color: '#4c9a4c'
           }}
         >
           <HistoryIcon />
         </IconButton>
-        <Typography 
-          variant="subtitle1" 
-          sx={{ 
-            color: '#0d1b0d', 
-            fontWeight: 'bold',
-            textAlign: 'center',
-            maxWidth: '70%',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          {topic}
+        <Stack direction="column" alignItems="center" spacing={0} sx={{ flex: 1 }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              color: '#0d1b0d', 
+              fontWeight: 'bold',
+              textAlign: 'center',
+              maxWidth: '70%',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {topic}
+          </Typography>
           {isHistory && (
             <Typography 
-              component="span" 
               variant="caption" 
               sx={{ 
-                display: 'block', 
-                color: '#5D895D', 
+                color: '#4c9a4c', 
                 fontSize: '0.7rem',
                 fontWeight: 'normal'
               }}
@@ -553,7 +563,9 @@ function Dialogue() {
               (History)
             </Typography>
           )}
-        </Typography>
+        </Stack>
+        {/* 右侧占位，保持平衡 */}
+        <Box sx={{ width: 40 }} />
       </Box>
       {/* 消息列表 */}
       <Box sx={{ flex: 1, overflowY: 'auto', px: 2, py: 3, position: 'relative' }}>
@@ -588,7 +600,7 @@ function Dialogue() {
                   )}
                   <Paper sx={{
                     px: 2, py: 1, maxWidth: 'min(320px, calc(100vw - 100px))', wordBreak: 'break-word',
-                    bgcolor: msg.sender === 'user' ? '#CAECCA' : (msg.bubbleColor || '#fff'),
+                    bgcolor: msg.sender === 'user' ? '#e7f3e7' : (msg.bubbleColor || '#fff'),
                     color: '#0d1b0d',
                     borderRadius: msg.sender === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                     boxShadow: 1,
@@ -605,7 +617,7 @@ function Dialogue() {
                         cursor: msg.sender === 'ai' && isAuthenticated ? 'pointer' : 'default',
                         // 2025-01-30 16:49:20: 双击提示样式 - 简化实现
                         '&:hover': msg.sender === 'ai' && isAuthenticated ? {
-                          bgcolor: 'rgba(202, 236, 202, 0.1)',
+                          bgcolor: 'rgba(231, 243, 231, 0.3)',
                           borderRadius: 1,
                           transition: 'background-color 0.2s ease'
                         } : {}
@@ -739,14 +751,14 @@ function Dialogue() {
                     variant="contained" 
                     onClick={() => navigate('/login')}
                     sx={{ 
-                      bgcolor: '#CAECCA', 
-                      color: '#111811', 
+                      bgcolor: '#4c9a4c', 
+                      color: '#fff', 
                       borderRadius: 20,
                       fontWeight: 'bold',
                       px: 3,
                       py: 1,
                       '&:hover': {
-                        bgcolor: '#b8e0b8'
+                        bgcolor: '#12e712'
                       }
                     }}
                   >
@@ -860,11 +872,14 @@ function Dialogue() {
           variant="contained" 
           disabled={isLoading || !input.trim() || (isGuest && guestHasInteracted)}
           sx={{ 
-            bgcolor: '#CAECCA', 
-            color: '#111811', 
+            bgcolor: '#4c9a4c', 
+            color: '#fff', 
             borderRadius: 28, 
             fontWeight: 'bold', 
             px: 3,
+            '&:hover': {
+              bgcolor: '#12e712'
+            },
             '&:disabled': {
               bgcolor: '#e0e0e0',
               color: '#9e9e9e'

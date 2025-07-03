@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Container, TextField, Button, Typography, Box, Alert, Snackbar, CircularProgress } from '@mui/material';
+import { Container, TextField, Button, Typography, Box, Alert, Snackbar, CircularProgress, Paper, Stack } from '@mui/material';
+import ChatIcon from '@mui/icons-material/Chat';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePageContext } from '../contexts/PageContext';
 import { getAIResponse } from '../services/ai';
 import { useAuth } from '../contexts/AuthContext';
 import { saveConversationHistory } from '../services/historyService';
-import TopNav from '../components/TopNav';
 
 function TopicInput() {
   const { t } = useTranslation('chat');
@@ -133,68 +133,156 @@ function TopicInput() {
   };
 
   return (
-    <>
-      <TopNav />
-      <Container sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: '#f8fcf8', p: 2, py: 4, height: '100%', width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>
-        <Box sx={{ width: '100%', maxWidth: 480, textAlign: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#0d1b0d', mb: 3 }}>{t('topicInput.title')}</Typography>
-          <form onSubmit={handleSubmit}>
-            <TextField
-              label={t('topicInput.placeholder')}
-              variant="outlined"
-              fullWidth
-              value={topic}
-              onChange={(e) => {
-                setTopic(e.target.value);
-                // 输入合规时清除 error
-                const trimmed = e.target.value.trim();
-                if (
-                  error &&
-                  trimmed.length >= 5 &&
-                  !/^\d+$/.test(trimmed) &&
-                  !/^[\p{P}\p{S}\s]+$/u.test(trimmed)
-                ) {
-                  setError(null);
-                }
-              }}
-              sx={{ mb: 2, borderRadius: 2, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-            />
-            <Button 
-              type="submit" 
-              variant="contained" 
-              fullWidth 
-              disabled={loading}
-              sx={{ 
-                bgcolor: '#CAECCA', 
-                color: '#111811', 
-                borderRadius: 28, 
-                py: 1.5, 
-                fontWeight: 'bold', 
-                mb: 2,
-                '&:disabled': {
-                  bgcolor: '#e0e0e0',
-                  color: '#666'
-                }
-              }}
-            >
-              {loading ? (
-                <>
-                  <CircularProgress size={20} sx={{ mr: 1 }} />
-                  {t('topicInput.submitting')}
-                </>
-              ) : (
-                t('topicInput.submitButton')
-              )}
-            </Button>
-          </form>
-        </Box>
-        {error && (
-          <Snackbar open={!!error} autoHideDuration={4000} onClose={() => setError(null)}>
-            <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
-          </Snackbar>
-        )}
-      </Container>
-    </>
+    <Container sx={{ 
+      minHeight: '100vh', 
+      bgcolor: '#f8fcf8', 
+      p: 0, 
+      fontFamily: 'Spline Sans, Noto Sans, sans-serif', 
+      width: '100%', 
+      maxWidth: '100vw', 
+      overflowX: 'hidden' 
+    }}>
+      {/* 顶部栏 */}
+      <Box sx={{ 
+        position: 'sticky', 
+        top: 0, 
+        zIndex: 10, 
+        bgcolor: 'rgba(248,252,248,0.95)', 
+        backdropFilter: 'blur(8px)', 
+        px: 2, 
+        py: 1.5, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        borderBottom: '1px solid #e7f3e7' 
+      }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <ChatIcon sx={{ color: '#4c9a4c', fontSize: 28 }} />
+          <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>
+            {t('topicInput.title')}
+          </Typography>
+        </Stack>
+      </Box>
+
+      {/* 主要内容区域 */}
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: 'calc(100vh - 80px)',
+        px: 2, 
+        py: 4 
+      }}>
+        <Paper sx={{ 
+          p: 4, 
+          borderRadius: 3, 
+          border: '1px solid #e7f3e7', 
+          boxShadow: '0 2px 12px rgba(76,154,76,0.1)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
+          width: '100%',
+          maxWidth: 480
+        }}>
+          <Stack spacing={3} alignItems="center">
+            {/* 图标和描述 */}
+            <Box sx={{ textAlign: 'center' }}>
+              <Box sx={{ 
+                width: 80, 
+                height: 80, 
+                borderRadius: '50%', 
+                bgcolor: 'rgba(76, 154, 76, 0.1)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 2
+              }}>
+                <ChatIcon sx={{ fontSize: 40, color: '#4c9a4c' }} />
+              </Box>
+              <Typography variant="body1" sx={{ color: '#666', mb: 3 }}>
+                {t('topicInput.description', 'Enter a topic you want to practice speaking about')}
+              </Typography>
+            </Box>
+
+            {/* 表单 */}
+            <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+              <TextField
+                label={t('topicInput.placeholder')}
+                variant="outlined"
+                fullWidth
+                value={topic}
+                onChange={(e) => {
+                  setTopic(e.target.value);
+                  // 输入合规时清除 error
+                  const trimmed = e.target.value.trim();
+                  if (
+                    error &&
+                    trimmed.length >= 5 &&
+                    !/^\d+$/.test(trimmed) &&
+                    !/^[\p{P}\p{S}\s]+$/u.test(trimmed)
+                  ) {
+                    setError(null);
+                  }
+                }}
+                sx={{ 
+                  mb: 3,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '& fieldset': {
+                      borderColor: '#e7f3e7',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#4c9a4c',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#12e712',
+                    },
+                  }
+                }}
+              />
+              <Button 
+                type="submit" 
+                variant="contained" 
+                fullWidth 
+                disabled={loading}
+                sx={{ 
+                  bgcolor: '#4c9a4c', 
+                  color: 'white', 
+                  borderRadius: 2, 
+                  py: 1.5, 
+                  fontWeight: 'bold',
+                  fontSize: '16px',
+                  textTransform: 'none',
+                  '&:hover': {
+                    bgcolor: '#12e712'
+                  },
+                  '&:disabled': {
+                    bgcolor: '#e0e0e0',
+                    color: '#666'
+                  }
+                }}
+              >
+                {loading ? (
+                  <>
+                    <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
+                    {t('topicInput.submitting')}
+                  </>
+                ) : (
+                  t('topicInput.submitButton')
+                )}
+              </Button>
+            </form>
+          </Stack>
+        </Paper>
+      </Box>
+
+      {/* 错误提示 */}
+      {error && (
+        <Snackbar open={!!error} autoHideDuration={4000} onClose={() => setError(null)}>
+          <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
+        </Snackbar>
+      )}
+    </Container>
   );
 }
 

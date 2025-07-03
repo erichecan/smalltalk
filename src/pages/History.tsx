@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Container, Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Paper, Button, CircularProgress, Pagination, Alert, Checkbox, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Container, Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Paper, Button, CircularProgress, Pagination, Alert, Checkbox, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Stack } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import HistoryIcon from '@mui/icons-material/History';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
@@ -193,10 +194,35 @@ function History() {
   };
 
   return (
-    <Container sx={{ minHeight: '100vh', bgcolor: '#f8fcf8', p: 0, width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>
-      {/* 顶部标题栏 */}
-      <Box sx={{ bgcolor: '#CAECCA', py: 2, px: 3, borderBottomLeftRadius: 16, borderBottomRightRadius: 16, boxShadow: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>{t('history.title')}</Typography>
+    <Container sx={{ 
+      minHeight: '100vh', 
+      bgcolor: '#f8fcf8', 
+      p: 0, 
+      fontFamily: 'Spline Sans, Noto Sans, sans-serif', 
+      width: '100%', 
+      maxWidth: '100vw', 
+      overflowX: 'hidden' 
+    }}>
+      {/* 顶部栏 */}
+      <Box sx={{ 
+        position: 'sticky', 
+        top: 0, 
+        zIndex: 10, 
+        bgcolor: 'rgba(248,252,248,0.95)', 
+        backdropFilter: 'blur(8px)', 
+        px: 2, 
+        py: 1.5, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        borderBottom: '1px solid #e7f3e7' 
+      }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <HistoryIcon sx={{ color: '#4c9a4c', fontSize: 28 }} />
+          <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>
+            {t('history.title')}
+          </Typography>
+        </Stack>
         <Box sx={{ display: 'flex', gap: 1 }}>
           {selectedItems.length > 0 && (
             <Button 
@@ -208,7 +234,7 @@ function History() {
               {t('history.deleteSelected')} ({selectedItems.length})
             </Button>
           )}
-          <Button variant="contained" sx={{ bgcolor: '#0ecd6a', color: '#fff', borderRadius: 20, fontWeight: 'bold', boxShadow: 1 }} onClick={() => navigate('/topic')}>
+          <Button variant="contained" sx={{ bgcolor: '#4c9a4c', color: '#fff', borderRadius: 20, fontWeight: 'bold', boxShadow: 1 }} onClick={() => navigate('/topic')}>
             {t('history.newConversation')}
           </Button>
         </Box>
@@ -223,25 +249,39 @@ function History() {
         ) : error ? (
           <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
         ) : history.length === 0 ? (
-          <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
-            <Typography variant="h6" sx={{ color: '#5D895D', mb: 2 }}>{t('history.noHistory')}</Typography>
-            <Typography variant="body2" sx={{ color: '#708C70', mb: 3 }}>{t('history.noHistoryDescription')}</Typography>
-            <Button variant="contained" onClick={() => navigate('/topic')} sx={{ bgcolor: '#CAECCA', color: '#111811', borderRadius: 20 }}>
+          <Paper sx={{ 
+            p: 4, 
+            textAlign: 'center', 
+            borderRadius: 3, 
+            border: '1px solid #e7f3e7',
+            boxShadow: '0 2px 12px rgba(76,154,76,0.1)',
+            background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)'
+          }}>
+            <Typography variant="h6" sx={{ color: '#4c9a4c', mb: 2 }}>{t('history.noHistory')}</Typography>
+            <Typography variant="body2" sx={{ color: '#4c9a4c', mb: 3 }}>{t('history.noHistoryDescription')}</Typography>
+            <Button variant="contained" onClick={() => navigate('/topic')} sx={{ bgcolor: '#4c9a4c', color: '#fff', borderRadius: 20 }}>
               {t('history.startConversation')}
             </Button>
           </Paper>
         ) : (
           <>
-            <Paper sx={{ p: 2, borderRadius: 3, boxShadow: 1, mb: 2 }}>
+            <Paper sx={{ 
+              p: 2, 
+              borderRadius: 3, 
+              border: '1px solid #e7f3e7',
+              boxShadow: '0 2px 12px rgba(76,154,76,0.1)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
+              mb: 2 
+            }}>
               {/* 全选栏 */}
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, px: 1 }}>
                 <Checkbox
                   checked={selectedItems.length === history.length && history.length > 0}
                   indeterminate={selectedItems.length > 0 && selectedItems.length < history.length}
                   onChange={handleSelectAll}
-                  sx={{ color: '#5D895D', '&.Mui-checked': { color: '#4c9a4c' } }}
+                  sx={{ color: '#4c9a4c', '&.Mui-checked': { color: '#4c9a4c' } }}
                 />
-                <Typography variant="body2" sx={{ color: '#5D895D', ml: 1 }}>
+                <Typography variant="body2" sx={{ color: '#4c9a4c', ml: 1 }}>
                   {selectedItems.length > 0 ? t('history.selectedCount', { count: selectedItems.length }) : t('history.selectAll')}
                 </Typography>
               </Box>
@@ -265,10 +305,10 @@ function History() {
                       checked={selectedItems.includes(conversation.id)}
                       onChange={() => handleSelectItem(conversation.id)}
                       onClick={(e) => e.stopPropagation()}
-                      sx={{ color: '#5D895D', '&.Mui-checked': { color: '#4c9a4c' } }}
+                      sx={{ color: '#4c9a4c', '&.Mui-checked': { color: '#4c9a4c' } }}
                     />
                     <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: '#CAECCA', color: '#0d1b0d' }}>
+                      <Avatar sx={{ bgcolor: '#e7f3e7', color: '#0d1b0d' }}>
                         {conversation.topic[0].toUpperCase()}
                       </Avatar>
                     </ListItemAvatar>
@@ -280,10 +320,10 @@ function History() {
                       }
                       secondary={
                         <Box>
-                          <Typography variant="body2" sx={{ color: '#5D895D', mb: 0.5 }}>
+                          <Typography variant="body2" sx={{ color: '#4c9a4c', mb: 0.5 }}>
                             {getLastMessage(conversation.messages)}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: '#708C70' }}>
+                          <Typography variant="caption" sx={{ color: '#4c9a4c' }}>
                             {formatTime(conversation.created_at)} • {t('history.messagesCount', { count: conversation.messages.length })}
                           </Typography>
                         </Box>
@@ -338,12 +378,12 @@ function History() {
                   color="primary"
                   sx={{
                     '& .MuiPaginationItem-root': {
-                      color: '#5D895D',
+                      color: '#4c9a4c',
                       '&.Mui-selected': {
-                        bgcolor: '#CAECCA',
+                        bgcolor: '#e7f3e7',
                         color: '#0d1b0d',
                         '&:hover': {
-                          bgcolor: '#b8e0b8'
+                          bgcolor: '#12e712'
                         }
                       }
                     }
@@ -374,7 +414,7 @@ function History() {
               setDeleteDialogOpen(false);
               setItemToDelete(null);
             }}
-            sx={{ color: '#5D895D' }}
+            sx={{ color: '#4c9a4c' }}
           >
             {t('buttons.cancel')}
           </Button>

@@ -51,7 +51,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Fade
+  Fade,
+  Stack
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -66,7 +67,8 @@ import {
   CheckCircle as SuccessIcon,
   Info as InfoIcon,
   Lightbulb as LightbulbIcon,
-  History as HistoryIcon
+  History as HistoryIcon,
+  Clear as ClearIcon
 } from '@mui/icons-material';
 import MobileContainer from '../components/MobileContainer';
 
@@ -76,7 +78,6 @@ function Vocabulary() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { pageState, setPageState } = usePageContext();
-
 
   
   // 状态管理
@@ -90,7 +91,7 @@ function Vocabulary() {
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   // 搜索结果状态优化 - 2025-01-30 18:30:30
-  const [searchResults, setSearchResults] = useState<{ vocabulary: VocabularyItem[], topics: ExtendedTopicItem[] }>({ vocabulary: [], topics: [] });
+  const [searchResults, setSearchResults] = useState<{ vocabulary: VocabularyItem[], topics: ExtendedTopicItem[], conversations: any[] }>({ vocabulary: [], topics: [], conversations: [] });
   // 收藏对话相关状态 - 2025-01-30 15:50:00
   const [bookmarkedConversations, setBookmarkedConversations] = useState<any[]>([]);
   
@@ -118,86 +119,167 @@ function Vocabulary() {
     loadUserData();
   }, [isAuthenticated, user]);
 
-  // 初始化页面状态 - 2025-01-30 08:46:00
+  // 初始化页面状态
   useEffect(() => {
     setPageState({
       page: '/vocabulary'
-      // 移除subPage，避免干扰正常导航
     });
   }, [setPageState]);
 
-  const loadUserData = async () => {
-    setLoading(true);
+  // 搜索防抖优化 - 2025-01-30 18:29:00
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // 实时搜索功能 - 优化版 - 2025-01-30 18:28:30
+  useEffect(() => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    const timeout = setTimeout(async () => {
+      if (searchQuery.trim()) {
+        await handleSearch();
+      }
+    }, 300); // 300ms 防抖
+
+    setSearchTimeout(timeout);
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [searchQuery]);
+
+  // 页面卸载时清空搜索状态
+  useEffect(() => {
+    return () => {
+      // 页面卸载时清空搜索
+      setSearchQuery('');
+      setSearchResults({ vocabulary: [], topics: [], conversations: [] });
+    };
+  }, []);
+
+  // 搜索函数优化 - 2025-01-30 18:29:30
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      setSearchResults({ vocabulary: [], topics: [], conversations: [] });
+      return;
+    }
+
     try {
-      const [vocabData, bookmarksData, conversationsData] = await Promise.all([
-        vocabularyService.getUserVocabulary(user?.id || 'guest'),
-        user ? bookmarksService.getUserBookmarks(user.id) : Promise.resolve([]),
-        user ? getBookmarkedConversations(user.id) : Promise.resolve({ data: [] })
-      ]);
+      setLoading(true);
+      const results = await searchService.search(searchQuery, user?.id || 'guest');
       
-      setVocabulary(vocabData);
-      setBookmarks(bookmarksData);
-      setBookmarkedConversations(conversationsData.data || []);
-    } catch (err) {
-      console.error('Error loading user data:', err);
-      setError(t('errors.loadFailed'));
+      // 对于词汇搜索，只搜索单词名称，不搜索定义和例句
+      const searchTerm = searchQuery.toLowerCase();
+      const filteredVocab = results.vocabulary.filter((item: VocabularyItem) => {
+        return item.word.toLowerCase().includes(searchTerm);
+      });
+
+      setSearchResults({
+        vocabulary: filteredVocab,
+        topics: results.topics || [],
+        conversations: results.conversations || []
+      });
+    } catch (error) {
+      console.error('Search error:', error);
+      setError(t('search.error', 'Search failed'));
     } finally {
       setLoading(false);
     }
   };
 
-  // 搜索功能 - 2025-01-30 18:31:00
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      handleSearch();
-    } else {
-      setSearchResults({ vocabulary: [], topics: [] });
+  const loadUserData = async () => {
+    if (!isAuthenticated || !user) {
+      setVocabulary([]);
+      setBookmarks([]);
+      return;
     }
-  }, [searchQuery]);
 
-  // Tab切换时清空搜索 - 2025-01-30 18:36:00
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      setSearchQuery('');
-      setSearchResults({ vocabulary: [], topics: [] });
-    }
-  }, [activeTab]);
-
-  const handleSearch = async () => {
-    if (!user && !isAuthenticated) return;
-    
     try {
-      // 搜索词汇 - 2025-01-30 18:45:00
-      const results = await searchService.search(searchQuery, user?.id || 'guest');
+      setLoading(true);
+      console.log('Loading vocabulary for user:', user.id);
       
-      // 搜索收藏的对话 - 2025-01-30 18:45:00
-      const searchTerm = searchQuery.toLowerCase();
-      const matchedConversations = bookmarkedConversations.filter(conversation => {
-        const searchableContent = [
-          conversation.topic,
-          conversation.messages?.map((msg: any) => msg.text).join(' ') || '',
-        ].join(' ').toLowerCase();
-        
-        return searchableContent.includes(searchTerm);
-      });
+      const [vocabResult, bookmarksResult, conversationsResult] = await Promise.all([
+        vocabularyService.getUserVocabulary(user.id),
+        bookmarksService.getUserBookmarks(user.id),
+        getBookmarkedConversations(user.id)
+      ]);
+
+      console.log('Loaded vocabulary:', vocabResult);
+      console.log('Loaded bookmarks:', bookmarksResult);
+      console.log('Loaded conversations:', conversationsResult);
+
+      if (vocabResult) {
+        setVocabulary(vocabResult);
+      }
       
-      // 设置搜索结果（移除预设话题，只保留收藏对话）
-      setSearchResults({
-        vocabulary: results.vocabulary,
-        topics: matchedConversations.map(conv => ({
-          id: conv.id,
-          name: conv.topic,
-          icon: '💬',
-          description: t('topics.conversationInfo', { 
-          count: conv.messages?.length || 0, 
-          date: new Date(conv.created_at).toLocaleDateString() 
-        }),
-          conversation: conv
-        }))
-      });
+      if (bookmarksResult) {
+        setBookmarks(bookmarksResult);
+      }
+      
+      if (conversationsResult.data) {
+        setBookmarkedConversations(conversationsResult.data);
+      }
     } catch (err) {
-      console.error('Search error:', err);
-      setSearchResults({ vocabulary: [], topics: [] });
+      console.error('Error loading user data:', err);
+      setError(t('vocabulary.loadError', 'Failed to load vocabulary'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddWord = async () => {
+    if (!newWord.trim() || !user) return;
+
+    try {
+      setIsAddingWord(true);
+      setAddWordError(null);
+      
+      console.log('Adding word:', newWord, 'for user:', user.id);
+      const result = await vocabularyService.addVocabularyWithAI(user.id, newWord.trim());
+      console.log('Add word result:', result);
+      
+      setNewWord('');
+      setShowAddDialog(false);
+      await loadUserData(); // 重新加载数据
+      
+      setSuccess(t('vocabulary.addSuccess', `Successfully added "${newWord.trim()}"`));
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error adding word:', err);
+      const errorMessage = err instanceof Error ? err.message : t('vocabulary.addError', 'Failed to add word');
+      setAddWordError(errorMessage);
+    } finally {
+      setIsAddingWord(false);
+    }
+  };
+
+  const handleMarkAsLearned = async (id: string) => {
+    if (!user) return;
+
+    try {
+      await vocabularyService.markAsLearned(id);
+      await loadUserData(); // 重新加载数据
+      setSuccess(t('vocabulary.markLearnedSuccess', 'Marked as learned!'));
+      setTimeout(() => setSuccess(null), 2000);
+    } catch (err) {
+      console.error('Error marking as learned:', err);
+      setError(t('vocabulary.markLearnedError', 'Failed to mark as learned'));
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  const handleToggleBookmark = async (id: string, type: 'vocabulary' | 'topic' = 'vocabulary') => {
+    if (!user) return;
+
+    try {
+      await bookmarksService.toggleBookmark(user.id, id, type);
+      await loadUserData(); // 重新加载数据
+      setSuccess(t('vocabulary.bookmarkToggled', 'Bookmark updated!'));
+      setTimeout(() => setSuccess(null), 2000);
+    } catch (err) {
+      console.error('Error toggling bookmark:', err);
+      setError(t('vocabulary.bookmarkError', 'Failed to update bookmark'));
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -213,14 +295,18 @@ function Vocabulary() {
       
       // 更新收藏列表
       if (user) {
-        const newBookmarks = await bookmarksService.getUserBookmarks(user.id);
-        setBookmarks(newBookmarks);
+        const bookmarksResult = await bookmarksService.getUserBookmarks(user.id);
+        if (bookmarksResult) {
+          setBookmarks(bookmarksResult);
+        }
       }
       
-      setSuccess(newBookmarked ? t('vocabulary.bookmarked') : t('vocabulary.unbookmarked'));
+      setSuccess(newBookmarked ? t('vocabulary.bookmarkAdded', 'Added to bookmarks') : t('vocabulary.bookmarkRemoved', 'Removed from bookmarks'));
+      setTimeout(() => setSuccess(null), 2000);
     } catch (err) {
       console.error('Error toggling bookmark:', err);
-      setError(t('errors.bookmarkFailed'));
+      setError(t('errors.bookmarkFailed', 'Failed to update bookmark'));
+      setTimeout(() => setError(null), 3000);
     }
   }, [user]);
 
@@ -238,34 +324,36 @@ function Vocabulary() {
           v.id === vocabularyItem.id ? { ...v, masteryLevel: 0 } : v
         ));
         
-        setAlert({ type: 'info', message: t('vocabulary.unmastered') });
+        setAlert({ type: 'info', message: t('vocabulary.masteryRemoved') });
         setShowAlert(true);
+        return;
       } catch (err) {
-        console.error('Error updating mastery:', err);
-        setAlert({ type: 'error', message: t('errors.operationFailed') });
+        console.error('Error removing mastery:', err);
+        setAlert({ type: 'error', message: t('errors.masteryFailed') });
         setShowAlert(true);
+        return;
       }
-      return;
     }
 
-    // 点击掌握 - 删除单词
+    // 标记为掌握并从列表中移除
     try {
-      // 从数据库删除
-      await vocabularyService.deleteVocabulary(vocabularyItem.id);
+      await vocabularyService.updateVocabulary(vocabularyItem.id, { 
+        masteryLevel: 2,
+        lastReviewed: new Date().toISOString()
+      });
       
-      // 从本地状态删除
+      // 从词汇列表中移除
       setVocabulary(prev => prev.filter(v => v.id !== vocabularyItem.id));
       
-      // 同时从收藏列表删除（如果有的话）
-      if (user) {
-        const newBookmarks = await bookmarksService.getUserBookmarks(user.id);
-        setBookmarks(newBookmarks);
-      }
+      // 同时从收藏列表中移除（即使有收藏状态，掌握了也要删除）
+      setBookmarks(prev => prev.filter(b => 
+        !(b.type === 'vocabulary' && b.content.id === vocabularyItem.id)
+      ));
       
-      setAlert({ type: 'success', message: t('vocabulary.mastered', { word: vocabularyItem.word }) });
+      setAlert({ type: 'success', message: t('vocabulary.wordMastered') });
       setShowAlert(true);
     } catch (err) {
-      console.error('Error mastering vocabulary:', err);
+      console.error('Error marking as mastered:', err);
       setAlert({ type: 'error', message: t('errors.masteryFailed') });
       setShowAlert(true);
     }
@@ -294,209 +382,67 @@ function Vocabulary() {
       return;
     }
 
-    const target = event.target as HTMLElement;
-    let wordToAdd: string | null = null;
-
-    // 2025-01-30 17:15:30: 优先使用浏览器选择API获取双击的单词
+    // 提取选中的词汇
     const selection = window.getSelection();
+    let wordToAdd = '';
+    
     if (selection && selection.toString().trim()) {
-      const selectedText = selection.toString().trim();
-      // 验证是否为有效英文单词
-      if (/^[a-zA-Z0-9'-]+$/.test(selectedText) && selectedText.length > 1 && /[a-zA-Z]/.test(selectedText)) {
-        wordToAdd = selectedText;
-        // 清除选择
-        selection.removeAllRanges();
-      }
-    }
-
-    // 2025-01-30 17:16:00: Fallback - 从文本中提取单词
-    if (!wordToAdd) {
-      const words = text.match(/[a-zA-Z0-9'-]+/g);
+      wordToAdd = selection.toString().trim();
+    } else {
+      // 如果没有选中文本，尝试从文本中提取英文单词
+      const words = text.match(/[a-zA-Z]+/g);
       if (words && words.length > 0) {
-        // 简单选择第一个有效单词作为fallback
-        const firstValidWord = words.find(word => word.length > 1 && /[a-zA-Z]/.test(word));
-        if (firstValidWord) {
-          wordToAdd = firstValidWord;
-        }
+        wordToAdd = words[0]; // 取第一个英文单词
       }
     }
 
-    if (wordToAdd) {
-      console.log('Adding word from vocabulary page:', wordToAdd);
-      
-      // 添加飞行动画效果
-      triggerVocabularyPageAnimation(wordToAdd, { x: event.clientX, y: event.clientY });
-      
-      // 添加到词汇表
-      await handleAddWord(wordToAdd);
+    if (wordToAdd && wordToAdd.length > 1) {
+      try {
+        setIsAddingWord(true);
+        await vocabularyService.addVocabularyWithAI(user!.id, wordToAdd);
+        await loadUserData(); // 重新加载数据
+        setSuccess(t('vocabulary.wordAdded', { word: wordToAdd }));
+        setTimeout(() => setSuccess(null), 3000);
+      } catch (err) {
+        console.error('Error adding word:', err);
+        setError(t('vocabulary.addError'));
+        setTimeout(() => setError(null), 3000);
+      } finally {
+        setIsAddingWord(false);
+      }
     }
   };
 
-  // 2025-01-30 17:16:30: 词汇页面专用动画效果
-  const triggerVocabularyPageAnimation = (word: string, startPosition: { x: number; y: number }) => {
-    // 创建一个闪烁的成功指示器
-    const successIndicator = document.createElement('div');
-    successIndicator.innerHTML = `
-      <div style="
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-        color: white;
-        padding: 10px 16px;
-        border-radius: 25px;
-        font-size: 14px;
-        font-weight: bold;
-        box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
-        white-space: nowrap;
-        position: relative;
-        overflow: hidden;
-      ">
-        <span style="margin-right: 8px;">✨</span>
-        ${word}
-        <span style="margin-left: 8px;">已添加</span>
-        <div style="
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-          animation: shimmer 0.8s ease-in-out;
-        "></div>
-      </div>
-    `;
-
-    // 设置初始样式
-    Object.assign(successIndicator.style, {
-      position: 'fixed',
-      left: `${startPosition.x}px`,
-      top: `${startPosition.y}px`,
-      zIndex: '10000',
-      pointerEvents: 'none',
-      transform: 'translate(-50%, -50%) scale(0)',
-      transition: 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-    });
-
-    // 添加CSS动画（如果还没有）
-    if (!document.getElementById('vocabulary-page-styles')) {
-      const styleSheet = document.createElement('style');
-      styleSheet.id = 'vocabulary-page-styles';
-      styleSheet.textContent = `
-        @keyframes shimmer {
-          0% { left: -100%; }
-          100% { left: 100%; }
-        }
-        @keyframes bounceIn {
-          0% { transform: translate(-50%, -50%) scale(0) rotate(-180deg); opacity: 0; }
-          50% { transform: translate(-50%, -50%) scale(1.2) rotate(-10deg); opacity: 1; }
-          100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
-        }
-        @keyframes bounceOut {
-          0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
-          100% { transform: translate(-50%, -50%) scale(0) rotate(90deg); opacity: 0; }
-        }
-      `;
-      document.head.appendChild(styleSheet);
-    }
-
-    document.body.appendChild(successIndicator);
-
-    // 启动动画序列
-    requestAnimationFrame(() => {
-      // 第一阶段：弹入效果
-      successIndicator.style.animation = 'bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-      successIndicator.style.transform = 'translate(-50%, -50%) scale(1)';
-      
-      setTimeout(() => {
-        // 第二阶段：保持显示
-        successIndicator.style.animation = '';
-        
-        setTimeout(() => {
-          // 第三阶段：弹出消失
-          successIndicator.style.animation = 'bounceOut 0.4s ease-in-out';
-          
-          setTimeout(() => {
-            if (document.body.contains(successIndicator)) {
-              document.body.removeChild(successIndicator);
-            }
-          }, 400);
-        }, 1500);
-      }, 600);
-    });
-  };
-
-  // 添加单词到词汇表 - 支持手动添加和对话选择 - 2025-01-30
-  const handleAddWord = async (word: string, definition?: string) => {
-    if (!isAuthenticated || !user) {
-      setAlert({ type: 'error', message: t('errors.loginRequired') });
-      setShowAlert(true);
-      setShowWordMenu(false);
-      setAddWordError(t('errors.loginRequired'));
-      return;
-    }
-
-    if (!word.trim()) {
-      const emptyWordMessage = t('vocabulary.add.emptyWord');
-      setAlert({ type: 'error', message: emptyWordMessage });
-      setShowAlert(true);
-      setShowWordMenu(false);
-      setAddWordError(emptyWordMessage);
-      return;
-    }
-
-    // 检查是否已存在
-    const existingWord = vocabulary.find(v => v.word.toLowerCase() === word.toLowerCase());
-    if (existingWord) {
-      setAlert({ type: 'info', message: t('errors.wordExists') });
-      setShowAlert(true);
-      setShowWordMenu(false);
-      setAddWordError(t('errors.wordExists'));
-      return;
-    }
-
-    // 开始添加流程
-    setIsAddingWord(true);
-    setAddWordError(null);
+  const handleDeleteVocabulary = async (id: string) => {
+    if (!user) return;
 
     try {
-      // 使用AI获取单词详细信息
-      const result = await vocabularyService.addVocabularyWithAI(user.id, word.trim());
-      
-      // 添加到本地状态
-      setVocabulary(prev => [result, ...prev]);
-      
-      // 显示成功消息
-      setAlert({ type: 'success', message: t('vocabulary.add.success', { word }) });
-      setShowAlert(true);
-      
-      // 清理状态
-      setShowWordMenu(false);
-      setShowAddDialog(false);
-      setNewWord('');
-      
-    } catch (error) {
-      console.error('添加单词失败:', error);
-      const errorMessage = t('errors.addWordFailed');
-      setAlert({ type: 'error', message: errorMessage });
-      setShowAlert(true);
-      setAddWordError(errorMessage);
-    } finally {
-      setIsAddingWord(false);
+      await vocabularyService.deleteVocabulary(id);
+      await loadUserData(); // 重新加载数据
+      setSuccess(t('vocabulary.deleteSuccess', 'Word deleted successfully!'));
+      setTimeout(() => setSuccess(null), 2000);
+    } catch (err) {
+      console.error('Error deleting vocabulary:', err);
+      setError(t('vocabulary.deleteError', 'Failed to delete word'));
+      setTimeout(() => setError(null), 3000);
     }
   };
 
-  // 关闭选词菜单
-  const handleCloseWordMenu = () => {
-    setShowWordMenu(false);
-    setSelectedWord('');
+  const handleDeleteBookmark = async (id: string) => {
+    if (!user) return;
+
+    try {
+      await bookmarksService.deleteBookmark(id);
+      await loadUserData(); // 重新加载数据
+      setSuccess(t('bookmarks.deleteSuccess', 'Bookmark removed!'));
+      setTimeout(() => setSuccess(null), 2000);
+    } catch (err) {
+      console.error('Error deleting bookmark:', err);
+      setError(t('bookmarks.deleteError', 'Failed to remove bookmark'));
+      setTimeout(() => setError(null), 3000);
+    }
   };
 
-
-
-
-
-  // 渲染词汇卡片 - Material-UI版本
   const renderVocabularyCard = (item: VocabularyItem) => (
     <Card key={item.id} sx={{ 
       borderRadius: 4,
@@ -680,7 +626,7 @@ function Vocabulary() {
               transition: 'all 0.3s ease'
             }}
             onDoubleClick={(e) => handleDoubleClick(e, item.usage_notes || '')}
-                            title={t('vocabulary.doubleClickTip')}
+            title={t('vocabulary.doubleClickTip')}
           >
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
               <LightbulbIcon sx={{ fontSize: 18, color: '#1976D2', mt: 0.1, flexShrink: 0 }} />
@@ -764,7 +710,7 @@ function Vocabulary() {
               },
               transition: 'all 0.3s ease'
             }}
-                            title={t('vocabulary.markAsMasteredTooltip')}
+            title={t('vocabulary.markAsMasteredTooltip')}
           >
             <CheckCircleOutlineIcon />
           </IconButton>
@@ -773,112 +719,159 @@ function Vocabulary() {
     </Card>
   );
 
-
+  if (!isAuthenticated) {
+    return (
+      <Container sx={{ 
+        minHeight: '100vh', 
+        bgcolor: '#f8fcf8', 
+        p: 0, 
+        fontFamily: 'Spline Sans, Noto Sans, sans-serif', 
+        width: '100%', 
+        maxWidth: '100vw', 
+        overflowX: 'hidden' 
+      }}>
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ mb: 2, color: '#4c9a4c' }}>
+            {t('auth.loginRequired', 'Please login to access vocabulary')}
+          </Typography>
+          <Button 
+            variant="contained" 
+            onClick={() => navigate('/login')}
+            sx={{ 
+              bgcolor: '#4c9a4c',
+              color: 'white',
+              '&:hover': { bgcolor: '#12e712' }
+            }}
+          >
+            {t('auth.login', 'Login')}
+          </Button>
+        </Box>
+      </Container>
+    );
+  }
 
   return (
-    <MobileContainer>
+    <Container sx={{ 
+      minHeight: '100vh', 
+      bgcolor: '#f8fcf8', 
+      p: 0, 
+      fontFamily: 'Spline Sans, Noto Sans, sans-serif', 
+      width: '100%', 
+      maxWidth: '100vw', 
+      overflowX: 'hidden' 
+    }}>
+      {/* 顶部栏 */}
       <Box sx={{ 
-        bgcolor: 'linear-gradient(135deg, #f8fcf8 0%, #f0f7f0 100%)', 
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f8fcf8 0%, #f0f7f0 100%)'
+        position: 'sticky', 
+        top: 0, 
+        zIndex: 10, 
+        bgcolor: 'rgba(248,252,248,0.95)', 
+        backdropFilter: 'blur(8px)', 
+        px: 2, 
+        py: 1.5, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        borderBottom: '1px solid #e7f3e7' 
       }}>
-        {/* Modern Header with Gradient */}
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <VolumeUpIcon sx={{ color: '#4c9a4c', fontSize: 28 }} />
+          <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>
+            {t('title')}
+          </Typography>
+        </Stack>
+      </Box>
+
+      {/* 搜索区域 */}
+      <Box sx={{ px: 2, pt: 2 }}>
         <Paper sx={{ 
-          position: 'sticky', 
-          top: 0, 
-          zIndex: 10, 
-          background: 'linear-gradient(135deg, #CAECCA 0%, #B8E0B8 100%)',
-          elevation: 0,
-          borderRadius: 0,
-          boxShadow: '0 4px 20px rgba(202, 236, 202, 0.3)'
+          p: 2, 
+          borderRadius: 3, 
+          border: '1px solid #e7f3e7',
+          boxShadow: '0 2px 12px rgba(76,154,76,0.1)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)'
         }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', p: 3, justifyContent: 'center' }}>
-            <Typography variant="h4" sx={{ 
-              color: '#0D1C0D', 
-              fontWeight: 'bold',
-              textAlign: 'center',
-              textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
-{t('title')}
-            </Typography>
-          </Box>
-
-          {/* Modern Search with Glass Effect */}
-          <Box sx={{ px: 3, pb: 3 }}>
-            <TextField
-              fullWidth
-              placeholder={t('search.placeholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: '#5D895D' }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  bgcolor: 'rgba(255, 255, 255, 0.9)',
-                  borderRadius: 5,
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  '& fieldset': { border: 'none' },
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.95)',
-                    transform: 'translateY(-1px)',
-                    boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
-                  },
-                  '&.Mui-focused': {
-                    bgcolor: 'rgba(255, 255, 255, 1)',
-                    boxShadow: '0 8px 25px rgba(202, 236, 202, 0.4)'
-                  },
-                  transition: 'all 0.3s ease'
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder={t('search.placeholder')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: '#4c9a4c' }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery.trim() && (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSearchResults({ vocabulary: [], topics: [], conversations: [] });
+                    }}
+                    size="small"
+                    sx={{ color: '#999' }}
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                '& fieldset': {
+                  borderColor: '#e7f3e7',
                 },
-                '& .MuiInputBase-input': {
-                  py: 2
-                }
-              }}
-            />
-          </Box>
+                '&:hover fieldset': {
+                  borderColor: '#4c9a4c',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#4c9a4c',
+                },
+              },
+            }}
+          />
+        </Paper>
+      </Box>
 
+      {/* 标签页导航 */}
+      <Box sx={{ px: 2, py: 1 }}>
+        <Paper sx={{ 
+          borderRadius: 3, 
+          border: '1px solid #e7f3e7',
+          overflow: 'hidden'
+        }}>
           {/* Modern Tab Navigation with Action Buttons - 2025-01-30 21:15:00 */}
           <Box sx={{ 
-            px: 3, 
-            pb: 1, 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between',
-            flexWrap: { xs: 'wrap', sm: 'nowrap' },
-            gap: { xs: 2, sm: 0 }
+            borderBottom: '1px solid #e7f3e7'
           }}>
             <Tabs
               value={activeTab}
               onChange={(e, newValue) => setActiveTab(newValue)}
               variant="scrollable"
               scrollButtons="auto"
-              sx={{ 
-                '& .MuiTab-root': { 
-                  color: 'rgba(13, 28, 13, 0.7)',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  borderRadius: 3,
-                  mx: 0.5,
-                  minHeight: 48,
-                  '&.Mui-selected': { 
-                    color: '#0D1C0D',
-                    bgcolor: 'rgba(255, 255, 255, 0.3)'
-                  },
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.2)'
-                  },
-                  transition: 'all 0.2s ease'
-                },
-                '& .MuiTabs-indicator': { 
-                  bgcolor: '#0D1C0D',
+              sx={{
+                flex: 1,
+                '& .MuiTabs-indicator': {
+                  backgroundColor: '#12e712',
                   height: 3,
-                  borderRadius: 1.5
+                  borderRadius: 2
+                },
+                '& .MuiTab-root': {
+                  minWidth: 'auto',
+                  px: 2,
+                  py: 1.5,
+                  color: '#4c9a4c',
+                  fontWeight: 500,
+                  '&.Mui-selected': {
+                    color: '#0d1b0d',
+                    fontWeight: 600
+                  }
                 }
               }}
             >
@@ -896,133 +889,154 @@ function Vocabulary() {
                   color: 'white',
                   width: 40,
                   height: 40,
-                  ml: { xs: 1, sm: 2 },
-                  '&:hover': { 
-                    bgcolor: '#3d7a3d',
-                    transform: 'scale(1.1)',
-                    boxShadow: '0 4px 12px rgba(76, 154, 76, 0.4)'
+                  m: 1,
+                  '&:hover': {
+                    bgcolor: '#12e712',
+                    transform: 'scale(1.05)'
                   },
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.2s ease'
                 }}
-                title={t('vocabulary.actions.addWord')}
               >
                 <AddIcon />
               </IconButton>
             )}
           </Box>
         </Paper>
+      </Box>
 
-        {/* Content */}
-        <Box sx={{ p: 3 }}>
-          {loading && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', my: 6 }}>
-              <CircularProgress 
-                sx={{ 
-                  color: '#4c9a4c',
-                  '& .MuiCircularProgress-circle': {
-                    strokeLinecap: 'round'
-                  }
-                }} 
-                size={50}
-                thickness={4}
-              />
-            </Box>
-          )}
+      {/* 内容区域 */}
+      <Box sx={{ px: 2, pb: 3 }}>
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+            <CircularProgress sx={{ color: '#4c9a4c' }} />
+          </Box>
+        )}
 
-          {/* 搜索结果 - 优化显示 - 2025-01-30 18:32:00 */}
-          {searchQuery && (searchResults.vocabulary.length > 0 || searchResults.topics.length > 0) && (
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h5" sx={{ 
-                color: '#0D1C0D', 
-                mb: 3, 
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}>
-                <SearchIcon />
-{t('search.results')}
-              </Typography>
-              
-              {/* 单词搜索结果 */}
+        {/* 搜索结果页面 - 统一显示所有搜索结果 */}
+        {searchQuery.trim() && (
+          <Box sx={{ mt: 2 }}>
+            <Paper sx={{ 
+              p: 3, 
+              borderRadius: 3, 
+              border: '1px solid #e7f3e7',
+              boxShadow: '0 2px 12px rgba(76,154,76,0.1)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)'
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>
+                  🔍 搜索结果: "{searchQuery}"
+                </Typography>
+                <Button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSearchResults({ vocabulary: [], topics: [], conversations: [] });
+                  }}
+                  sx={{ 
+                    color: '#4c9a4c',
+                    '&:hover': { bgcolor: '#f0f8f0' }
+                  }}
+                >
+                  清除搜索
+                </Button>
+              </Box>
+
+              {/* 词汇搜索结果 */}
               {searchResults.vocabulary.length > 0 && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6" sx={{ 
-                    color: '#0D1C0D', 
-                    mb: 2, 
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-{t('search.foundVocabulary', { count: searchResults.vocabulary.length })}
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: '#4c9a4c', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    📚 词汇 ({searchResults.vocabulary.length})
                   </Typography>
                   <Box sx={{ 
                     display: 'grid', 
-                    gap: 3,
-                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(350px, 1fr))' }
+                    gap: 2,
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(300px, 1fr))' }
                   }}>
                     {searchResults.vocabulary.map(renderVocabularyCard)}
                   </Box>
                 </Box>
               )}
 
-              {/* 话题搜索结果 */}
-              {searchResults.topics.length > 0 && (
-                <Box>
-                  <Typography variant="h6" sx={{ 
-                    color: '#0D1C0D', 
-                    mb: 2, 
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-{t('search.foundTopics', { count: searchResults.topics.length })}
+              {/* 对话搜索结果 */}
+              {searchResults.conversations.length > 0 && (
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: '#4c9a4c', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    💬 对话 ({searchResults.conversations.length})
                   </Typography>
-                  <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(300px, 1fr))' } }}>
+                  <List>
+                    {searchResults.conversations.map((conversation) => (
+                      <ListItem 
+                        key={conversation.id}
+                        sx={{
+                          mb: 1,
+                          bgcolor: '#fff8e1',
+                          borderRadius: 2,
+                          border: '2px solid #ffd54f',
+                          '&:hover': {
+                            bgcolor: '#fff3c4',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 4px 20px rgba(255,193,7,0.3)'
+                          },
+                          transition: 'all 0.2s ease',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => navigate('/dialogue', {
+                          state: {
+                            topic: conversation.topic,
+                            initialMessages: conversation.messages,
+                            isHistory: true,
+                            conversationId: conversation.id
+                          }
+                        })}
+                      >
+                        <ListItemAvatar>
+                          <Avatar sx={{ bgcolor: '#ff9800', color: 'white' }}>
+                            <SearchIcon />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>
+                              {conversation.topic}
+                            </Typography>
+                          }
+                          secondary={
+                            <Typography variant="body2" sx={{ color: '#f57c00' }}>
+                              {conversation.messages?.length || 0} messages • {new Date(conversation.created_at).toLocaleDateString()}
+                            </Typography>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              )}
+
+              {/* 话题模板搜索结果 */}
+              {searchResults.topics.length > 0 && (
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: '#4c9a4c', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    🎯 话题模板 ({searchResults.topics.length})
+                  </Typography>
+                  <Box sx={{ 
+                    display: 'grid', 
+                    gap: 2,
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(250px, 1fr))' }
+                  }}>
                     {searchResults.topics.map((topic) => (
                       <Card key={topic.id} sx={{ 
                         borderRadius: 3,
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                        '&:hover': {
-                          boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
-                          transform: 'translateY(-2px)',
-                          transition: 'all 0.3s ease'
-                        },
+                        border: '1px solid #e7f3e7',
+                        '&:hover': { transform: 'translateY(-2px)', boxShadow: 3 },
+                        transition: 'all 0.2s ease',
                         cursor: 'pointer'
                       }}
-                      onClick={() => {
-                        // 区分预设话题和收藏对话 - 2025-01-30 18:41:00
-                        if (topic.conversation) {
-                          // 收藏的对话，跳转到对话页面
-                          const conv = topic.conversation;
-                          navigate('/dialogue', {
-                            state: {
-                              topic: conv.topic,
-                              initialMessages: conv.messages,
-                              isHistory: true,
-                              conversationId: conv.id
-                            }
-                          });
-                        } else {
-                          // 预设话题，跳转到话题选择页面
-                          navigate('/topic', { state: { selectedTopic: topic.name } });
-                        }
-                      }}
+                      onClick={() => navigate('/topic', { state: { suggestedTopic: topic.name } })}
                       >
-                        <CardContent>
-                          <Typography variant="h6" sx={{ 
-                            fontWeight: 'bold', 
-                            color: '#0D1C0D',
-                            mb: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
-                          }}>
-                            {topic.conversation ? '💬' : '🎯'} {topic.name}
+                        <CardContent sx={{ p: 2 }}>
+                          <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold', mb: 1 }}>
+                            {topic.name}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" sx={{ color: '#4c9a4c' }}>
                             {topic.description}
                           </Typography>
                         </CardContent>
@@ -1031,360 +1045,314 @@ function Vocabulary() {
                   </Box>
                 </Box>
               )}
-            </Box>
-          )}
 
-          {/* Vocabulary Tab */}
-          {activeTab === 'vocabulary' && (
-            <Box>
-              {/* 简化标题区域，按钮已移到tab栏 - 2025-01-30 21:16:00 */}
-              <Typography variant="h5" sx={{ 
-                color: '#0D1C0D', 
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                mb: 3
-              }}>
-                📚 {t('vocabulary.title')}
+              {/* 无搜索结果 */}
+              {searchResults.vocabulary.length === 0 && 
+               searchResults.conversations.length === 0 && 
+               searchResults.topics.length === 0 && (
+                <Box sx={{ textAlign: 'center', py: 6 }}>
+                  <Typography variant="h6" sx={{ color: '#666', mb: 2 }}>
+                    😔 没有找到相关内容
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#999', mb: 3 }}>
+                    尝试使用其他关键词搜索，或者
+                  </Typography>
+                  <Button 
+                    variant="contained" 
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSearchResults({ vocabulary: [], topics: [], conversations: [] });
+                    }}
+                    sx={{ 
+                      bgcolor: '#4c9a4c',
+                      color: 'white',
+                      '&:hover': { bgcolor: '#12e712' }
+                    }}
+                  >
+                    清除搜索，浏览所有内容
+                  </Button>
+                </Box>
+              )}
+            </Paper>
+          </Box>
+        )}
+
+        {/* 正常标签页内容 - 仅在无搜索时显示 */}
+        {!searchQuery.trim() && activeTab === 'vocabulary' && (
+          <Box sx={{ mt: 2 }}>
+            <Paper sx={{ 
+              p: 3, 
+              borderRadius: 3, 
+              border: '1px solid #e7f3e7',
+              boxShadow: '0 2px 12px rgba(76,154,76,0.1)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)'
+            }}>
+              <Typography variant="h6" sx={{ mb: 3, color: '#0d1b0d', fontWeight: 'bold' }}>
+                {t('vocabulary.myWords', 'My Vocabulary')} ({vocabulary.length})
               </Typography>
-              
               {vocabulary.length === 0 ? (
-                <Paper sx={{ 
-                  p: 6, 
-                  textAlign: 'center', 
-                  borderRadius: 4,
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
-                  border: '2px dashed #CAECCA',
-                  '&:hover': {
-                    borderColor: '#4c9a4c',
-                    transform: 'scale(1.02)'
-                  },
-                  transition: 'all 0.3s ease'
-                }}>
-                  <Box sx={{ fontSize: '4rem', mb: 2 }}>📖</Box>
-                  <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    {t('vocabulary.empty.title')}
+                <Box sx={{ textAlign: 'center', py: 6 }}>
+                  <Typography variant="body1" sx={{ color: '#666', mb: 2 }}>
+                    {t('vocabulary.empty', 'No vocabulary words yet')}
                   </Typography>
-                  <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto' }}>
-                    {t('vocabulary.empty.description')}
+                  <Typography variant="body2" sx={{ color: '#999' }}>
+                    {t('vocabulary.addFirstWord', 'Add your first word to get started')}
                   </Typography>
-                </Paper>
+                </Box>
               ) : (
                 <Box sx={{ 
                   display: 'grid', 
-                  gap: 3,
-                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(350px, 1fr))' }
+                  gap: 2,
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(300px, 1fr))' }
                 }}>
                   {vocabulary.map(renderVocabularyCard)}
                 </Box>
               )}
-            </Box>
-          )}
+            </Paper>
+          </Box>
+        )}
 
-
-
-
-
-          {/* Bookmarks Tab */}
-          {activeTab === 'bookmarks' && (
-            <Box>
-              <Typography variant="h5" sx={{ 
-                color: '#0D1C0D', 
-                mb: 3, 
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}>
-⭐ {t('bookmarks.title')}
+        {/* Bookmarks Tab Content */}
+        {!searchQuery.trim() && activeTab === 'bookmarks' && (
+          <Box sx={{ mt: 2 }}>
+            <Paper sx={{ 
+              p: 3, 
+              borderRadius: 3, 
+              border: '1px solid #e7f3e7',
+              boxShadow: '0 2px 12px rgba(76,154,76,0.1)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)'
+            }}>
+              <Typography variant="h6" sx={{ mb: 3, color: '#0d1b0d', fontWeight: 'bold' }}>
+                {t('bookmarks.title', 'Bookmarked Content')}
               </Typography>
               
-              {bookmarks.length === 0 ? (
-                <Paper sx={{ 
-                  p: 6, 
-                  textAlign: 'center', 
-                  borderRadius: 4,
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
-                  border: '2px dashed #CAECCA'
-                }}>
-                  <BookmarkBorderIcon sx={{ fontSize: '4rem', color: 'text.secondary', mb: 2 }} />
-                  <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    {t('bookmarks.empty.title')}
+              {/* Bookmarked Vocabulary */}
+              {bookmarks.some(b => b.type === 'vocabulary') && (
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="subtitle1" sx={{ mb: 2, color: '#4c9a4c', fontWeight: 'bold' }}>
+                    {t('bookmarks.vocabulary', 'Vocabulary')}
                   </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    {t('bookmarks.empty.description')}
-                  </Typography>
-                </Paper>
-              ) : (
-                <>
-                  {/* Vocabulary Bookmarks */}
-                  {bookmarks.filter(b => b.type === 'vocabulary').length > 0 && (
-                    <Box sx={{ mb: 4 }}>
-                      <Typography variant="h6" sx={{ 
-                        color: '#0D1C0D', 
-                        mb: 2, 
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1
-                      }}>
-📚 {t('bookmarks.sections.vocabulary')}
-                      </Typography>
-                      <Box sx={{ 
-                        display: 'grid', 
-                        gap: 3,
-                        gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(350px, 1fr))' }
-                      }}>
-                        {bookmarks
-                          .filter(b => b.type === 'vocabulary')
-                          .map(bookmark => renderVocabularyCard(bookmark.content as VocabularyItem))
-                        }
-                      </Box>
-                    </Box>
-                  )}
-
-                </>
+                  <Box sx={{ 
+                    display: 'grid', 
+                    gap: 2,
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(300px, 1fr))' }
+                  }}>
+                    {bookmarks
+                      .filter(b => b.type === 'vocabulary')
+                      .map(bookmark => renderVocabularyCard(bookmark.content as VocabularyItem))
+                    }
+                  </Box>
+                </Box>
               )}
-            </Box>
-          )}
 
-          {/* Topics Tab - 收藏对话 - 2025-01-30 15:51:00 */}
-          {activeTab === 'topics' && (
-            <Box>
-              <Typography variant="h5" sx={{ 
-                color: '#0D1C0D', 
-                mb: 3, 
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}>
-⭐ {t('topics.title')}
+              {bookmarks.length === 0 && (
+                <Box sx={{ textAlign: 'center', py: 6 }}>
+                  <Typography variant="body1" sx={{ color: '#666', mb: 2 }}>
+                    {t('bookmarks.empty', 'No bookmarks yet')}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#999' }}>
+                    {t('bookmarks.instruction', 'Bookmark vocabulary words to save them here')}
+                  </Typography>
+                </Box>
+              )}
+            </Paper>
+          </Box>
+        )}
+
+        {/* Topics Tab Content - 显示收藏的对话 */}
+        {!searchQuery.trim() && activeTab === 'topics' && (
+          <Box sx={{ mt: 2 }}>
+            <Paper sx={{ 
+              p: 3, 
+              borderRadius: 3, 
+              border: '1px solid #e7f3e7',
+              boxShadow: '0 2px 12px rgba(76,154,76,0.1)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)'
+            }}>
+              <Typography variant="h6" sx={{ mb: 3, color: '#0d1b0d', fontWeight: 'bold' }}>
+                {t('topics.title', 'Bookmarked Conversations')}
               </Typography>
               
-              {bookmarkedConversations.length === 0 ? (
-                <Paper sx={{ 
-                  p: 6, 
-                  textAlign: 'center', 
-                  borderRadius: 4,
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fcf8 100%)',
-                  border: '1px solid rgba(202, 236, 202, 0.3)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
-                }}>
-                  <Box sx={{ fontSize: '4rem', mb: 2 }}>⭐</Box>
-                  <Typography variant="h5" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    {t('topics.empty.title')}
+              {bookmarkedConversations.length > 0 ? (
+                <List>
+                  {bookmarkedConversations.map((conversation) => (
+                    <ListItem 
+                      key={conversation.id}
+                      sx={{
+                        mb: 1,
+                        bgcolor: '#f8fcf8',
+                        borderRadius: 2,
+                        border: '1px solid #e7f3e7',
+                        '&:hover': {
+                          bgcolor: '#e7f3e7',
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 4px 20px rgba(76,154,76,0.15)'
+                        },
+                        transition: 'all 0.2s ease',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => navigate('/dialogue', {
+                        state: {
+                          topic: conversation.topic,
+                          initialMessages: conversation.messages,
+                          isHistory: true,
+                          conversationId: conversation.id
+                        }
+                      })}
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: '#4c9a4c', color: 'white' }}>
+                          <HistoryIcon />
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Typography variant="h6" sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>
+                            {conversation.topic}
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography variant="body2" sx={{ color: '#4c9a4c' }}>
+                            {conversation.messages?.length || 0} messages • {new Date(conversation.created_at).toLocaleDateString()}
+                          </Typography>
+                        }
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <Box sx={{ textAlign: 'center', py: 6 }}>
+                  <Typography variant="body1" sx={{ color: '#666', mb: 2 }}>
+                    {t('topics.empty', 'No bookmarked conversations yet')}
                   </Typography>
-                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                    {t('topics.empty.description')}
+                  <Typography variant="body2" sx={{ color: '#999' }}>
+                    {t('topics.instruction', 'Bookmark conversations from history to see them here')}
                   </Typography>
                   <Button 
                     variant="contained" 
                     onClick={() => navigate('/history')}
                     sx={{ 
+                      mt: 2,
                       bgcolor: '#4c9a4c',
-                      '&:hover': { bgcolor: '#3d7a3d' },
-                      borderRadius: 20
+                      color: 'white',
+                      '&:hover': { bgcolor: '#12e712' }
                     }}
                   >
-                    {t('topics.empty.action')}
+                    {t('topics.goToHistory', 'Go to History')}
                   </Button>
-                </Paper>
-              ) : (
-                <Grid container spacing={2}>
-                  {bookmarkedConversations.map((conversation) => (
-                    <Grid item xs={12} md={6} key={conversation.id}>
-                      <Card sx={{ 
-                        borderRadius: 3,
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                        '&:hover': {
-                          boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
-                          transform: 'translateY(-2px)',
-                          transition: 'all 0.3s ease'
-                        }
-                      }}>
-                        <CardContent>
-                          <Typography variant="h6" sx={{ 
-                            fontWeight: 'bold', 
-                            color: '#0D1C0D',
-                            mb: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
-                          }}>
-                            💬 {conversation.topic}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-{t('topics.conversationInfo', { 
-                              count: conversation.messages?.length || 0, 
-                              date: new Date(conversation.created_at).toLocaleDateString() 
-                            })}
-                          </Typography>
-                          <Typography variant="body2" sx={{ 
-                            color: '#5D895D',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden'
-                          }}>
-{conversation.messages?.[conversation.messages.length - 1]?.text || t('topics.noPreview')}
-                          </Typography>
-                        </CardContent>
-                        <CardActions>
-                          <Button 
-                            size="small" 
-                            onClick={() => navigate('/dialogue', {
-                              state: {
-                                topic: conversation.topic,
-                                initialMessages: conversation.messages,
-                                isHistory: true,
-                                conversationId: conversation.id
-                              }
-                            })}
-                            sx={{ color: '#4c9a4c' }}
-                          >
-{t('topics.continueConversation')}
-                          </Button>
-                        </CardActions>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
+                </Box>
               )}
-            </Box>
-          )}
-        </Box>
-
-        {/* 添加单词菜单 */}
-        {showWordMenu && selectedWord && (
-          <Paper
-            sx={{
-              position: 'fixed',
-              top: wordMenuPosition.y + 10,
-              left: wordMenuPosition.x,
-              zIndex: 1000,
-              p: 2,
-              boxShadow: 3,
-              borderRadius: 2,
-              minWidth: 200
-            }}
-          >
-            <Typography variant="subtitle2" gutterBottom>
-              {t('topics.selectedWord', { word: selectedWord })}
-            </Typography>
-            <Button
-              variant="contained"
-              fullWidth
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddWord(selectedWord);
-              }}
-              sx={{ 
-                bgcolor: '#CAECCA', 
-                color: '#0D1C0D',
-                '&:hover': { bgcolor: '#B8E0B8' }
-              }}
-            >
-{t('topics.addToVocabulary')}
-            </Button>
-          </Paper>
+            </Paper>
+          </Box>
         )}
+      </Box>
 
-        {/* 手动添加单词对话框 - 2025-01-30 */}
-        <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ pb: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#0D1C0D' }}>
-              {t('vocabulary.add.title')}
-            </Typography>
-          </DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              fullWidth
-              label={t('vocabulary.add.inputLabel')}
-              value={newWord}
-              onChange={(e) => setNewWord(e.target.value)}
-              placeholder={t('vocabulary.add.inputPlaceholder')}
-              variant="outlined"
-              margin="normal"
-              disabled={isAddingWord}
-              sx={{ 
-                mt: 1,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2
-                }
-              }}
-            />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2, mb: 1 }}>
-              {t('vocabulary.add.aiHelp')}
-            </Typography>
-            {addWordError && (
-              <Alert severity="error" sx={{ mt: 2 }}>
-                {addWordError}
-              </Alert>
-            )}
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 3 }}>
-            <Button 
-              onClick={() => {
-                setShowAddDialog(false);
-                setNewWord('');
-                setAddWordError(null);
-              }}
-              disabled={isAddingWord}
-            >
-{t('vocabulary.add.cancel')}
-            </Button>
-            <Button 
-              variant="contained"
-              onClick={() => {
-                if (newWord.trim()) {
-                  handleAddWord(newWord.trim());
-                }
-              }}
-              disabled={!newWord.trim() || isAddingWord}
-              sx={{ 
-                bgcolor: '#4c9a4c',
-                '&:hover': { bgcolor: '#3d7a3d' }
-              }}
-            >
-              {isAddingWord ? (
-                <>
-                  <CircularProgress size={16} sx={{ color: 'white', mr: 1 }} />
-                  {t('vocabulary.add.adding')}
-                </>
-              ) : (
-                t('vocabulary.add.submit')
-              )}
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-
-
-        {/* Global Alert Notification - 2025-01-30 16:40:22 */}
-        <Snackbar 
-          open={showAlert} 
-          autoHideDuration={4000} 
-          onClose={() => setShowAlert(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert 
-            severity={alert.type as 'success' | 'error' | 'info' | 'warning'} 
-            onClose={() => setShowAlert(false)}
+      {/* Add Word Dialog */}
+      <Dialog 
+        open={showAddDialog} 
+        onClose={() => setShowAddDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ color: '#0d1b0d', fontWeight: 'bold' }}>
+          {t('vocabulary.addWord', 'Add New Word')}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label={t('vocabulary.wordInput', 'Enter a word')}
+            fullWidth
+            variant="outlined"
+            value={newWord}
+            onChange={(e) => setNewWord(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && !isAddingWord) {
+                handleAddWord();
+              }
+            }}
+            error={!!addWordError}
+            helperText={addWordError}
             sx={{
-              borderRadius: 3,
-              '& .MuiAlert-icon': { alignSelf: 'center' },
-              minWidth: 280
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: '#e7f3e7',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#4c9a4c',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#4c9a4c',
+                },
+              },
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setShowAddDialog(false)}
+            sx={{ color: '#666' }}
+          >
+            {t('buttons.cancel', 'Cancel')}
+          </Button>
+          <Button 
+            onClick={handleAddWord}
+            disabled={!newWord.trim() || isAddingWord}
+            variant="contained"
+            sx={{ 
+              bgcolor: '#4c9a4c',
+              color: 'white',
+              '&:hover': { bgcolor: '#12e712' }
             }}
           >
-            {alert.message}
-          </Alert>
-        </Snackbar>
-      </Box>
-    </MobileContainer>
+            {isAddingWord ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              t('buttons.add', 'Add')
+            )}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={!!success}
+        autoHideDuration={3000}
+        onClose={() => setSuccess(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity="success" onClose={() => setSuccess(null)}>
+          {success}
+        </Alert>
+      </Snackbar>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={3000}
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      </Snackbar>
+
+      {/* Global Alert Snackbar */}
+      <Snackbar
+        open={showAlert}
+        autoHideDuration={3000}
+        onClose={() => setShowAlert(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          severity={alert.type as 'success' | 'error' | 'info'} 
+          onClose={() => setShowAlert(false)}
+        >
+          {alert.message}
+        </Alert>
+      </Snackbar>
+    </Container>
   );
 }
 

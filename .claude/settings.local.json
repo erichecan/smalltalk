@@ -33,7 +33,11 @@
       "Bash(rm:*)",
       "Bash(npx tailwindcss init:*)",
       "Bash(./node_modules/.bin/tailwindcss:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }
