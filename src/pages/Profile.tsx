@@ -1,6 +1,5 @@
 import { Container, Box, Typography, Avatar, Paper, Tabs, Tab, Stack, IconButton } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
-import PersonIcon from '@mui/icons-material/Person';
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import PeopleIcon from '@mui/icons-material/People';
@@ -10,8 +9,7 @@ import { useEffect, useState } from 'react';
 import { usePageContext } from '../contexts/PageContext';
 import ProfileMenu from '../components/ProfileMenu';
 
-// 标签页组件（待实现）
-import PersonalInfoTab from '../components/profile/PersonalInfoTab';
+// 标签页组件
 import LeaderboardTab from '../components/profile/LeaderboardTab';
 import AchievementsTab from '../components/profile/AchievementsTab';
 import FriendsTab from '../components/profile/FriendsTab';
@@ -209,34 +207,28 @@ function Profile() {
             }}
           >
             <Tab 
-              icon={<PersonIcon />} 
-              label={t('profile.tabs.personal', 'Personal')} 
-              iconPosition="start"
-              {...a11yProps(0)} 
-            />
-            <Tab 
               icon={<LeaderboardIcon />} 
               label={t('profile.tabs.leaderboard', 'Leaderboard')} 
               iconPosition="start"
-              {...a11yProps(1)} 
+              {...a11yProps(0)} 
             />
             <Tab 
               icon={<EmojiEventsIcon />} 
               label={t('profile.tabs.achievements', 'Achievements')} 
               iconPosition="start"
-              {...a11yProps(2)} 
+              {...a11yProps(1)} 
             />
             <Tab 
               icon={<PeopleIcon />} 
               label={t('profile.tabs.friends', 'Friends')} 
               iconPosition="start"
-              {...a11yProps(3)} 
+              {...a11yProps(2)} 
             />
             <Tab 
               icon={<ForumIcon />} 
               label={t('profile.tabs.community', 'Community')} 
               iconPosition="start"
-              {...a11yProps(4)} 
+              {...a11yProps(3)} 
             />
           </Tabs>
         </Paper>
@@ -245,18 +237,15 @@ function Profile() {
       {/* 标签页内容 */}
       <Box sx={{ px: 2, pb: 3 }}>
         <TabPanel value={activeTab} index={0}>
-          <PersonalInfoTab />
-        </TabPanel>
-        <TabPanel value={activeTab} index={1}>
           <LeaderboardTab />
         </TabPanel>
-        <TabPanel value={activeTab} index={2}>
+        <TabPanel value={activeTab} index={1}>
           <AchievementsTab />
         </TabPanel>
-        <TabPanel value={activeTab} index={3}>
+        <TabPanel value={activeTab} index={2}>
           <FriendsTab />
         </TabPanel>
-        <TabPanel value={activeTab} index={4}>
+        <TabPanel value={activeTab} index={3}>
           <CommunityTab />
         </TabPanel>
       </Box>
