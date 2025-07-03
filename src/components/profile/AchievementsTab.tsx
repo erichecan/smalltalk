@@ -20,6 +20,7 @@ import StarIcon from '@mui/icons-material/Star';
 import LockIcon from '@mui/icons-material/Lock';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useTranslation } from 'react-i18next';
+import AchievementTestButton from './AchievementTestButton';
 
 interface Achievement {
   id: string;
@@ -238,6 +239,14 @@ function AchievementsTab({}: AchievementsTabProps) {
 
   return (
     <Box>
+      {/* Test Buttons (Development Only) */}
+      <Paper sx={{ p: 2, mb: 2, bgcolor: '#fff3cd', border: '1px solid #ffeaa7' }}>
+        <Typography variant="body2" sx={{ mb: 1, color: '#856404' }}>
+          Development Testing:
+        </Typography>
+        <AchievementTestButton />
+      </Paper>
+
       {/* 统计概览 */}
       <Paper sx={{ 
         p: 3, 

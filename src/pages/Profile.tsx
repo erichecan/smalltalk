@@ -16,6 +16,7 @@ import LeaderboardTab from '../components/profile/LeaderboardTab';
 import AchievementsTab from '../components/profile/AchievementsTab';
 import FriendsTab from '../components/profile/FriendsTab';
 import CommunityTab from '../components/profile/CommunityTab';
+import RealtimeTestPanel from '../components/profile/RealtimeTestPanel';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -103,6 +104,11 @@ function Profile() {
           </IconButton>
           <ProfileMenu />
         </Stack>
+      </Box>
+
+      {/* Real-time Testing Panel (Development Only) */}
+      <Box sx={{ px: 2, pt: 1 }}>
+        <RealtimeTestPanel />
       </Box>
 
       {/* 用户基本信息卡片 */}

@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { pointsService } from '../../services/pointsService';
 import type { LeaderboardEntry } from '../../services/pointsService';
 import { useAuth } from '../../contexts/AuthContext';
+import LeaderboardUpdates from './LeaderboardUpdates';
 
 interface LeaderboardTabProps {}
 
@@ -287,6 +288,9 @@ function LeaderboardTab({}: LeaderboardTabProps) {
           </Box>
         )}
       </Paper>
+
+      {/* 实时排行榜更新 */}
+      <LeaderboardUpdates />
     </Box>
   );
 }

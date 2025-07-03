@@ -44,25 +44,25 @@ export interface LeaderboardEntry {
 
 // 积分来源定义
 export const POINTS_SOURCES = {
-  CONVERSATION: 'conversation',
-  VOCABULARY: 'vocabulary', 
-  QUIZ: 'quiz',
-  MATCHING: 'matching',
-  STREAK: 'streak',
-  ACHIEVEMENT: 'achievement',
-  DAILY_LOGIN: 'daily_login',
-  FRIEND_INVITE: 'friend_invite'
+  conversation: 'CONVERSATION',
+  vocabulary: 'VOCABULARY', 
+  quiz: 'QUIZ',
+  matching: 'MATCHING',
+  streak: 'STREAK',
+  achievement: 'ACHIEVEMENT',
+  daily_login: 'DAILY_LOGIN',
+  friend_invite: 'FRIEND_INVITE'
 } as const;
 
 // 积分奖励配置
 export const POINTS_REWARDS = {
-  [POINTS_SOURCES.CONVERSATION]: 10,
-  [POINTS_SOURCES.VOCABULARY]: 5,
-  [POINTS_SOURCES.QUIZ]: 15,
-  [POINTS_SOURCES.MATCHING]: 12,
-  [POINTS_SOURCES.STREAK]: 20,
-  [POINTS_SOURCES.DAILY_LOGIN]: 5,
-  [POINTS_SOURCES.FRIEND_INVITE]: 50
+  [POINTS_SOURCES.conversation]: 10,
+  [POINTS_SOURCES.vocabulary]: 5,
+  [POINTS_SOURCES.quiz]: 15,
+  [POINTS_SOURCES.matching]: 12,
+  [POINTS_SOURCES.streak]: 20,
+  [POINTS_SOURCES.daily_login]: 5,
+  [POINTS_SOURCES.friend_invite]: 50
 } as const;
 
 class PointsService {
@@ -217,6 +217,17 @@ class PointsService {
           description: `Level ${newLevel} bonus`,
           metadata: { level: newLevel }
         }]);
+
+      // 广播升级活动 (延迟导入避免循环依赖)
+      try {
+        const { realtimeService } = await import('./realtimeService');
+        await realtimeService.broadcastFriendActivity(userId, 'level_up', {
+          level: newLevel,
+          bonus_points: levelUpBonus
+        });
+      } catch (error) {
+        console.error('Error broadcasting level up activity:', error);
+      }
     } catch (error) {
       console.error('Error handling level up:', error);
     }
@@ -227,30 +238,49 @@ class PointsService {
    */
   async getLeaderboard(limit: number = 50, timeframe: 'all' | 'week' | 'month' = 'all'): Promise<LeaderboardEntry[]> {
     try {
-      let query = supabase
+      // 首先获取用户统计数据
+      const { data: statsData, error: statsError } = await supabase
         .from('user_learning_stats')
-        .select(`
-          user_id,
-          total_points,
-          level,
-          user_profiles!inner(display_name)
-        `)
+        .select('*')
         .order('total_points', { ascending: false })
         .limit(limit);
 
-      const { data, error } = await query;
-      if (error) throw error;
+      if (statsError) {
+        console.error('Supabase stats query error:', statsError);
+        throw statsError;
+      }
 
-      return data.map((entry, index) => ({
+      if (!statsData) {
+        console.warn('No leaderboard data returned');
+        return [];
+      }
+
+      // 获取用户信息
+      const userIds = statsData.map(stat => stat.user_id);
+      const { data: userData, error: userError } = await supabase
+        .from('auth.users')
+        .select('id, email')
+        .in('id', userIds);
+
+      if (userError) {
+        console.error('Supabase user query error:', userError);
+      }
+
+      // 创建用户ID到邮箱的映射
+      const userEmailMap = new Map(
+        userData?.map(user => [user.id, user.email]) || []
+      );
+
+      return statsData.map((entry, index) => ({
         user_id: entry.user_id,
-        total_points: entry.total_points,
-        level: entry.level,
+        total_points: entry.total_points || 0,
+        level: entry.level || 1,
         rank: index + 1,
-        display_name: entry.user_profiles?.display_name || 'Anonymous'
+        display_name: userEmailMap.get(entry.user_id)?.split('@')[0] || 'Anonymous'
       }));
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
-      throw error;
+      throw new Error('Failed to fetch leaderboard data');
     }
   }
 
@@ -353,7 +383,9 @@ class PointsService {
     isNewRecord: boolean = false
   ): Promise<void> {
     try {
-      let basePoints = POINTS_REWARDS[gameType === 'quiz' ? POINTS_SOURCES.QUIZ : POINTS_SOURCES.MATCHING];
+      let basePoints = POINTS_REWARDS[
+        gameType === 'quiz' ? POINTS_SOURCES.quiz : POINTS_SOURCES.matching
+      ];
       
       // 分数加成
       const scoreBonus = Math.floor(score / 10);
@@ -365,7 +397,7 @@ class PointsService {
 
       await this.awardPoints(
         userId,
-        gameType === 'quiz' ? POINTS_SOURCES.QUIZ : POINTS_SOURCES.MATCHING,
+        gameType === 'quiz' ? POINTS_SOURCES.quiz : POINTS_SOURCES.matching,
         totalPoints,
         undefined,
         `Game completed: ${score} points${isNewRecord ? ' (New Record!)' : ''}`

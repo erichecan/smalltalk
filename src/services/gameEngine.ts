@@ -1,8 +1,12 @@
 // 游戏引擎服务 - Quiz和Matching游戏核心逻辑
 // 2025-01-30 10:45:00
+// 更新: 2025-01-31 集成社交系统
 
 import { supabase } from './supabase';
 import { practiceEngine } from './practiceEngine';
+import { pointsService } from './pointsService';
+import { achievementService } from './achievementService';
+import { socialService } from './socialService';
 import type { 
   GameType, 
   GameMode, 
@@ -326,16 +330,38 @@ export class GameEngine {
 
       if (sessionError) throw sessionError;
 
-      // 添加积分
-      await this.addPoints(userId, pointsEarned, gameType, sessionId);
+      // 使用新的积分系统添加积分
+      await pointsService.awardGameCompletionPoints(
+        userId,
+        gameType as 'quiz' | 'matching',
+        finalScore,
+        perfectScore
+      );
 
-      // 检查并解锁成就
-      const achievementsUnlocked = await this.checkAchievements(userId, gameType, {
-        score: finalScore,
-        accuracy,
-        streak: streakAchieved,
-        perfect: perfectScore
+      // 使用新的成就系统检查成就
+      const achievementsUnlocked = await achievementService.checkAchievements(userId, {
+        quiz_sessions: gameType === 'quiz' ? 1 : 0,
+        matching_sessions: gameType === 'matching' ? 1 : 0,
+        perfect_scores: perfectScore ? 1 : 0
       });
+
+      // 如果是成就帖子类型的成就，自动创建社区帖子
+      for (const achievement of achievementsUnlocked) {
+        if (achievement.is_unlocked && achievement.achievement) {
+          try {
+            await socialService.createPost(
+              userId,
+              `Just unlocked the "${achievement.achievement.name}" achievement! ${achievement.achievement.icon}`,
+              'achievement',
+              `Achievement Unlocked: ${achievement.achievement.name}`,
+              ['achievement', achievement.achievement.category],
+              true
+            );
+          } catch (error) {
+            console.error('Error creating achievement post:', error);
+          }
+        }
+      }
 
       // 更新单词掌握记录
       const newMasteryLevels = await this.updateWordMastery(userId, sessionId);
@@ -364,7 +390,7 @@ export class GameEngine {
   }
 
   /**
-   * 添加积分
+   * 添加积分 (已弃用 - 使用 pointsService)
    */
   private async addPoints(
     userId: string,

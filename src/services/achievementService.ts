@@ -210,6 +210,9 @@ class AchievementService {
           // 如果成就解锁，发放奖励
           if (isCompleted && !userAchievement.is_unlocked) {
             await this.grantAchievementRewards(userId, achievement);
+            
+            // 触发成就解锁动画事件
+            this.triggerAchievementUnlockEvent(achievement);
           }
         }
       }
@@ -252,6 +255,20 @@ class AchievementService {
             points_reward: achievement.points_reward
           }
         }]);
+
+      // 广播成就解锁活动 (延迟导入避免循环依赖)
+      try {
+        const { realtimeService } = await import('./realtimeService');
+        await realtimeService.broadcastFriendActivity(userId, 'achievement_unlock', {
+          achievement_id: achievement.id,
+          achievement_name: achievement.name,
+          achievement_icon: achievement.icon,
+          points_reward: achievement.points_reward,
+          rarity: achievement.rarity
+        });
+      } catch (error) {
+        console.error('Error broadcasting achievement unlock activity:', error);
+      }
 
       // 处理其他奖励（如果有）
       if (achievement.rewards) {
@@ -446,6 +463,23 @@ class AchievementService {
     } catch (error) {
       console.error('Error manually unlocking achievement:', error);
       return false;
+    }
+  }
+
+  /**
+   * 触发成就解锁事件（用于动画通知）
+   */
+  private triggerAchievementUnlockEvent(achievement: Achievement): void {
+    try {
+      // 创建自定义事件
+      const event = new CustomEvent('achievementUnlocked', {
+        detail: { achievement }
+      });
+      
+      // 分发事件
+      window.dispatchEvent(event);
+    } catch (error) {
+      console.error('Error triggering achievement unlock event:', error);
     }
   }
 }

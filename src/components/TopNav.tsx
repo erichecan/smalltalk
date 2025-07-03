@@ -10,6 +10,7 @@ import {
 import { ArrowBack as ArrowBackIcon, Person as PersonIcon } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { usePageContext } from '../contexts/PageContext';
+import NotificationCenter from './notifications/NotificationCenter';
 
 // 2025-01-30 17:35:00: 重新设计返回键逻辑 - 只有主入口页面不显示返回键
 // 其他所有页面统一显示返回键，提供一致的用户体验
@@ -89,8 +90,9 @@ const TopNav = () => {
           {/* 预留给标题或其他内容 */}
         </Box>
 
-        {/* 右侧区域：头像 */}
-        <Box sx={{ width: '40px' }}>
+        {/* 右侧区域：通知和头像 */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {isAuthenticated && <NotificationCenter />}
           <IconButton
             edge="end"
             onClick={handleAvatarClick}

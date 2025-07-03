@@ -25,6 +25,7 @@ import ChatIcon from '@mui/icons-material/Chat';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
+import FriendActivityFeed from './FriendActivityFeed';
 
 interface Friend {
   id: string;
@@ -201,6 +202,9 @@ function FriendsTab({}: FriendsTabProps) {
           </Button>
         </Stack>
       </Paper>
+
+      {/* 好友动态 */}
+      <FriendActivityFeed />
 
       {/* 搜索框 */}
       <Paper sx={{ 

@@ -32,7 +32,8 @@
       "Bash(ls:*)",
       "Bash(rm:*)",
       "Bash(npx tailwindcss init:*)",
-      "Bash(./node_modules/.bin/tailwindcss:*)"
+      "Bash(./node_modules/.bin/tailwindcss:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }
