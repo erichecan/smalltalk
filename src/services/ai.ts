@@ -1,5 +1,6 @@
 import type { Message } from '../types/chat';
 import { GEMINI_API_KEY } from '../env';
+import type { VocabularyItem, ExerciseQuestion } from '../types/learning';
 
 // 使用统一的环境变量适配器
 // 使用更稳定的 gemini-1.5-flash 模型
@@ -360,4 +361,99 @@ Word to analyze: "${word}"`;
       usage_notes: 'Information unavailable due to network error'
     };
   }
+}
+
+// ==================== 新增：生成练习题目 - 2025-07-02 14:35:00 ====================
+// 利用 Gemini 一次性批量生成练习题目，返回符合 ExerciseQuestion 类型的 JSON 数组
+// 失败时抛出错误，由调用方决定降级处理
+
+/**
+ * Bulk-generate exercise questions via Gemini
+ * @param vocabList list of target vocabulary items (≤10 建议，避免 token 超限)
+ * @param numQuestions expected question count, default equals vocabList.length
+ */
+export async function generateExerciseQuestions(
+  vocabList: VocabularyItem[],
+  numQuestions: number = vocabList.length
+): Promise<ExerciseQuestion[]> {
+  if (vocabList.length === 0) throw new Error('vocabList is empty');
+
+  // 仅提取必需字段，减少 prompt 大小
+  const compactList = vocabList.map(v => ({
+    word: v.word,
+    definition: v.definition,
+    chinese_translation: v.chinese_translation || '',
+    part_of_speech: v.part_of_speech || '',
+    synonyms: v.synonyms || [],
+    example: v.example || ''
+  }));
+
+  // Detect current UI language
+  const lang = (await import('../i18n')).default.language || 'en';
+
+  const isEn = lang.startsWith('en');
+  const prompt = `You are an experienced ESL content creator.\n` +
+    `Your job is to generate vocabulary practice questions IN EXACT JSON for an English-learning mobile app.\n\n` +
+    `===== Requirements =====\n` +
+    `1. Produce ${numQuestions} questions, each an object matching this TypeScript interface:\n` +
+    `interface ExerciseQuestion {\n` +
+    `  id: string;\n  type: \"word-meaning-match\" | \"meaning-word-match\" | \"sentence-completion\" | \"synonym-match\" | \"context-usage\";\n` +
+    `  vocabulary: { word: string; definition: string; chinese_translation: string; part_of_speech?: string; synonyms?: string[]; example?: string; };\n` +
+    `  question: string; options: string[]; correct_answer: string; explanation?: string; }\n` +
+    `2. Supported question types and rules:\n` +
+    `• word-meaning-match  – choose correct Chinese meaning.\n` +
+    `• meaning-word-match  – choose correct English word.\n` +
+    `• sentence-completion – sentence with blank \"____\".\n` +
+    `• synonym-match       – choose synonym.\n` +
+    `• context-usage       – choose word fitting context.\n` +
+    `3. options: 2–4, exactly one correct, no duplicates, shuffled.\n` +
+    `4. question in ${isEn ? 'English' : 'Chinese'}, explanation in English.\n` +
+    `5. Return ONLY a JSON array, no markdown, no extra keys.\n` +
+    `6. If constraints cannot be met, return {\"error\":\"reason\"}.\n\n` +
+    `===== Input Data =====\n` +
+    `${JSON.stringify(compactList)}\n\n` +
+    `===== Output =====`;
+
+  const requestBody = {
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.5,
+      topK: 40,
+      topP: 0.9,
+      maxOutputTokens: Math.min(1500, 150 * numQuestions) // 简单估算
+    }
+  };
+
+  // 调用 Gemini
+  const response = await fetchWithRetry(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Gemini error ${response.status}`);
+  }
+
+  const data = await response.json();
+  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  if (!rawText) throw new Error('Empty AI response');
+
+  // 尝试解析 JSON，忽略可能的代码围栏
+  const jsonMatch = rawText.match(/\[.*\]/s);
+  const jsonText = jsonMatch ? jsonMatch[0] : rawText;
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch (err) {
+    console.error('Failed to parse AI JSON:', rawText);
+    throw err;
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error('AI did not return an array');
+  }
+
+  return parsed as ExerciseQuestion[];
 }

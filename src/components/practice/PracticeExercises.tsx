@@ -23,7 +23,9 @@ import {
   Tooltip,
   TextField,
   Paper,
-  Divider
+  Divider,
+  Stack,
+  Avatar
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -38,36 +40,51 @@ import {
   CompareArrows as MatchIcon,
   ArrowBack as ArrowBackIcon,
   Help as HelpIcon,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  EmojiEvents as TrophyIcon,
+  Bolt as BoltIcon,
+  Psychology as BrainIcon,
+  Speed as SpeedIcon
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePageContext } from '../../contexts/PageContext';
 import { spacedRepetitionEngine } from '../../services/spacedRepetition';
 import { practiceEngine } from '../../services/practiceEngine';
+import { gameEngine } from '../../services/gameEngine';
+import { MatchingGame } from './MatchingGame';
 import type { 
   DailyPractice, 
   LearningStats,
   ExerciseQuestion,
   PracticeSession,
-  VocabularyItem
+  VocabularyItem,
+  GameResult,
+  GameType,
+  GameMode
 } from '../../types/learning';
 
-// 题型定义 - 只保留Quizzes和Matching
+// 题型定义 - 游戏化版本 - 2025-01-30 11:15:00
 const EXERCISE_TYPES = [
   {
     id: 'quiz',
     name: 'quiz',
     description: 'quizDescription',
     icon: QuizIcon,
-    color: '#0ecd6a'
+    color: '#3b82f6',
+    modes: [
+      { id: 'classic', name: 'classicMode' }
+    ]
   },
   {
     id: 'matching',
     name: 'matching',
     description: 'matchingDescription',
     icon: MatchIcon,
-    color: '#0ecd6a'
+    color: '#10b981',
+    modes: [
+      { id: 'classic', name: 'classicMode' }
+    ]
   }
 ];
 
@@ -79,57 +96,65 @@ const ExerciseSession: React.FC<{
 }> = ({ exerciseType, onBack, onComplete }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [session, setSession] = useState<PracticeSession | null>(null); // 当前练习会话 - 2025-07-02 15:05:00
   const [currentQuestion, setCurrentQuestion] = useState<ExerciseQuestion | null>(null);
   const [userAnswer, setUserAnswer] = useState<string>('');
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [questionCount, setQuestionCount] = useState(0);
+  const [questionIndex, setQuestionIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [startTime, setStartTime] = useState<number>(Date.now());
 
+  // 初始化会话：从 PracticeEngine 获取推荐词汇并调用 createPracticeSession（使用 AI）
   useEffect(() => {
-    loadNextQuestion();
-  }, []);
-
-  const loadNextQuestion = async () => {
     if (!user) return;
-    
-    try {
-      // 获取今日需要复习的词汇
-      const todayReviews = await spacedRepetitionEngine.getTodayReviews(user.id);
-      if (todayReviews.length === 0) {
-        console.log('No vocabulary to review today');
-        return;
+
+    (async () => {
+      try {
+        const vocabList = await practiceEngine.getRecommendedPractice(user.id, 10);
+        if (vocabList.length === 0) {
+          console.warn('No vocabulary available to start a practice session');
+          return;
+        }
+
+        const newSession = await practiceEngine.createPracticeSession(
+          user.id,
+          vocabList,
+          'daily-review',
+          true // useAI
+        );
+
+        setSession(newSession);
+        setCurrentQuestion(newSession.questions[0]);
+        setQuestionIndex(0);
+        setUserAnswer('');
+        setCorrectCount(0);
+        setStartTime(Date.now());
+      } catch (err) {
+        console.error('Failed to start practice session:', err);
       }
-      
-      // 随机选择一个词汇生成题目
-      const randomVocabulary = todayReviews[Math.floor(Math.random() * todayReviews.length)];
-      const question = await practiceEngine.generateQuestion(randomVocabulary, 0.7);
-      setCurrentQuestion(question);
-      setUserAnswer('');
-      setIsCorrect(null);
-      setShowFeedback(false);
-      setStartTime(Date.now());
-    } catch (error) {
-      console.error('Failed to generate exercise:', error);
-    }
+    })();
+  }, [user]);
+
+  const loadNextQuestion = () => {
+    if (!session) return;
+    const nextIdx = questionIndex + 1;
+    if (nextIdx >= session.questions.length) return;
+
+    setCurrentQuestion(session.questions[nextIdx]);
+    setQuestionIndex(nextIdx);
+    setUserAnswer('');
+    setStartTime(Date.now());
   };
 
-  const handleSubmit = async () => {
-    if (!currentQuestion || !user) return;
+  const handleNext = async () => {
+    if (!currentQuestion || !user || !session) return;
 
     const responseTime = Date.now() - startTime;
     const correct = userAnswer.toLowerCase().trim() === currentQuestion.correct_answer.toLowerCase().trim();
-    
-    setIsCorrect(correct);
-    setShowFeedback(true);
     
     if (correct) {
       setCorrectCount(prev => prev + 1);
     }
     
-    setQuestionCount(prev => prev + 1);
-
     // 记录练习结果并更新遗忘曲线
     try {
       // 计算表现评分
@@ -153,7 +178,7 @@ const ExerciseSession: React.FC<{
 
       // 记录练习记录
       await practiceEngine.recordPracticeResult(
-        `session-${Date.now()}`,
+        session.id,
         currentQuestion.id,
         userAnswer,
         currentQuestion.correct_answer,
@@ -163,15 +188,15 @@ const ExerciseSession: React.FC<{
     } catch (error) {
       console.error('Failed to record practice result:', error);
     }
-  };
 
-  const handleNext = () => {
-    if (questionCount >= 10) {
+    // 更新已完成数量（questionIndex 已在 loadNextQuestion 中更新）
+    if (questionIndex >= session.questions.length - 1) {
       // 完成练习
-      const accuracy = (correctCount / 10) * 100;
+      const total = session.questions.length;
+      const accuracy = ((correctCount + (correct ? 1 : 0)) / total) * 100;
       onComplete({
-        totalQuestions: 10,
-        correctAnswers: correctCount,
+        totalQuestions: total,
+        correctAnswers: correctCount + (correct ? 1 : 0),
         accuracy,
         exerciseType
       });
@@ -194,46 +219,53 @@ const ExerciseSession: React.FC<{
 
   return (
     <Box sx={{ bgcolor: 'white', minHeight: '100vh', pt: 8 }}>
+      {/* AI 题目指示 - 2025-07-02 15:35:00 */}
+      {session?.generated_by_ai && (
+        <Box sx={{ px: 2, pb: 1 }}>
+          <Chip label="AI" color="secondary" size="small" />
+        </Box>
+      )}
       {/* 主要内容 */}
-      <Box sx={{ px: 2, pt: 3 }}>
+      <Box sx={{ px: 2, pt: 2 }}>
         {/* 进度条 */}
-        <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="body2" color="#64748b" sx={{ fontWeight: 500 }}>
-              {t('progress')}: {questionCount}/10
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="body2" color="#64748b" sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
+              {t('progress')}: {questionIndex}/{session?.questions.length || 0}
             </Typography>
-            <Typography variant="body2" color="#64748b" sx={{ fontWeight: 500 }}>
-              {t('accuracy')}: {correctCount}/{questionCount}
+            <Typography variant="body2" color="#64748b" sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
+              {t('accuracy')}: {correctCount}/{questionIndex}
             </Typography>
           </Box>
           <LinearProgress 
             variant="determinate" 
-            value={(questionCount / 10) * 100} 
+            value={session ? (questionIndex / session.questions.length) * 100 : 0} 
             sx={{ 
-              height: 8, 
-              borderRadius: 4,
+              height: 6, 
+              borderRadius: 3,
               bgcolor: '#f1f5f9',
               '& .MuiLinearProgress-bar': {
                 bgcolor: '#0ecd6a',
-                borderRadius: 4
+                borderRadius: 3
               }
             }}
           />
         </Box>
 
         {/* 题目内容 */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" sx={{ 
-            mb: 3, 
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h6" sx={{ 
+            mb: 2, 
             fontWeight: 600,
             color: '#1e293b',
-            lineHeight: 1.4
+            lineHeight: 1.3,
+            fontSize: '1.125rem'
           }}>
             {currentQuestion.question}
           </Typography>
           
           {exerciseType === 'quiz' && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {currentQuestion.options?.map((option, index) => (
                 <Button
                   key={index}
@@ -242,27 +274,21 @@ const ExerciseSession: React.FC<{
                   sx={{ 
                     justifyContent: 'flex-start', 
                     textAlign: 'left',
-                    borderRadius: 3,
-                    py: 2,
-                    px: 3,
+                    borderRadius: 2,
+                    py: 1.5,
+                    px: 2,
                     borderColor: userAnswer === option ? '#0ecd6a' : '#e2e8f0',
                     color: userAnswer === option ? 'white' : '#1e293b',
                     bgcolor: userAnswer === option ? '#0ecd6a' : 'transparent',
-                    fontSize: '1rem',
+                    fontSize: '0.875rem',
                     fontWeight: 500,
                     textTransform: 'none',
                     '&:hover': {
                       borderColor: '#0ecd6a',
                       bgcolor: userAnswer === option ? '#0bb85a' : '#f8fafc'
-                    },
-                    '&:disabled': {
-                      borderColor: userAnswer === option ? '#0ecd6a' : '#e2e8f0',
-                      color: userAnswer === option ? 'white' : '#94a3b8',
-                      bgcolor: userAnswer === option ? '#0ecd6a' : 'transparent'
                     }
                   }}
                   onClick={() => setUserAnswer(option)}
-                  disabled={showFeedback}
                 >
                   {option}
                 </Button>
@@ -278,155 +304,84 @@ const ExerciseSession: React.FC<{
                 onChange={(e) => setUserAnswer(e.target.value)}
                 placeholder={t('enterAnswer')}
                 variant="outlined"
-                disabled={showFeedback}
-                sx={{
+                sx={{ 
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: 3,
-                    fontSize: '1rem',
-                    '& fieldset': {
-                      borderColor: '#e2e8f0',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#0ecd6a',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#0ecd6a',
-                    },
-                    '& input': {
-                      py: 2,
-                      px: 3,
-                    }
-                  },
+                    borderRadius: 2,
+                    fontSize: '0.875rem'
+                  }
                 }}
               />
             </Box>
           )}
         </Box>
 
-        {/* 反馈 */}
-        {showFeedback && (
-          <Box sx={{ 
-            mb: 4, 
-            p: 3,
-            borderRadius: 3,
-            bgcolor: isCorrect ? '#f0fdf4' : '#fef2f2',
-            border: `1px solid ${isCorrect ? '#bbf7d0' : '#fecaca'}`
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              {isCorrect ? (
-                <CheckCircleIcon sx={{ color: '#16a34a', mr: 1.5, fontSize: 28 }} />
-              ) : (
-                <HelpIcon sx={{ color: '#dc2626', mr: 1.5, fontSize: 28 }} />
-              )}
-              <Typography variant="h6" sx={{ 
-                color: isCorrect ? '#16a34a' : '#dc2626',
-                fontWeight: 600
-              }}>
-                {isCorrect ? t('correct') : t('incorrect')}
-              </Typography>
-            </Box>
-            <Typography variant="body1" sx={{ 
-              color: '#1e293b',
-              fontWeight: 500,
-              mb: 1
-            }}>
-              {t('correctAnswer')}: {currentQuestion.correct_answer}
-            </Typography>
-            {currentQuestion.explanation && (
-              <Typography variant="body2" sx={{ 
-                color: '#64748b',
-                lineHeight: 1.5
-              }}>
-                {currentQuestion.explanation}
-              </Typography>
-            )}
-          </Box>
-        )}
-
         {/* 操作按钮 */}
-        <Box sx={{ display: 'flex', gap: 2, pb: 3 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 2, 
+          mt: 'auto',
+          pt: 2
+        }}>
           <Button
             variant="outlined"
             onClick={onBack}
-            sx={{
-              borderRadius: 3,
-              borderColor: '#e2e8f0',
-              color: '#64748b',
+            sx={{ 
+              flex: 1,
+              borderRadius: 2,
               py: 1.5,
-              px: 3,
-              fontWeight: 500,
-              '&:hover': {
-                borderColor: '#0ecd6a',
-                color: '#0ecd6a',
-                bgcolor: '#f8fafc'
-              }
+              fontSize: '0.875rem'
             }}
           >
             {t('back')}
           </Button>
-          
-          {!showFeedback ? (
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              disabled={!userAnswer.trim()}
-              sx={{ 
-                flex: 1,
-                borderRadius: 3,
-                bgcolor: '#0ecd6a',
-                py: 1.5,
-                px: 3,
-                fontWeight: 600,
-                textTransform: 'none',
-                fontSize: '1rem',
-                '&:hover': {
-                  bgcolor: '#0bb85a'
-                },
-                '&:disabled': {
-                  bgcolor: '#e2e8f0',
-                  color: '#94a3b8'
-                }
-              }}
-            >
-              {t('submit')}
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              onClick={handleNext}
-              sx={{ 
-                flex: 1,
-                borderRadius: 3,
-                bgcolor: '#0ecd6a',
-                py: 1.5,
-                px: 3,
-                fontWeight: 600,
-                textTransform: 'none',
-                fontSize: '1rem',
-                '&:hover': {
-                  bgcolor: '#0bb85a'
-                }
-              }}
-            >
-              {questionCount >= 10 ? t('finish') : t('next')}
-            </Button>
-          )}
+          <Button
+            variant="contained"
+            onClick={handleNext}
+            disabled={!userAnswer.trim()}
+            sx={{ 
+              flex: 1,
+              borderRadius: 2,
+              py: 1.5,
+              bgcolor: '#0ecd6a',
+              fontSize: '0.875rem',
+              '&:hover': {
+                bgcolor: '#0bb85a'
+              },
+              '&:disabled': {
+                bgcolor: '#e2e8f0',
+                color: '#94a3b8'
+              }
+            }}
+          >
+            {session && questionIndex >= session.questions.length - 1 ? t('finish') : t('next')}
+          </Button>
         </Box>
       </Box>
     </Box>
   );
 };
 
-// 主练习页面组件
+// 主练习页面组件 - 游戏化版本 - 2025-01-30 11:20:00
 const PracticeExercises: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { pageState, setPageState, pushInternalState } = usePageContext();
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
+  const [selectedMode, setSelectedMode] = useState<GameMode>('classic');
   const [learningStats, setLearningStats] = useState<LearningStats | null>(null);
   const [dailyPlan, setDailyPlan] = useState<DailyPractice | null>(null);
   const [showSession, setShowSession] = useState(false);
+  const [showMatching, setShowMatching] = useState(false);
   const [sessionStats, setSessionStats] = useState<any>(null);
+  const [gameStats, setGameStats] = useState<{
+    totalGames: number;
+    quizGames: number;
+    matchingGames: number;
+    totalPoints: number;
+    bestScore: number;
+    perfectGames: number;
+    currentStreak: number;
+  } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -462,21 +417,43 @@ const PracticeExercises: React.FC = () => {
     try {
       if (!user?.id) return;
 
-      const [stats, plan] = await Promise.all([
-        spacedRepetitionEngine.getUserLearningStats(user.id),
-        spacedRepetitionEngine.getDailyPractice(user.id)
+      console.log('Loading practice data for user:', user.id);
+
+      const [stats, plan, gameStats] = await Promise.all([
+        spacedRepetitionEngine.getLearningStats(user.id),
+        spacedRepetitionEngine.generateDailyPractice(user.id),
+        gameEngine.getUserGameStats(user.id)
       ]);
+
+      console.log('Loaded game stats:', gameStats);
 
       setLearningStats(stats);
       setDailyPlan(plan);
+      setGameStats(gameStats);
     } catch (error) {
       console.error('Failed to load practice data:', error);
+      // 设置默认的游戏统计
+      setGameStats({
+        totalGames: 0,
+        quizGames: 0,
+        matchingGames: 0,
+        totalPoints: 0,
+        bestScore: 0,
+        perfectGames: 0,
+        currentStreak: 0
+      });
     }
   };
 
   const handleExerciseSelect = (exerciseType: string) => {
     setSelectedExercise(exerciseType);
-    setShowSession(true);
+    
+    if (exerciseType === 'matching') {
+      setShowMatching(true);
+    } else {
+      setShowSession(true);
+    }
+    
     // 使用内部导航状态管理，而不是页面状态
     pushInternalState({
       page: '/practice',
@@ -497,8 +474,18 @@ const PracticeExercises: React.FC = () => {
 
   const handleSessionBack = () => {
     setShowSession(false);
+    setShowMatching(false);
     setSelectedExercise(null);
     // 不需要手动设置页面状态，会通过goBack自动处理
+  };
+
+  const handleMatchingComplete = async (result: GameResult) => {
+    // 不要将GameResult设置给gameStats，gameStats应该是用户统计信息
+    setShowMatching(false);
+    setSelectedExercise(null);
+    
+    // 重新加载数据以更新游戏统计
+    await loadData();
   };
 
   if (!user) {
@@ -508,6 +495,16 @@ const PracticeExercises: React.FC = () => {
           {t('auth.pleaseLogin')}
         </Typography>
       </Box>
+    );
+  }
+
+  if (showMatching && selectedExercise) {
+    return (
+      <MatchingGame
+        onGameComplete={handleMatchingComplete}
+        onBack={handleSessionBack}
+        mode={selectedMode}
+      />
     );
   }
 
@@ -534,6 +531,56 @@ const PracticeExercises: React.FC = () => {
         }}>
           {t('chooseExercise')}
         </Typography>
+
+        {/* 游戏统计信息 */}
+        {gameStats && (
+          <Box sx={{ mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: '#f8fafc' }}>
+              <Grid container spacing={2}>
+                <Grid item xs={6} sm={3}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" color="primary">
+                      {gameStats.totalGames || 0}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('stats.totalGames', { ns: 'practice' })}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" color="success.main">
+                      {gameStats.totalPoints || 0}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('stats.totalPoints', { ns: 'practice' })}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" color="warning.main">
+                      {gameStats.bestScore || 0}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('stats.bestScore', { ns: 'practice' })}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" color="info.main">
+                      {gameStats.currentStreak || 0}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('stats.currentStreak', { ns: 'practice' })}
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Box>
+        )}
       </Box>
 
       {/* 题型选择列表 */}
@@ -587,7 +634,8 @@ const PracticeExercises: React.FC = () => {
                   </Typography>
                   <Typography variant="body2" sx={{ 
                     color: '#64748b',
-                    lineHeight: 1.5
+                    lineHeight: 1.5,
+                    mb: 1
                   }}>
                     {t(exercise.description)}
                   </Typography>

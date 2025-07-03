@@ -10,7 +10,11 @@
     "accuracyRate": "准确率",
     "masteredWords": "已掌握",
     "learningWords": "学习中",
-    "dailyReviews": "今日复习"
+    "dailyReviews": "今日复习",
+    "totalGames": "总游戏数",
+    "totalPoints": "总积分",
+    "bestScore": "最高分",
+    "currentStreak": "当前连击"
   },
   "dailyPractice": {
     "title": "今日练习计划",
@@ -133,5 +137,26 @@
       "last30Days": "最近30天"
     },
     "seeAll": "查看全部"
-  }
+  },
+  "game": {
+    "matchingGame": "配对游戏",
+    "words": "单词",
+    "definitions": "释义",
+    "correctMatches": "正确配对",
+    "timeSpent": "用时",
+    "pointsEarned": "获得积分",
+    "perfectScore": "完美分数！",
+    "gameComplete": "游戏完成！",
+    "playAgain": "再玩一次",
+    "streak": "连击",
+    "totalGames": "总游戏数",
+    "totalPoints": "总积分",
+    "bestScore": "最高分",
+    "currentStreak": "当前连击",
+    "achievementsUnlocked": "解锁了{{count}}个成就！"
+  },
+  "modes": {
+    "classic": "经典模式"
+  },
+  "classicMode": "经典模式"
 }

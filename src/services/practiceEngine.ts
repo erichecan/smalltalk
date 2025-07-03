@@ -11,6 +11,7 @@ import type {
   PracticeSession,
   PracticeRecord
 } from '../types/learning';
+import i18n from '../i18n';
 
 export class PracticeEngine {
   /**
@@ -36,11 +37,14 @@ export class PracticeEngine {
       option === (vocabulary.definition || vocabulary.chinese_translation)
     ) || options[0];
 
+    const lang = i18n.language || 'en';
+    const isEn = lang.startsWith('en');
+
     return {
       id: `${vocabulary.id}-word-meaning-${Date.now()}`,
       type: 'word-meaning-match',
       vocabulary,
-      question: `"${vocabulary.word}" 的含义是？`,
+      question: isEn ? `What does "${vocabulary.word}" mean?` : `"${vocabulary.word}" 的含义是？`,
       options: shuffledOptions,
       correct_answer: correctAnswer,
       explanation: vocabulary.usage_notes || `${vocabulary.word}: ${vocabulary.definition}`
@@ -66,11 +70,18 @@ export class PracticeEngine {
 
     const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
+    const lang = i18n.language || 'en';
+    const isEn = lang.startsWith('en');
+
+    const questionText = isEn
+      ? `Which word means "${vocabulary.definition || vocabulary.chinese_translation}"?`
+      : `哪个单词的意思是"${vocabulary.chinese_translation || vocabulary.definition}"？`;
+
     return {
       id: `${vocabulary.id}-meaning-word-${Date.now()}`,
       type: 'meaning-word-match',
       vocabulary,
-      question: `哪个单词的意思是"${vocabulary.chinese_translation || vocabulary.definition}"？`,
+      question: questionText,
       options: shuffledOptions,
       correct_answer: vocabulary.word,
       explanation: `${vocabulary.word}: ${vocabulary.definition}`
@@ -82,15 +93,12 @@ export class PracticeEngine {
    * 在例句中挖掉目标单词，让用户填空
    */
   async generateSentenceCompletion(vocabulary: VocabularyItem): Promise<ExerciseQuestion> {
+    const lang = i18n.language || 'en';
+    const isEn = lang.startsWith('en');
     const example = vocabulary.example || `This is an example with ${vocabulary.word}.`;
-    
-    // 将目标单词替换为下划线
-    const questionSentence = example.replace(
-      new RegExp(`\\b${vocabulary.word}\\b`, 'gi'),
-      '______'
-    );
 
-    // 获取干扰项
+    const questionSentence = example.replace(new RegExp(`\\b${vocabulary.word}\\b`, 'gi'), '______');
+
     const { data: distractors } = await supabase
       .from('vocabulary')
       .select('word')
@@ -98,21 +106,17 @@ export class PracticeEngine {
       .eq('part_of_speech', vocabulary.part_of_speech || null)
       .limit(3);
 
-    const options = [
-      vocabulary.word,
-      ...(distractors?.map(d => d.word) || ['option1', 'option2', 'option3'])
-    ];
-
+    const options = [vocabulary.word, ...(distractors?.map(d => d.word) || [])];
     const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
     return {
       id: `${vocabulary.id}-sentence-${Date.now()}`,
       type: 'sentence-completion',
       vocabulary,
-      question: `请填空：${questionSentence}`,
+      question: isEn ? `Fill in the blank: ${questionSentence}` : `请填空：${questionSentence}`,
       options: shuffledOptions,
       correct_answer: vocabulary.word,
-      explanation: `完整句子：${example}`
+      explanation: isEn ? `Complete sentence: ${example}` : `完整句子：${example}`
     };
   }
 
@@ -120,6 +124,8 @@ export class PracticeEngine {
    * 生成同义词匹配题目
    */
   async generateSynonymMatch(vocabulary: VocabularyItem): Promise<ExerciseQuestion> {
+    const lang = i18n.language || 'en';
+    const isEn = lang.startsWith('en');
     const synonyms = vocabulary.synonyms || [];
     
     if (synonyms.length === 0) {
@@ -147,7 +153,7 @@ export class PracticeEngine {
       id: `${vocabulary.id}-synonym-${Date.now()}`,
       type: 'synonym-match',
       vocabulary,
-      question: `"${vocabulary.word}" 的同义词是？`,
+      question: isEn ? `Which of the following is a synonym of "${vocabulary.word}"?` : `"${vocabulary.word}" 的同义词是？`,
       options: shuffledOptions,
       correct_answer: correctSynonym,
       explanation: `${vocabulary.word} 的同义词包括：${synonyms.join(', ')}`
@@ -159,12 +165,19 @@ export class PracticeEngine {
    * 给出一个使用场景，选择合适的单词
    */
   async generateContextUsage(vocabulary: VocabularyItem): Promise<ExerciseQuestion> {
-    // 创建语境描述
-    const contexts = [
-      `在表达${vocabulary.chinese_translation || vocabulary.definition}的时候，你会使用哪个词？`,
-      `当你想要说"${vocabulary.definition}"时，应该用哪个单词？`,
-      `在下面的语境中，哪个词最合适？\n${vocabulary.example || `需要一个表示"${vocabulary.definition}"的词`}`
-    ];
+    const lang = i18n.language || 'en';
+    const isEn = lang.startsWith('en');
+    const contexts = isEn
+      ? [
+        `Which word would you use to express "${vocabulary.definition}"?`,
+        `When you want to say "${vocabulary.definition}", which word is appropriate?`,
+        `Choose the most suitable word for the context below:\n${vocabulary.example || `Need a word that means "${vocabulary.definition}"`}`
+      ]
+      : [
+        `在表达${vocabulary.chinese_translation || vocabulary.definition}的时候，你会使用哪个词？`,
+        `当你想要说"${vocabulary.definition}"时，应该用哪个单词？`,
+        `在下面的语境中，哪个词最合适？\n${vocabulary.example || `需要一个表示"${vocabulary.definition}"的词`}`
+      ];
 
     const randomContext = contexts[Math.floor(Math.random() * contexts.length)];
 
@@ -250,20 +263,41 @@ export class PracticeEngine {
   async createPracticeSession(
     userId: string, 
     vocabularyList: VocabularyItem[],
-    sessionType: 'daily-review' | 'intensive-practice' | 'weak-points' = 'daily-review'
+    sessionType: 'daily-review' | 'intensive-practice' | 'weak-points' = 'daily-review',
+    useAI: boolean = true
   ): Promise<PracticeSession> {
-    // 获取用户准确率用于智能题型选择
-    const stats = await spacedRepetitionEngine.getLearningStats(userId);
-    const userAccuracy = stats.accuracy_rate;
-
-    // 为每个词汇生成题目
+    // 1) 尝试使用 AI 批量生成题目 - 2025-07-02 14:45:00
     const questions: ExerciseQuestion[] = [];
-    for (const vocab of vocabularyList) {
+    let aiGenerated = false;
+
+    if (useAI) {
       try {
-        const question = await this.generateQuestion(vocab, userAccuracy);
-        questions.push(question);
-      } catch (error) {
-        console.error(`Failed to generate question for ${vocab.word}:`, error);
+        const { generateExerciseQuestions } = await import('./ai');
+        const aiQs = await generateExerciseQuestions(vocabularyList);
+        if (aiQs && aiQs.length > 0) {
+          questions.push(...aiQs);
+          console.log(`[AI] Generated ${aiQs.length} questions via Gemini`);
+          aiGenerated = true;
+        }
+      } catch (aiError) {
+        console.warn('AI question generation failed, falling back to local engine:', aiError);
+      }
+    }
+
+    // 2) 如果AI未生成或数量不足，使用本地逻辑补足
+    if (questions.length < vocabularyList.length) {
+      // 获取用户准确率用于智能题型选择
+      const stats = await spacedRepetitionEngine.getLearningStats(userId);
+      const userAccuracy = stats.accuracy_rate;
+
+      for (const vocab of vocabularyList) {
+        if (questions.find(q => q.vocabulary.word === vocab.word)) continue; // 已有AI题目
+        try {
+          const question = await this.generateQuestion(vocab, userAccuracy);
+          questions.push(question);
+        } catch (error) {
+          console.error(`Failed to generate fallback question for ${vocab.word}:`, error);
+        }
       }
     }
 
@@ -278,7 +312,8 @@ export class PracticeEngine {
       start_time: new Date().toISOString(),
       total_questions: shuffledQuestions.length,
       correct_answers: 0,
-      session_type: sessionType
+      session_type: sessionType,
+      generated_by_ai: aiGenerated
     };
   }
 

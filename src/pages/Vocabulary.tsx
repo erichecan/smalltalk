@@ -547,9 +547,14 @@ function Vocabulary() {
             >
               {item.word}
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 1, lineHeight: 1.6 }}>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 0.5, lineHeight: 1.6 }}>
               {item.definition}
             </Typography>
+            {item.chinese_translation && (
+              <Typography variant="body2" color="#4B5563" sx={{ mb: 1, lineHeight: 1.5 }}>
+                {item.chinese_translation}
+              </Typography>
+            )}
             {item.example && (
               <Paper sx={{ 
                 p: 2, 

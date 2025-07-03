@@ -10,7 +10,11 @@
     "accuracyRate": "Accuracy Rate",
     "masteredWords": "Mastered",
     "learningWords": "Learning",
-    "dailyReviews": "Daily Reviews"
+    "dailyReviews": "Daily Reviews",
+    "totalGames": "Total Games",
+    "totalPoints": "Total Points",
+    "bestScore": "Best Score",
+    "currentStreak": "Current Streak"
   },
   "dailyPractice": {
     "title": "Daily Practice Plan",
@@ -133,5 +137,26 @@
       "last30Days": "Last 30 days"
     },
     "seeAll": "See All"
-  }
+  },
+  "game": {
+    "matchingGame": "Matching Game",
+    "words": "Words",
+    "definitions": "Definitions",
+    "correctMatches": "Correct Matches",
+    "timeSpent": "Time Spent",
+    "pointsEarned": "Points Earned",
+    "perfectScore": "Perfect Score!",
+    "gameComplete": "Game Complete!",
+    "playAgain": "Play Again",
+    "streak": "Streak",
+    "totalGames": "Total Games",
+    "totalPoints": "Total Points",
+    "bestScore": "Best Score",
+    "currentStreak": "Current Streak",
+    "achievementsUnlocked": "{{count}} achievement(s) unlocked!"
+  },
+  "modes": {
+    "classic": "Classic"
+  },
+  "classicMode": "Classic Mode"
 }
