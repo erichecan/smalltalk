@@ -83,11 +83,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const googleLogin = async () => {
-      // Google OAuth 登录 - 配置重定向URL以支持本地开发和生产环境 - 2025-01-30 14:26:45
+      // Google OAuth 登录 - 防止Google库fallback到localhost:3000 - 2025-07-03 15:10:00
+      const getRedirectUrl = () => {
+        const origin = window.location.origin;
+        // 防止fallback到localhost:3000，强制使用正确的URL
+        if (origin.includes('localhost:3000')) {
+          return 'https://smalltalking.netlify.app/topic';
+        }
+        // 生产环境直接使用配置的域名
+        if (origin.includes('netlify.app')) {
+          return origin + '/topic';
+        }
+        // 本地开发环境
+        if (origin.includes('localhost')) {
+          return origin + '/topic';
+        }
+        // 默认使用生产环境URL
+        return 'https://smalltalking.netlify.app/topic';
+      };
+
       const { error } = await supabase.auth.signInWithOAuth({ 
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/topic'
+          redirectTo: getRedirectUrl(),
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
       if (error) {
