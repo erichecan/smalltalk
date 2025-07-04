@@ -23,7 +23,13 @@ function TopicInput() {
       page: '/topic'
     });
   }, [setPageState]);
-  console.log('TopicInput user:', user, 'isAuthenticated:', isAuthenticated);
+
+  // 调试日志 - 只在开发环境输出 - 2024-12-19 16:00:00
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('TopicInput user:', user, 'isAuthenticated:', isAuthenticated);
+    }
+  }, [user, isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +58,7 @@ function TopicInput() {
       };
       const aiMessages = parseAIResponse(initialMessages).map((text, idx) => ({
         id: idx + 2,
-        sender: 'ai',
+        sender: 'ai' as const,
         text,
         bubbleColor: '#E8F5E9'
       }));
@@ -119,7 +125,7 @@ function TopicInput() {
         state: { 
           topic: trimmed,
           initialMessages: [
-            { id: 1, sender: 'user', text: trimmed },
+            { id: 1, sender: 'user' as const, text: trimmed },
             ...aiMessages
           ],
           conversationId
