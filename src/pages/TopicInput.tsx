@@ -35,16 +35,20 @@ function TopicInput() {
     e.preventDefault();
     const trimmed = topic.trim();
     // 校验：长度≥5，不能全是空白，不能全是数字，不能全是标点/特殊符号
-    if (!trimmed || trimmed.length < 5) {
+    if (!trimmed) {
       setError(t('topicInput.errors.topicRequired'));
+      return;
+    }
+    if (trimmed.length < 5) {
+      setError(t('topicInput.errors.topicTooShort'));
       return;
     }
     if (/^\d+$/.test(trimmed)) {
-      setError(t('topicInput.errors.topicRequired'));
+      setError(t('topicInput.errors.topicOnlyNumbers'));
       return;
     }
     if (/^[\p{P}\p{S}\s]+$/u.test(trimmed)) {
-      setError(t('topicInput.errors.topicRequired'));
+      setError(t('topicInput.errors.topicOnlySymbols'));
       return;
     }
     setLoading(true);
@@ -223,6 +227,7 @@ function TopicInput() {
                   const trimmed = e.target.value.trim();
                   if (
                     error &&
+                    trimmed &&
                     trimmed.length >= 5 &&
                     !/^\d+$/.test(trimmed) &&
                     !/^[\p{P}\p{S}\s]+$/u.test(trimmed)

@@ -82,7 +82,10 @@
     "actions": {
       "addWord": "添加单词",
       "importVocabulary": "导入词汇"
-    }
+    },
+    "pronunciationError": "发音播放失败",
+    "speechNotSupported": "此浏览器不支持语音合成功能",
+    "examples": "例句："
   },
   "phrases": {
     "title": "常用短语",

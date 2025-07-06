@@ -82,7 +82,10 @@
     "actions": {
       "addWord": "Add Word",
       "importVocabulary": "Import Vocabulary"
-    }
+    },
+    "pronunciationError": "Pronunciation playback failed",
+    "speechNotSupported": "Speech synthesis not supported in this browser",
+    "examples": "Examples:"
   },
   "phrases": {
     "title": "Common Phrases",

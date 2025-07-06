@@ -7,6 +7,9 @@
     "loginPrompt": "Sign in for full conversation experience",
     "errors": {
       "topicRequired": "Please enter a topic",
+      "topicTooShort": "Please enter at least 5 characters to help us understand your topic better",
+      "topicOnlyNumbers": "Please describe your topic with words, not just numbers",
+      "topicOnlySymbols": "Please use meaningful words to describe your topic",
       "generateFailed": "Failed to generate conversation, please try again"
     }
   },

@@ -7,6 +7,9 @@
     "loginPrompt": "登录以获得完整对话体验",
     "errors": {
       "topicRequired": "请输入话题",
+      "topicTooShort": "请输入至少5个字符，这样我们能更好地理解您的话题",
+      "topicOnlyNumbers": "请用文字描述您的话题，而不只是数字",
+      "topicOnlySymbols": "请使用有意义的词语来描述您的话题",
       "generateFailed": "生成对话失败，请重试"
     }
   },

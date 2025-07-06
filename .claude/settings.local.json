@@ -37,7 +37,11 @@
       "Bash(npm run typecheck:*)",
       "Bash(npm run:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(BACKUP_DIR=\"/Users/sophie/Desktop/eriche/smalltalk/backup_google_oauth_20250703_145415\")",
+      "Bash(cp:*)",
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:cloud.google.com)"
     ],
     "deny": []
   }

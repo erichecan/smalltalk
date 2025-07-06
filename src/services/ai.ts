@@ -234,7 +234,7 @@ For the given English word, provide the following information in EXACT JSON form
   "chinese_translation": "准确的中文翻译",
   "phonetic": "IPA phonetic transcription with / / marks",
   "part_of_speech": "noun/verb/adjective/adverb/preposition/etc.",
-  "example_sentence": "a natural, practical example sentence showing proper usage",
+  "example_sentence": "First example sentence showing basic usage; Second example sentence demonstrating advanced usage",
   "synonyms": ["word1", "word2", "word3"],
   "antonyms": ["word1", "word2"],
   "difficulty_level": "beginner/intermediate/advanced",
@@ -244,11 +244,12 @@ For the given English word, provide the following information in EXACT JSON form
 Requirements:
 1. Definition should be clear and suitable for English learners
 2. Chinese translation should be the most common/appropriate translation
-3. Example sentence should be practical and show natural usage
+3. MUST provide EXACTLY TWO example sentences separated by semicolon (;), showing different contexts/usages
 4. Provide 2-4 synonyms and 1-3 antonyms when applicable
 5. If word has multiple meanings, focus on the most common one
 6. Difficulty level based on typical learner progression
-7. Return ONLY the JSON object, no additional text
+7. CRITICAL: example_sentence field MUST contain exactly two sentences separated by semicolon
+8. Return ONLY the JSON object, no additional text
 
 Word to analyze: "${word}"`;
 
@@ -313,7 +314,7 @@ Word to analyze: "${word}"`;
         chinese_translation: parsed.chinese_translation || '翻译不可用',
         phonetic: parsed.phonetic || '',
         part_of_speech: parsed.part_of_speech || 'unknown',
-        example_sentence: parsed.example_sentence || '',
+        example_sentence: parsed.example_sentence || 'Default example sentence one; Default example sentence two',
         synonyms: Array.isArray(parsed.synonyms) ? parsed.synonyms : [],
         antonyms: Array.isArray(parsed.antonyms) ? parsed.antonyms : [],
         difficulty_level: ['beginner', 'intermediate', 'advanced'].includes(parsed.difficulty_level) 

@@ -359,12 +359,39 @@ function Vocabulary() {
     }
   }, [user]);
 
-  // 播放发音
+  // 播放发音 - 优化版本
   const playPronunciation = (word: string) => {
     if ('speechSynthesis' in window) {
+      // 停止当前正在播放的声音
+      speechSynthesis.cancel();
+      
       const utterance = new SpeechSynthesisUtterance(word);
       utterance.lang = 'en-US';
+      utterance.rate = 0.8; // 较慢的语速，方便学习
+      utterance.pitch = 1.0;
+      utterance.volume = 0.8;
+      
+      // 错误处理
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event.error);
+        setError(t('vocabulary.pronunciationError', 'Pronunciation playback failed'));
+        setTimeout(() => setError(null), 2000);
+      };
+      
+      // 确保有可用的声音
+      const voices = speechSynthesis.getVoices();
+      const englishVoice = voices.find(voice => 
+        voice.lang.startsWith('en-') && voice.name.toLowerCase().includes('english')
+      ) || voices.find(voice => voice.lang.startsWith('en-'));
+      
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
+      
       speechSynthesis.speak(utterance);
+    } else {
+      setError(t('vocabulary.speechNotSupported', 'Speech synthesis not supported in this browser'));
+      setTimeout(() => setError(null), 2000);
     }
   };
 
@@ -487,75 +514,130 @@ function Vocabulary() {
               sx={{ 
                 color: '#0D1C0D',
                 fontWeight: 'bold',
-                mb: 1,
+                mb: 0.5,
                 wordBreak: 'break-word'
               }}
             >
               {item.word}
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 0.5, lineHeight: 1.6 }}>
+            {/* 音标紧贴在单词下面 */}
+            {item.pronunciation && (
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#1565C0',
+                  fontWeight: 600,
+                  mb: 1,
+                  fontSize: '0.9rem'
+                }}
+              >
+                /{item.pronunciation}/
+              </Typography>
+            )}
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              sx={{ 
+                mb: 0.5, 
+                lineHeight: 1.6,
+                cursor: 'pointer',
+                '&:hover': { bgcolor: 'rgba(227, 242, 253, 0.3)' }
+              }}
+              onDoubleClick={(e) => handleDoubleClick(e, item.definition)}
+              title={t('vocabulary.doubleClickTip')}
+            >
               {item.definition}
             </Typography>
             {item.chinese_translation && (
-              <Typography variant="body2" color="#4B5563" sx={{ mb: 1, lineHeight: 1.5 }}>
+              <Typography 
+                variant="body2" 
+                color="#4B5563" 
+                sx={{ 
+                  mb: 1, 
+                  lineHeight: 1.5,
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: 'rgba(227, 242, 253, 0.3)' }
+                }}
+                onDoubleClick={(e) => handleDoubleClick(e, item.chinese_translation || '')}
+                title={t('vocabulary.doubleClickTip')}
+              >
                 {item.chinese_translation}
               </Typography>
             )}
-            {item.example && (
-              <Paper sx={{ 
-                p: 2, 
-                mt: 1, 
-                bgcolor: 'rgba(202, 236, 202, 0.1)', 
-                borderRadius: 2,
-                border: '1px solid rgba(202, 236, 202, 0.2)'
-              }}>
-                <Typography 
-                  variant="body2" 
+            
+            {/* 词性标签移到这里 - 在中文翻译下面，例句上面 */}
+            {item.part_of_speech && (
+              <Box sx={{ mb: 1 }}>
+                <Chip 
+                  label={item.part_of_speech} 
+                  size="small" 
                   sx={{ 
-                    fontStyle: 'italic', 
-                    color: '#2E7D32',
-                    '&::before': { content: '"🗣️ "' },
-                    '&::after': { content: '""' }
-                  }}
-                >
-                  {item.example}
-                </Typography>
-              </Paper>
+                    mr: 1, 
+                    mb: 1, 
+                    bgcolor: '#F3E5F5',
+                    color: '#7B1FA2',
+                    fontWeight: 600,
+                    '&:hover': { bgcolor: '#E1BEE7' }
+                  }} 
+                />
+              </Box>
             )}
           </Box>
         </Box>
         
-        {/* AI增强信息 */}
-        {(item.pronunciation || item.phonetic || item.part_of_speech) && (
+        {/* 例句区域 - 与同义词反义词同层级 */}
+        {item.example && (
           <Box sx={{ mb: 2 }}>
-            {item.pronunciation && (
-              <Chip 
-                label={`/${item.pronunciation}/`} 
-                size="small" 
+            <Paper sx={{ 
+              p: 2, 
+              bgcolor: 'rgba(202, 236, 202, 0.1)', 
+              borderRadius: 2,
+              border: '1px solid rgba(202, 236, 202, 0.2)'
+            }}>
+              <Typography 
+                variant="caption" 
                 sx={{ 
-                  mr: 1, 
-                  mb: 1, 
-                  bgcolor: '#E3F2FD',
-                  color: '#1565C0',
+                  color: '#2E7D32',
                   fontWeight: 600,
-                  '&:hover': { bgcolor: '#BBDEFB' }
-                }} 
-              />
-            )}
-            {item.part_of_speech && (
-              <Chip 
-                label={item.part_of_speech} 
-                size="small" 
-                sx={{ 
-                  mr: 1, 
-                  mb: 1, 
-                  bgcolor: '#F3E5F5',
-                  color: '#7B1FA2',
-                  fontWeight: 600,
-                  '&:hover': { bgcolor: '#E1BEE7' }
-                }} 
-              />
-            )}
+                  display: 'block',
+                  mb: 1
+                }}
+              >
+                {t('vocabulary.examples', 'Examples:')}
+              </Typography>
+              
+              {/* 支持多个例句，用分号或换行分割 */}
+              {(() => {
+                console.log('Original example:', item.example);
+                const examples = item.example
+                  .split(/[;\n]|(?=\d+\.)/) 
+                  .map(ex => ex.replace(/^\d+\.\s*/, '').trim()) 
+                  .filter(ex => ex.length > 0)
+                  .slice(0, 2);
+                console.log('Parsed examples:', examples);
+                
+                return examples.map((example, index) => (
+                  <Typography 
+                    key={index}
+                    variant="body2" 
+                    sx={{ 
+                      fontStyle: 'italic', 
+                      color: '#2E7D32',
+                      cursor: 'pointer',
+                      mb: index < examples.length - 1 ? 1 : 0,
+                      '&::before': { content: `"${index + 1}. "` },
+                      '&:hover': { bgcolor: 'rgba(227, 242, 253, 0.3)' },
+                      padding: '4px 6px',
+                      borderRadius: '4px'
+                    }}
+                    onDoubleClick={(e) => handleDoubleClick(e, example)}
+                    title={t('vocabulary.doubleClickTip')}
+                  >
+                    {example}
+                  </Typography>
+                ));
+              })()}
+            </Paper>
           </Box>
         )}
         
@@ -607,43 +689,6 @@ function Vocabulary() {
               </Box>
             )}
           </Box>
-        )}
-        
-        {/* 使用提示 - 2025-01-30 17:20:00: 支持双击添加词汇 */}
-        {item.usage_notes && (
-          <Paper 
-            sx={{ 
-              p: 2, 
-              mt: 2, 
-              bgcolor: 'rgba(227, 242, 253, 0.7)', 
-              cursor: 'pointer',
-              borderRadius: 2,
-              border: '1px solid rgba(25, 118, 210, 0.2)',
-              '&:hover': { 
-                bgcolor: 'rgba(187, 222, 251, 0.7)',
-                transform: 'scale(1.02)'
-              },
-              transition: 'all 0.3s ease'
-            }}
-            onDoubleClick={(e) => handleDoubleClick(e, item.usage_notes || '')}
-            title={t('vocabulary.doubleClickTip')}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-              <LightbulbIcon sx={{ fontSize: 18, color: '#1976D2', mt: 0.1, flexShrink: 0 }} />
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: '#1976D2',
-                  fontWeight: 500,
-                  wordBreak: 'break-word',
-                  overflowWrap: 'break-word',
-                  lineHeight: 1.5
-                }}
-              >
-                {item.usage_notes}
-              </Typography>
-            </Box>
-          </Paper>
         )}
       </CardContent>
       
