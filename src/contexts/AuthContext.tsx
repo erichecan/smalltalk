@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { supabase } from '../services/supabase';
-import { OAUTH_CONFIG, getCurrentRedirectUrl, validateOAuthConfig, buildGoogleOAuthUrl } from '../config/oauth';
+import { OAUTH_CONFIG } from '../config/oauth';
 
 // React hooks健康检查 - 2025-01-30 16:40:22
 if (typeof React === 'undefined' || !React.useState) {
@@ -41,40 +41,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // 监听 Supabase 认证状态
     useEffect(() => {
-      // 强制重定向拦截器 - 防止localhost:3000 fallback - 2025-01-13 23:47:00
-      const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-        const currentUrl = window.location.href;
-        if (currentUrl.includes('localhost:3000')) {
-          console.warn('🚨 检测到localhost:3000重定向，正在拦截...');
-          event.preventDefault();
-          event.returnValue = '';
-          
-          // 强制重定向到正确的URL
-          const correctUrl = currentUrl.replace('localhost:3000', 'localhost:5173');
-          window.location.href = correctUrl;
-        }
-      };
-
-      // 监听页面卸载事件
-      window.addEventListener('beforeunload', handleBeforeUnload);
-      
-      // 监听URL变化
-      const handleUrlChange = () => {
-        const currentUrl = window.location.href;
-        if (currentUrl.includes('localhost:3000')) {
-          console.warn('🚨 检测到URL变化到localhost:3000，正在重定向...');
-          const correctUrl = currentUrl.replace('localhost:3000', 'localhost:5173');
-          window.location.href = correctUrl;
-        }
-      };
-
-      // 使用MutationObserver监听DOM变化
-      const observer = new MutationObserver(handleUrlChange);
-      observer.observe(document.body, { childList: true, subtree: true });
-
-      // 定期检查URL
-      const urlCheckInterval = setInterval(handleUrlChange, 1000);
-
       const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log('🔄 认证状态变化:', event, session?.user?.email);
         
@@ -123,9 +89,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       initializeAuth();
       return () => {
         listener?.subscription.unsubscribe();
-        window.removeEventListener('beforeunload', handleBeforeUnload);
-        observer.disconnect();
-        clearInterval(urlCheckInterval);
       };
     }, []);
 
@@ -145,11 +108,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const googleLogin = async () => {
-      // Google OAuth 登录 - 使用Supabase标准流程 - 2025-01-14 00:35:00
+      // Google OAuth 登录 - 使用Supabase标准流程，根据官方文档修复 - 2025-01-14 00:45:00
       try {
         console.log('🚀 启动Google OAuth登录...');
         
-        // 使用Supabase标准OAuth流程，不自定义重定向URL
+        // 根据Supabase官方文档，使用最简单的OAuth调用
+        // 不需要指定redirectTo，让Supabase处理完整的重定向流程
         const { error } = await supabase.auth.signInWithOAuth({ 
           provider: 'google',
           options: {
@@ -166,6 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         
         console.log('✅ Supabase Google OAuth initiated successfully');
+        console.log('ℹ️ 用户将被重定向到Google登录页面，然后回到Supabase回调URL');
         
       } catch (error) {
         console.error('❌ Google OAuth login failed:', error);
