@@ -22,8 +22,15 @@ const AuthCallback: React.FC = () => {
         const refreshToken = searchParams.get('refresh_token');
         const error = searchParams.get('error');
         const errorDescription = searchParams.get('error_description');
+        const code = searchParams.get('code');
 
-        console.log('📋 认证参数:', { accessToken: !!accessToken, refreshToken: !!refreshToken, error, errorDescription });
+        console.log('📋 认证参数:', { 
+          accessToken: !!accessToken, 
+          refreshToken: !!refreshToken, 
+          code: !!code,
+          error, 
+          errorDescription 
+        });
 
         if (error) {
           console.error('❌ OAuth错误:', error, errorDescription);
@@ -32,12 +39,47 @@ const AuthCallback: React.FC = () => {
           return;
         }
 
-        // 检查是否有OAuth回调参数
-        if (accessToken && refreshToken) {
-          console.log('✅ 检测到OAuth回调参数，正在设置会话...');
+        // Supabase OAuth流程：检查是否有授权码
+        if (code) {
+          console.log('✅ 检测到授权码，正在处理OAuth回调...');
           
           try {
-            // 设置Supabase会话
+            // 使用授权码交换访问令牌
+            const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+            
+            if (exchangeError) {
+              console.error('❌ 授权码交换失败:', exchangeError);
+              setErrorMessage(`授权码交换失败: ${exchangeError.message}`);
+              setStatus('error');
+              return;
+            }
+
+            if (data.session && data.user) {
+              console.log('✅ OAuth认证成功:', data.user.email);
+              setStatus('success');
+              
+              // 等待认证状态同步
+              setTimeout(() => {
+                navigate('/topic', { replace: true });
+              }, 1500);
+              
+            } else {
+              console.error('❌ 会话数据无效');
+              setErrorMessage('会话数据无效');
+              setStatus('error');
+            }
+            
+          } catch (exchangeError) {
+            console.error('❌ 授权码交换异常:', exchangeError);
+            setErrorMessage(`授权码交换异常: ${exchangeError instanceof Error ? exchangeError.message : '未知错误'}`);
+            setStatus('error');
+          }
+          
+        } else if (accessToken && refreshToken) {
+          // 直接令牌方式（备用方案）
+          console.log('✅ 检测到直接令牌，正在设置会话...');
+          
+          try {
             const { data, error: sessionError } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
@@ -54,7 +96,6 @@ const AuthCallback: React.FC = () => {
               console.log('✅ 会话设置成功:', data.user.email);
               setStatus('success');
               
-              // 等待认证状态同步
               setTimeout(() => {
                 navigate('/topic', { replace: true });
               }, 1500);
@@ -72,7 +113,7 @@ const AuthCallback: React.FC = () => {
           }
           
         } else {
-          console.log('🔄 没有OAuth回调参数，检查当前认证状态...');
+          console.log('🔄 没有OAuth参数，检查当前认证状态...');
           
           // 检查当前用户状态
           const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
@@ -88,7 +129,6 @@ const AuthCallback: React.FC = () => {
             console.log('✅ 用户已认证:', currentUser.email);
             setStatus('success');
             
-            // 等待认证状态同步
             setTimeout(() => {
               navigate('/topic', { replace: true });
             }, 1000);

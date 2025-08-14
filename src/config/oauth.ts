@@ -53,7 +53,7 @@ export const getCurrentRedirectUrl = (): string => {
   const { ENVIRONMENT, GOOGLE } = OAUTH_CONFIG;
   
   if (ENVIRONMENT.IS_LOCAL) {
-    return `http://localhost:${ENVIRONMENT.CURRENT_PORT}/topic`;
+    return GOOGLE.REDIRECT_URLS.LOCAL;
   }
   
   if (ENVIRONMENT.IS_PRODUCTION) {
