@@ -20,6 +20,10 @@ const AuthDebug: React.FC = () => {
     addDebugInfo('🔍 开始检查认证状态...');
     
     try {
+      // 检查Supabase配置
+      addDebugInfo(`🌐 Supabase URL: ${import.meta.env.VITE_SUPABASE_URL || '未配置'}`);
+      addDebugInfo(`🔑 Supabase Anon Key: ${import.meta.env.VITE_SUPABASE_ANON_KEY ? '已配置' : '未配置'}`);
+      
       // 检查当前用户
       const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
       if (userError) {
@@ -47,6 +51,20 @@ const AuthDebug: React.FC = () => {
       const refreshToken = localStorage.getItem('sb-znaacfatlmwotdxcfukp-refresh-token');
       addDebugInfo(`🔑 本地访问令牌: ${accessToken ? '存在' : '不存在'}`);
       addDebugInfo(`🔑 本地刷新令牌: ${refreshToken ? '存在' : '不存在'}`);
+
+      // 检查所有相关的localStorage项
+      const allStorageKeys = Object.keys(localStorage);
+      const supabaseKeys = allStorageKeys.filter(key => key.includes('supabase') || key.includes('sb-'));
+      addDebugInfo(`📦 Supabase相关存储项: ${supabaseKeys.length}个`);
+      supabaseKeys.forEach(key => {
+        const value = localStorage.getItem(key);
+        addDebugInfo(`  - ${key}: ${value ? '有值' : '空值'}`);
+      });
+
+      // 检查URL参数
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasAuthParams = urlParams.has('access_token') || urlParams.has('refresh_token') || urlParams.has('code');
+      addDebugInfo(`🔗 URL认证参数: ${hasAuthParams ? '存在' : '不存在'}`);
 
       addDebugInfo('🎉 认证状态检查完成');
       
@@ -116,6 +134,35 @@ const AuthDebug: React.FC = () => {
           onClick={refreshSession}
         >
           🔄 刷新会话
+        </Button>
+
+        <Button 
+          variant="contained" 
+          color="secondary"
+          onClick={async () => {
+            try {
+              addDebugInfo('🚀 测试Google OAuth登录...');
+              const { error } = await supabase.auth.signInWithOAuth({ 
+                provider: 'google',
+                options: {
+                  queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent',
+                  }
+                }
+              });
+              
+              if (error) {
+                addDebugInfo(`❌ OAuth启动失败: ${error.message}`);
+              } else {
+                addDebugInfo('✅ OAuth启动成功，请完成Google登录');
+              }
+            } catch (error) {
+              addDebugInfo(`❌ OAuth测试失败: ${error}`);
+            }
+          }}
+        >
+          🚀 测试Google OAuth
         </Button>
       </Box>
 
