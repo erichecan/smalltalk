@@ -145,21 +145,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const googleLogin = async () => {
-      // Google OAuth 登录 - 使用标准Supabase OAuth流程 - 2025-01-14 00:25:00
+      // Google OAuth 登录 - 使用Supabase标准流程 - 2025-01-14 00:35:00
       try {
-        // 验证OAuth配置
-        if (!validateOAuthConfig()) {
-          throw new Error('OAuth配置验证失败');
-        }
-
-        const redirectUrl = getCurrentRedirectUrl();
-        console.log('🚀 Google OAuth redirect URL:', redirectUrl);
-
-        // 使用Supabase标准OAuth流程
+        console.log('🚀 启动Google OAuth登录...');
+        
+        // 使用Supabase标准OAuth流程，不自定义重定向URL
         const { error } = await supabase.auth.signInWithOAuth({ 
           provider: 'google',
           options: {
-            redirectTo: redirectUrl,
             queryParams: {
               access_type: OAUTH_CONFIG.GOOGLE.ACCESS_TYPE,
               prompt: OAUTH_CONFIG.GOOGLE.PROMPT,
