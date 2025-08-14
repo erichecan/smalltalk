@@ -21,6 +21,8 @@ const Vocabulary = lazy(() => import('./pages/Vocabulary'));
 const Help = lazy(() => import('./pages/Help'));
 const ReportProblem = lazy(() => import('./pages/ReportProblem'));
 const OAuthTest = lazy(() => import('./pages/OAuthTest'));
+const AuthCallback = lazy(() => import('./pages/AuthCallback'));
+const AuthDebug = lazy(() => import('./pages/AuthDebug'));
 
 import { createTheme } from '@mui/material/styles';
 const theme = createTheme();
@@ -38,6 +40,8 @@ function App() {
                   <Routes>
                     <Route path="/test" element={<TestPage />} />
                     <Route path="/oauth-test" element={<OAuthTest />} />
+                    <Route path="/auth-callback" element={<AuthCallback />} />
+                    <Route path="/auth-debug" element={<AuthDebug />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route element={<Layout />}>

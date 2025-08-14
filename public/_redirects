@@ -5,6 +5,8 @@
 
 # 特定路由重定向（如果需要）
 /oauth-test    /index.html   200
+/auth-callback /index.html   200
+/auth-debug    /index.html   200
 /login         /index.html   200
 /register      /index.html   200
 /topic         /index.html   200

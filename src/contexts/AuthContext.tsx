@@ -75,28 +75,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // 定期检查URL
       const urlCheckInterval = setInterval(handleUrlChange, 1000);
 
-      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name || session.user.email || '',
-          });
-        } else {
+      const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('🔄 认证状态变化:', event, session?.user?.email);
+        
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            console.log('✅ 用户已登录:', session.user.email);
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              name: session.user.user_metadata?.name || session.user.email || '',
+            });
+          }
+        } else if (event === 'SIGNED_OUT') {
+          console.log('🚪 用户已登出');
           setUser(null);
         }
       });
 
       // 初始化时同步一次
-      supabase.auth.getUser().then(({ data }) => {
-        if (data.user) {
-          setUser({
-            id: data.user.id,
-            email: data.user.email || '',
-            name: data.user.user_metadata?.name || data.user.email || '',
-          });
+      const initializeAuth = async () => {
+        try {
+          console.log('🔍 初始化认证状态...');
+          const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+          
+          if (error) {
+            console.error('❌ 获取用户信息失败:', error);
+            return;
+          }
+          
+          if (currentUser) {
+            console.log('✅ 当前用户:', currentUser.email);
+            setUser({
+              id: currentUser.id,
+              email: currentUser.email || '',
+              name: currentUser.user_metadata?.name || currentUser.email || '',
+            });
+          } else {
+            console.log('ℹ️ 没有当前用户');
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('❌ 初始化认证状态失败:', error);
         }
-      });
+      };
+
+      initializeAuth();
       return () => {
         listener?.subscription.unsubscribe();
         window.removeEventListener('beforeunload', handleBeforeUnload);

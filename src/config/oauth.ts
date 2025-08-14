@@ -11,8 +11,8 @@ export const OAUTH_CONFIG = {
     
     // 重定向URL配置
     REDIRECT_URLS: {
-      LOCAL: 'http://localhost:5173/topic',
-      PRODUCTION: 'https://smalltalking.netlify.app/topic',
+      LOCAL: 'http://localhost:5173/auth-callback',
+      PRODUCTION: 'https://smalltalking.netlify.app/auth-callback',
       SUPABASE_CALLBACK: 'https://znaacfatlmwotdxcfukp.supabase.co/auth/v1/callback'
     },
     
