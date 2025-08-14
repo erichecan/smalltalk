@@ -1,0 +1,43 @@
+# Netlify配置文件 - 2025-01-13 23:59:00
+
+[build]
+  # 构建命令
+  command = "npm run build"
+  # 发布目录
+  publish = "dist"
+  # 构建环境变量
+  [build.environment]
+    NODE_VERSION = "18"
+
+[build.processing]
+  # 启用HTML处理
+  html = true
+  # 启用CSS处理
+  css = true
+  # 启用JavaScript处理
+  js = true
+
+# 重定向规则
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# 头部规则
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# 环境变量
+[context.production.environment]
+  NODE_ENV = "production"
+
+[context.deploy-preview.environment]
+  NODE_ENV = "preview"
+
+[context.branch-deploy.environment]
+  NODE_ENV = "development"

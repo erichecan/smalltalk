@@ -1,0 +1,18 @@
+# Netlify重定向配置 - 处理React Router客户端路由 - 2025-01-13 23:58:00
+
+# 将所有路由重定向到index.html，让React Router处理
+/*    /index.html   200
+
+# 特定路由重定向（如果需要）
+/oauth-test    /index.html   200
+/login         /index.html   200
+/register      /index.html   200
+/topic         /index.html   200
+/dialogue      /index.html   200
+/practice      /index.html   200
+/vocabulary    /index.html   200
+/profile       /index.html   200
+/settings      /index.html   200
+/history       /index.html   200
+/help          /index.html   200
+/report-problem /index.html   200
