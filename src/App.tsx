@@ -20,6 +20,7 @@ const Practice = lazy(() => import('./pages/Practice'));
 const Vocabulary = lazy(() => import('./pages/Vocabulary'));
 const Help = lazy(() => import('./pages/Help'));
 const ReportProblem = lazy(() => import('./pages/ReportProblem'));
+const OAuthTest = lazy(() => import('./pages/OAuthTest'));
 
 import { createTheme } from '@mui/material/styles';
 const theme = createTheme();
@@ -36,6 +37,7 @@ function App() {
                 <Suspense fallback={<div>Loading...</div>}>
                   <Routes>
                     <Route path="/test" element={<TestPage />} />
+                    <Route path="/oauth-test" element={<OAuthTest />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route element={<Layout />}>

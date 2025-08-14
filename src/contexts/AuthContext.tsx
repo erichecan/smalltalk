@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { supabase } from '../services/supabase';
+import { OAUTH_CONFIG, getCurrentRedirectUrl, validateOAuthConfig, buildGoogleOAuthUrl } from '../config/oauth';
 
 // React hooks健康检查 - 2025-01-30 16:40:22
 if (typeof React === 'undefined' || !React.useState) {
@@ -40,6 +41,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // 监听 Supabase 认证状态
     useEffect(() => {
+      // 强制重定向拦截器 - 防止localhost:3000 fallback - 2025-01-13 23:47:00
+      const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+        const currentUrl = window.location.href;
+        if (currentUrl.includes('localhost:3000')) {
+          console.warn('🚨 检测到localhost:3000重定向，正在拦截...');
+          event.preventDefault();
+          event.returnValue = '';
+          
+          // 强制重定向到正确的URL
+          const correctUrl = currentUrl.replace('localhost:3000', 'localhost:5173');
+          window.location.href = correctUrl;
+        }
+      };
+
+      // 监听页面卸载事件
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      
+      // 监听URL变化
+      const handleUrlChange = () => {
+        const currentUrl = window.location.href;
+        if (currentUrl.includes('localhost:3000')) {
+          console.warn('🚨 检测到URL变化到localhost:3000，正在重定向...');
+          const correctUrl = currentUrl.replace('localhost:3000', 'localhost:5173');
+          window.location.href = correctUrl;
+        }
+      };
+
+      // 使用MutationObserver监听DOM变化
+      const observer = new MutationObserver(handleUrlChange);
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      // 定期检查URL
+      const urlCheckInterval = setInterval(handleUrlChange, 1000);
+
       const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
           setUser({
@@ -64,6 +99,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       return () => {
         listener?.subscription.unsubscribe();
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        observer.disconnect();
+        clearInterval(urlCheckInterval);
       };
     }, []);
 
@@ -83,37 +121,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const googleLogin = async () => {
-      // Google OAuth 登录 - 防止Google库fallback到localhost:3000 - 2025-07-03 15:10:00
-      const getRedirectUrl = () => {
-        const origin = window.location.origin;
-        // 防止fallback到localhost:3000，强制使用正确的URL
-        if (origin.includes('localhost:3000')) {
-          return 'https://smalltalking.netlify.app/topic';
+      // Google OAuth 登录 - 使用集中配置避免localhost:3000 fallback - 2025-01-13 23:50:00
+      try {
+        // 验证OAuth配置
+        if (!validateOAuthConfig()) {
+          throw new Error('OAuth配置验证失败');
         }
-        // 生产环境直接使用配置的域名
-        if (origin.includes('netlify.app')) {
-          return origin + '/topic';
-        }
-        // 本地开发环境
-        if (origin.includes('localhost')) {
-          return origin + '/topic';
-        }
-        // 默认使用生产环境URL
-        return 'https://smalltalking.netlify.app/topic';
-      };
 
-      const { error } = await supabase.auth.signInWithOAuth({ 
-        provider: 'google',
-        options: {
-          redirectTo: getRedirectUrl(),
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
+        const redirectUrl = getCurrentRedirectUrl();
+        console.log('🚀 Google OAuth redirect URL:', redirectUrl);
+
+        // 方法1: 尝试使用Supabase OAuth
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({ 
+            provider: 'google',
+            options: {
+              redirectTo: redirectUrl,
+              queryParams: {
+                access_type: OAUTH_CONFIG.GOOGLE.ACCESS_TYPE,
+                prompt: OAUTH_CONFIG.GOOGLE.PROMPT,
+                redirect_uri: redirectUrl,
+                response_type: OAUTH_CONFIG.GOOGLE.RESPONSE_TYPE,
+                scope: OAUTH_CONFIG.GOOGLE.SCOPES.join(' '),
+                client_id: OAUTH_CONFIG.GOOGLE.CLIENT_ID
+              }
+            }
+          });
+          
+          if (error) {
+            console.error('❌ Supabase Google OAuth error:', error);
+            throw error;
           }
+          
+          console.log('✅ Supabase Google OAuth initiated successfully');
+          return;
+        } catch (supabaseError) {
+          console.warn('⚠️ Supabase OAuth failed, trying direct Google OAuth:', supabaseError);
         }
-      });
-      if (error) {
-        console.error('Supabase Google OAuth error:', error);
+
+        // 方法2: 直接重定向到Google OAuth
+        console.log('🔄 Using direct Google OAuth redirect...');
+        const googleOAuthUrl = buildGoogleOAuthUrl(redirectUrl);
+        console.log('🔗 Direct Google OAuth URL:', googleOAuthUrl);
+        
+        // 重定向到Google OAuth
+        window.location.href = googleOAuthUrl;
+        
+      } catch (error) {
+        console.error('❌ Google OAuth login completely failed:', error);
         throw error;
       }
     };
