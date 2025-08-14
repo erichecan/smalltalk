@@ -32,32 +32,47 @@ const AuthCallback: React.FC = () => {
           return;
         }
 
-        if (accessToken) {
-          console.log('✅ 检测到访问令牌，正在设置会话...');
+        // 检查是否有OAuth回调参数
+        if (accessToken && refreshToken) {
+          console.log('✅ 检测到OAuth回调参数，正在设置会话...');
           
-          // 设置Supabase会话
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || '',
-          });
+          try {
+            // 设置Supabase会话
+            const { data, error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
 
-          if (sessionError) {
-            console.error('❌ 设置会话失败:', sessionError);
-            setErrorMessage(`会话设置失败: ${sessionError.message}`);
+            if (sessionError) {
+              console.error('❌ 设置会话失败:', sessionError);
+              setErrorMessage(`会话设置失败: ${sessionError.message}`);
+              setStatus('error');
+              return;
+            }
+
+            if (data.session && data.user) {
+              console.log('✅ 会话设置成功:', data.user.email);
+              setStatus('success');
+              
+              // 等待认证状态同步
+              setTimeout(() => {
+                navigate('/topic', { replace: true });
+              }, 1500);
+              
+            } else {
+              console.error('❌ 会话数据无效');
+              setErrorMessage('会话数据无效');
+              setStatus('error');
+            }
+            
+          } catch (sessionError) {
+            console.error('❌ 设置会话异常:', sessionError);
+            setErrorMessage(`会话设置异常: ${sessionError instanceof Error ? sessionError.message : '未知错误'}`);
             setStatus('error');
-            return;
           }
-
-          console.log('✅ 会话设置成功');
-          setStatus('success');
-          
-          // 等待一下让认证状态同步
-          setTimeout(() => {
-            navigate('/topic', { replace: true });
-          }, 1000);
           
         } else {
-          console.log('🔄 没有访问令牌，检查当前认证状态...');
+          console.log('🔄 没有OAuth回调参数，检查当前认证状态...');
           
           // 检查当前用户状态
           const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
@@ -73,7 +88,7 @@ const AuthCallback: React.FC = () => {
             console.log('✅ 用户已认证:', currentUser.email);
             setStatus('success');
             
-            // 等待一下让认证状态同步
+            // 等待认证状态同步
             setTimeout(() => {
               navigate('/topic', { replace: true });
             }, 1000);

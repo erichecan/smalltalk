@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log('🔄 认证状态变化:', event, session?.user?.email);
         
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
           if (session?.user) {
             console.log('✅ 用户已登录:', session.user.email);
             setUser({
@@ -145,7 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const googleLogin = async () => {
-      // Google OAuth 登录 - 使用集中配置避免localhost:3000 fallback - 2025-01-13 23:50:00
+      // Google OAuth 登录 - 使用标准Supabase OAuth流程 - 2025-01-14 00:25:00
       try {
         // 验证OAuth配置
         if (!validateOAuthConfig()) {
@@ -155,44 +155,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const redirectUrl = getCurrentRedirectUrl();
         console.log('🚀 Google OAuth redirect URL:', redirectUrl);
 
-        // 方法1: 尝试使用Supabase OAuth
-        try {
-          const { error } = await supabase.auth.signInWithOAuth({ 
-            provider: 'google',
-            options: {
-              redirectTo: redirectUrl,
-              queryParams: {
-                access_type: OAUTH_CONFIG.GOOGLE.ACCESS_TYPE,
-                prompt: OAUTH_CONFIG.GOOGLE.PROMPT,
-                redirect_uri: redirectUrl,
-                response_type: OAUTH_CONFIG.GOOGLE.RESPONSE_TYPE,
-                scope: OAUTH_CONFIG.GOOGLE.SCOPES.join(' '),
-                client_id: OAUTH_CONFIG.GOOGLE.CLIENT_ID
-              }
+        // 使用Supabase标准OAuth流程
+        const { error } = await supabase.auth.signInWithOAuth({ 
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl,
+            queryParams: {
+              access_type: OAUTH_CONFIG.GOOGLE.ACCESS_TYPE,
+              prompt: OAUTH_CONFIG.GOOGLE.PROMPT,
             }
-          });
-          
-          if (error) {
-            console.error('❌ Supabase Google OAuth error:', error);
-            throw error;
           }
-          
-          console.log('✅ Supabase Google OAuth initiated successfully');
-          return;
-        } catch (supabaseError) {
-          console.warn('⚠️ Supabase OAuth failed, trying direct Google OAuth:', supabaseError);
-        }
-
-        // 方法2: 直接重定向到Google OAuth
-        console.log('🔄 Using direct Google OAuth redirect...');
-        const googleOAuthUrl = buildGoogleOAuthUrl(redirectUrl);
-        console.log('🔗 Direct Google OAuth URL:', googleOAuthUrl);
+        });
         
-        // 重定向到Google OAuth
-        window.location.href = googleOAuthUrl;
+        if (error) {
+          console.error('❌ Supabase Google OAuth error:', error);
+          throw error;
+        }
+        
+        console.log('✅ Supabase Google OAuth initiated successfully');
         
       } catch (error) {
-        console.error('❌ Google OAuth login completely failed:', error);
+        console.error('❌ Google OAuth login failed:', error);
         throw error;
       }
     };
