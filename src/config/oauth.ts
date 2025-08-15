@@ -1,5 +1,5 @@
-// OAuth配置文件 - 直接Google OAuth集成 - 2025-01-30 16:58:00
-// 绕过Supabase，直接使用Google OAuth进行认证
+// OAuth配置文件 - 直接Google OAuth集成 - 2025-01-30 17:28:00
+// 绕过Supabase，直接使用Google OAuth进行认证，改进环境检测
 
 export const OAUTH_CONFIG = {
   // Google OAuth配置
@@ -18,7 +18,7 @@ export const OAUTH_CONFIG = {
       // 用户信息端点
       USERINFO_ENDPOINT: 'https://www.googleapis.com/oauth2/v2/userinfo',
       // 重定向URI（动态获取）
-      REDIRECT_URI: () => `${window.location.origin}/auth-callback`,
+      REDIRECT_URI: () => getCurrentRedirectUri(),
     },
     
     // Google Cloud Console配置要求
@@ -40,13 +40,15 @@ export const OAUTH_CONFIG = {
     }
   },
   
-  // 环境检测
+  // 环境检测 - 改进的环境检测逻辑 - 2025-01-30 17:28:00
   ENVIRONMENT: {
     IS_LOCAL: window.location.hostname === 'localhost',
     IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
     IS_PRODUCTION: window.location.hostname.includes('netlify.app'),
     CURRENT_PORT: window.location.port || '5173',
-    CURRENT_ORIGIN: window.location.origin
+    CURRENT_ORIGIN: window.location.origin,
+    CURRENT_HOSTNAME: window.location.hostname,
+    CURRENT_PROTOCOL: window.location.protocol
   }
 };
 
@@ -58,7 +60,7 @@ export const validateOAuthConfig = (): boolean => {
   console.log('📍 当前环境:', ENVIRONMENT);
   console.log('🔑 Google Client ID:', GOOGLE.CLIENT_ID);
   console.log('🌐 当前域名:', ENVIRONMENT.CURRENT_ORIGIN);
-  console.log('🔗 重定向URI:', GOOGLE.DIRECT_OAUTH.REDIRECT_URI());
+  console.log('🔗 重定向URI:', getCurrentRedirectUri());
   
   // 检查必要的配置
   if (!GOOGLE.CLIENT_ID) {
@@ -66,24 +68,64 @@ export const validateOAuthConfig = (): boolean => {
     return false;
   }
   
+  // 检查环境配置
+  if (ENVIRONMENT.IS_LOCAL) {
+    console.log('✅ 本地开发环境检测成功');
+  } else if (ENVIRONMENT.IS_PRODUCTION) {
+    console.log('✅ 生产环境检测成功');
+  } else {
+    console.log('⚠️ 未知环境，使用默认配置');
+  }
+  
   console.log('✅ 直接Google OAuth配置验证通过');
   return true;
 };
 
-// 获取当前环境的正确重定向URI
+// 获取当前环境的正确重定向URI - 改进的环境检测 - 2025-01-30 17:28:00
 export const getCurrentRedirectUri = (): string => {
   const { ENVIRONMENT } = OAUTH_CONFIG;
   
+  console.log('🔍 重定向URI环境检测:', {
+    hostname: ENVIRONMENT.CURRENT_HOSTNAME,
+    port: ENVIRONMENT.CURRENT_PORT,
+    origin: ENVIRONMENT.CURRENT_ORIGIN,
+    isLocal: ENVIRONMENT.IS_LOCAL,
+    isProduction: ENVIRONMENT.IS_PRODUCTION
+  });
+  
+  // 本地开发环境
   if (ENVIRONMENT.IS_LOCAL) {
-    return `http://localhost:${ENVIRONMENT.CURRENT_PORT}/auth-callback`;
+    const redirectUri = `http://localhost:${ENVIRONMENT.CURRENT_PORT}/auth-callback`;
+    console.log('📍 本地开发重定向URI:', redirectUri);
+    return redirectUri;
   }
   
+  // 生产环境
   if (ENVIRONMENT.IS_PRODUCTION) {
-    return 'https://smalltalking.netlify.app/auth-callback';
+    const redirectUri = 'https://smalltalking.netlify.app/auth-callback';
+    console.log('📍 生产环境重定向URI:', redirectUri);
+    return redirectUri;
   }
   
-  // 默认返回当前域名
-  return `${ENVIRONMENT.CURRENT_ORIGIN}/auth-callback`;
+  // 默认使用当前域名
+  const redirectUri = `${ENVIRONMENT.CURRENT_ORIGIN}/auth-callback`;
+  console.log('📍 默认重定向URI:', redirectUri);
+  return redirectUri;
+};
+
+// 获取环境信息用于调试 - 新增方法 - 2025-01-30 17:28:00
+export const getEnvironmentInfo = () => {
+  const { ENVIRONMENT } = OAUTH_CONFIG;
+  
+  return {
+    ...ENVIRONMENT,
+    redirectUri: getCurrentRedirectUri(),
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+    platform: navigator.platform,
+    cookieEnabled: navigator.cookieEnabled,
+    onLine: navigator.onLine
+  };
 };
 
 export default OAUTH_CONFIG;

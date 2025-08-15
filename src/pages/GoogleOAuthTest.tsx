@@ -1,5 +1,5 @@
-// Google OAuth测试页面 - 直接集成测试 - 2025-01-30 17:05:00
-// 用于测试和调试新的Google OAuth直接集成
+// Google OAuth测试页面 - 直接集成测试 - 2025-01-30 17:30:00
+// 用于测试和调试新的Google OAuth直接集成，绕过Supabase认证系统
 import React, { useState, useEffect } from 'react';
 import { 
   Box, 
@@ -12,10 +12,14 @@ import {
   ListItem,
   ListItemText,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { googleAuthService } from '../services/googleAuth';
-import { OAUTH_CONFIG, validateOAuthConfig, getCurrentRedirectUri } from '../config/oauth';
+import { OAUTH_CONFIG, validateOAuthConfig, getCurrentRedirectUri, getEnvironmentInfo } from '../config/oauth';
 
 const GoogleOAuthTest: React.FC = () => {
   const [testResults, setTestResults] = useState<{
@@ -23,11 +27,13 @@ const GoogleOAuthTest: React.FC = () => {
     googleAuthStatus: boolean;
     redirectUri: string;
     currentUser: any;
+    environmentInfo: any;
   }>({
     configValidation: false,
     googleAuthStatus: false,
     redirectUri: '',
-    currentUser: null
+    currentUser: null,
+    environmentInfo: null
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -46,14 +52,16 @@ const GoogleOAuthTest: React.FC = () => {
       
       const configValid = validateOAuthConfig();
       const redirectUri = getCurrentRedirectUri();
+      const environmentInfo = getEnvironmentInfo();
       
       setTestResults(prev => ({
         ...prev,
         configValidation: configValid,
-        redirectUri
+        redirectUri,
+        environmentInfo
       }));
       
-      console.log('✅ 配置测试完成:', { configValid, redirectUri });
+      console.log('✅ 配置测试完成:', { configValid, redirectUri, environmentInfo });
       
     } catch (error) {
       console.error('❌ 配置测试失败:', error);
@@ -132,8 +140,38 @@ const GoogleOAuthTest: React.FC = () => {
     setError(null);
   };
 
+  // 清除localStorage测试
+  const clearLocalStorageTest = () => {
+    try {
+      console.log('🧹 清除localStorage测试...');
+      
+      // 清除所有Google OAuth相关的localStorage项
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('google_') || key.includes('oauth'))) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        console.log('🧹 清除:', key);
+      });
+      
+      console.log('✅ localStorage清理完成');
+      
+      // 重新检查状态
+      checkGoogleAuthStatus();
+      
+    } catch (error) {
+      console.error('❌ localStorage清理失败:', error);
+      setError(`localStorage清理失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  };
+
   return (
-    <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
+    <Box sx={{ p: 3, maxWidth: 1000, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>
         🧪 Google OAuth 直接集成测试
       </Typography>
@@ -168,6 +206,15 @@ const GoogleOAuthTest: React.FC = () => {
           disabled={isLoading || !testResults.googleAuthStatus}
         >
           🚪 测试Google OAuth登出
+        </Button>
+        
+        <Button 
+          variant="outlined" 
+          color="warning"
+          onClick={clearLocalStorageTest}
+          disabled={isLoading}
+        >
+          🧹 清理localStorage
         </Button>
       </Box>
 
@@ -218,6 +265,98 @@ const GoogleOAuthTest: React.FC = () => {
             />
           </ListItem>
         </List>
+      </Paper>
+
+      {/* 环境信息 - 可折叠 */}
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">
+              🌍 环境信息
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            {testResults.environmentInfo && (
+              <List>
+                <ListItem>
+                  <ListItemText 
+                    primary="当前域名"
+                    secondary={testResults.environmentInfo.CURRENT_ORIGIN}
+                  />
+                </ListItem>
+                
+                <ListItem>
+                  <ListItemText 
+                    primary="当前端口"
+                    secondary={testResults.environmentInfo.CURRENT_PORT}
+                  />
+                </ListItem>
+                
+                <ListItem>
+                  <ListItemText 
+                    primary="主机名"
+                    secondary={testResults.environmentInfo.CURRENT_HOSTNAME}
+                  />
+                </ListItem>
+                
+                <ListItem>
+                  <ListItemText 
+                    primary="协议"
+                    secondary={testResults.environmentInfo.CURRENT_PROTOCOL}
+                  />
+                </ListItem>
+                
+                <ListItem>
+                  <ListItemText 
+                    primary="是否本地环境"
+                    secondary={testResults.environmentInfo.IS_LOCAL ? '是' : '否'}
+                  />
+                </ListItem>
+                
+                <ListItem>
+                  <ListItemText 
+                    primary="是否生产环境"
+                    secondary={testResults.environmentInfo.IS_PRODUCTION ? '是' : '否'}
+                  />
+                </ListItem>
+                
+                <ListItem>
+                  <ListItemText 
+                    primary="用户代理"
+                    secondary={testResults.environmentInfo.userAgent}
+                  />
+                </ListItem>
+                
+                <ListItem>
+                  <ListItemText 
+                    primary="语言"
+                    secondary={testResults.environmentInfo.language}
+                  />
+                
+                <ListItem>
+                  <ListItemText 
+                    primary="平台"
+                    secondary={testResults.environmentInfo.platform}
+                  />
+                </ListItem>
+                
+                <ListItem>
+                  <ListItemText 
+                    primary="Cookie启用"
+                    secondary={testResults.environmentInfo.cookieEnabled ? '是' : '否'}
+                  />
+                </ListItem>
+                
+                <ListItem>
+                  <ListItemText 
+                    primary="在线状态"
+                    secondary={testResults.environmentInfo.onLine ? '在线' : '离线'}
+                  />
+                </ListItem>
+              </List>
+            )}
+          </AccordionDetails>
+        </Accordion>
       </Paper>
 
       {/* 当前用户信息 */}
@@ -303,43 +442,6 @@ const GoogleOAuthTest: React.FC = () => {
         </List>
       </Paper>
 
-      {/* 环境信息 */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          🌍 环境信息
-        </Typography>
-        
-        <List>
-          <ListItem>
-            <ListItemText 
-              primary="当前域名"
-              secondary={OAUTH_CONFIG.ENVIRONMENT.CURRENT_ORIGIN}
-            />
-          </ListItem>
-          
-          <ListItem>
-            <ListItemText 
-              primary="当前端口"
-              secondary={OAUTH_CONFIG.ENVIRONMENT.CURRENT_PORT}
-            />
-          </ListItem>
-          
-          <ListItem>
-            <ListItemText 
-              primary="是否本地环境"
-              secondary={OAUTH_CONFIG.ENVIRONMENT.IS_LOCAL ? '是' : '否'}
-            />
-          </ListItem>
-          
-          <ListItem>
-            <ListItemText 
-              primary="是否生产环境"
-              secondary={OAUTH_CONFIG.ENVIRONMENT.IS_PRODUCTION ? '是' : '否'}
-            />
-          </ListItem>
-        </List>
-      </Paper>
-
       {/* 使用说明 */}
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
@@ -351,7 +453,7 @@ const GoogleOAuthTest: React.FC = () => {
         </Typography>
         
         <Typography variant="body2" paragraph>
-          <strong>2. 登录测试：</strong> 点击"测试Google OAuth登录"按钮启动Google认证流程。
+          <strong>2. 认证测试：</strong> 点击"测试Google OAuth登录"按钮启动Google认证流程。
         </Typography>
         
         <Typography variant="body2" paragraph>
@@ -360,6 +462,10 @@ const GoogleOAuthTest: React.FC = () => {
         
         <Typography variant="body2" paragraph>
           <strong>4. 状态监控：</strong> 实时查看认证状态和用户信息。
+        </Typography>
+        
+        <Typography variant="body2" paragraph>
+          <strong>5. 清理测试：</strong> 点击"清理localStorage"按钮清除所有OAuth相关数据。
         </Typography>
         
         <Divider sx={{ my: 2 }} />
