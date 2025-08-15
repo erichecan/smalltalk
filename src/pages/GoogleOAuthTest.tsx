@@ -332,6 +332,7 @@ const GoogleOAuthTest: React.FC = () => {
                     primary="语言"
                     secondary={testResults.environmentInfo.language}
                   />
+                </ListItem>
                 
                 <ListItem>
                   <ListItemText 
