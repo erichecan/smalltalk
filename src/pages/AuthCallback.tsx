@@ -1,8 +1,9 @@
-// 认证回调处理页面 - 处理OAuth登录后的回调 - 2025-01-14 00:10:00
+// 认证回调处理页面 - 直接Google OAuth集成 - 2025-01-30 17:02:00
+// 处理Google OAuth登录后的回调，不再依赖Supabase
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Box, CircularProgress, Typography, Alert } from '@mui/material';
-import { supabase } from '../services/supabase';
+import { googleAuthService } from '../services/googleAuth';
 import { useAuth } from '../contexts/AuthContext';
 
 const AuthCallback: React.FC = () => {
@@ -15,159 +16,74 @@ const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log('🔄 处理认证回调...');
+        console.log('🔄 处理直接Google OAuth回调...');
         
         // 检查URL中的认证参数
-        const accessToken = searchParams.get('access_token');
-        const refreshToken = searchParams.get('refresh_token');
+        const code = searchParams.get('code');
+        const state = searchParams.get('state');
         const error = searchParams.get('error');
         const errorDescription = searchParams.get('error_description');
-        const code = searchParams.get('code');
 
         console.log('📋 认证参数:', { 
-          accessToken: !!accessToken, 
-          refreshToken: !!refreshToken, 
-          code: !!code,
+          code: !!code, 
+          state: !!state,
           error, 
           errorDescription 
         });
 
         if (error) {
-          console.error('❌ OAuth错误:', error, errorDescription);
-          setErrorMessage(`认证失败: ${errorDescription || error}`);
+          console.error('❌ Google OAuth错误:', error, errorDescription);
+          setErrorMessage(`Google认证失败: ${errorDescription || error}`);
           setStatus('error');
           return;
         }
 
-        // Supabase OAuth流程：检查是否有授权码
-        if (code) {
+        // 检查是否有必要的OAuth参数
+        if (!code || !state) {
+          console.error('❌ 缺少必要的OAuth参数');
+          setErrorMessage('缺少必要的认证参数，请重新登录');
+          setStatus('error');
+          return;
+        }
+
+        // 使用新的Google OAuth服务处理回调
+        try {
           console.log('✅ 检测到授权码，正在处理OAuth回调...');
           
-          try {
-            // 修复流程状态问题：先尝试获取当前会话
-            const { data: { session: currentSession } } = await supabase.auth.getSession();
-            
-            if (currentSession) {
-              console.log('✅ 检测到现有会话，用户已认证');
-              setStatus('success');
-              setTimeout(() => {
-                navigate('/topic', { replace: true });
-              }, 1000);
-              return;
-            }
-            
-            // 使用授权码交换访问令牌
-            const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-            
-            if (exchangeError) {
-              console.error('❌ 授权码交换失败:', exchangeError);
-              
-              // 特殊处理流程状态错误
-              if (exchangeError.message.includes('invalid flow state') || 
-                  exchangeError.message.includes('no valid flow state')) {
-                console.log('🔄 检测到流程状态错误，尝试重新初始化认证...');
-                
-                // 清除可能的无效状态
-                await supabase.auth.signOut();
-                
-                // 重定向到登录页面重新开始
-                setTimeout(() => {
-                  navigate('/login', { replace: true });
-                }, 2000);
-                
-                setErrorMessage('OAuth流程状态已过期，请重新登录');
-                setStatus('error');
-                return;
-              }
-              
-              setErrorMessage(`授权码交换失败: ${exchangeError.message}`);
-              setStatus('error');
-              return;
-            }
-
-            if (data.session && data.user) {
-              console.log('✅ OAuth认证成功:', data.user.email);
-              setStatus('success');
-              
-              // 等待认证状态同步
-              setTimeout(() => {
-                navigate('/topic', { replace: true });
-              }, 1500);
-              
-            } else {
-              console.error('❌ 会话数据无效');
-              setErrorMessage('会话数据无效');
-              setStatus('error');
-            }
-            
-          } catch (exchangeError) {
-            console.error('❌ 授权码交换异常:', exchangeError);
-            setErrorMessage(`授权码交换异常: ${exchangeError instanceof Error ? exchangeError.message : '未知错误'}`);
-            setStatus('error');
-          }
+          const googleUser = await googleAuthService.handleCallback();
           
-        } else if (accessToken && refreshToken) {
-          // 直接令牌方式（备用方案）
-          console.log('✅ 检测到直接令牌，正在设置会话...');
-          
-          try {
-            const { data, error: sessionError } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
-
-            if (sessionError) {
-              console.error('❌ 设置会话失败:', sessionError);
-              setErrorMessage(`会话设置失败: ${sessionError.message}`);
-              setStatus('error');
-              return;
-            }
-
-            if (data.session && data.user) {
-              console.log('✅ 会话设置成功:', data.user.email);
-              setStatus('success');
-              
-              setTimeout(() => {
-                navigate('/topic', { replace: true });
-              }, 1500);
-              
-            } else {
-              console.error('❌ 会话数据无效');
-              setErrorMessage('会话数据无效');
-              setStatus('error');
-            }
-            
-          } catch (sessionError) {
-            console.error('❌ 设置会话异常:', sessionError);
-            setErrorMessage(`会话设置异常: ${sessionError instanceof Error ? sessionError.message : '未知错误'}`);
-            setStatus('error');
-          }
-          
-        } else {
-          console.log('🔄 没有OAuth参数，检查当前认证状态...');
-          
-          // 检查当前用户状态
-          const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
-          
-          if (userError) {
-            console.error('❌ 获取用户信息失败:', userError);
-            setErrorMessage(`获取用户信息失败: ${userError.message}`);
-            setStatus('error');
-            return;
-          }
-
-          if (currentUser) {
-            console.log('✅ 用户已认证:', currentUser.email);
+          if (googleUser) {
+            console.log('✅ Google OAuth认证成功:', googleUser.email);
             setStatus('success');
             
+            // 等待认证状态同步
             setTimeout(() => {
               navigate('/topic', { replace: true });
-            }, 1000);
+            }, 1500);
             
           } else {
-            console.log('⚠️ 用户未认证，重定向到登录页面');
-            navigate('/login', { replace: true });
+            console.error('❌ Google用户信息无效');
+            setErrorMessage('Google用户信息无效');
+            setStatus('error');
           }
+          
+        } catch (oauthError) {
+          console.error('❌ Google OAuth处理失败:', oauthError);
+          
+          // 特殊处理常见错误
+          if (oauthError instanceof Error) {
+            if (oauthError.message.includes('state验证失败')) {
+              setErrorMessage('OAuth安全验证失败，请重新登录');
+            } else if (oauthError.message.includes('令牌交换失败')) {
+              setErrorMessage('认证令牌交换失败，请重新登录');
+            } else {
+              setErrorMessage(`OAuth处理失败: ${oauthError.message}`);
+            }
+          } else {
+            setErrorMessage('OAuth处理失败，请重新登录');
+          }
+          
+          setStatus('error');
         }
         
       } catch (error) {
@@ -194,7 +110,7 @@ const AuthCallback: React.FC = () => {
       >
         <CircularProgress size={60} />
         <Typography variant="h6" color="text.secondary">
-          正在处理认证...
+          正在处理Google认证...
         </Typography>
         <Typography variant="body2" color="text.secondary">
           请稍候，正在完成登录流程
@@ -218,7 +134,7 @@ const AuthCallback: React.FC = () => {
       >
         <Alert severity="error" sx={{ maxWidth: 600 }}>
           <Typography variant="h6" gutterBottom>
-            认证失败
+            Google认证失败
           </Typography>
           <Typography variant="body2">
             {errorMessage}
@@ -242,14 +158,38 @@ const AuthCallback: React.FC = () => {
             4. 联系技术支持
           </Typography>
           
-          {errorMessage.includes('流程状态已过期') && (
+          {errorMessage.includes('state验证失败') && (
             <Alert severity="info" sx={{ mt: 2, maxWidth: 600 }}>
               <Typography variant="body2">
-                <strong>OAuth流程状态错误说明：</strong><br/>
-                这通常是因为OAuth流程中断或超时导致的。系统将自动重定向到登录页面，请重新尝试Google登录。
+                <strong>OAuth安全验证错误说明：</strong><br/>
+                这通常是因为OAuth流程中断或超时导致的。请重新尝试Google登录。
               </Typography>
             </Alert>
           )}
+          
+          {errorMessage.includes('令牌交换失败') && (
+            <Alert severity="info" sx={{ mt: 2, maxWidth: 600 }}>
+              <Typography variant="body2">
+                <strong>令牌交换错误说明：</strong><br/>
+                这通常是因为网络问题或Google服务暂时不可用导致的。请稍后重试。
+              </Typography>
+            </Alert>
+          )}
+        </Box>
+        
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            如果问题持续存在，请：
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            1. 检查Google Cloud Console配置
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            2. 确认重定向URI配置正确
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            3. 等待几分钟让配置生效
+          </Typography>
         </Box>
       </Box>
     );
@@ -269,7 +209,7 @@ const AuthCallback: React.FC = () => {
       >
         <CircularProgress size={60} color="success" />
         <Typography variant="h6" color="success.main">
-          认证成功！
+          Google认证成功！
         </Typography>
         <Typography variant="body2" color="text.secondary">
           正在跳转到应用...
