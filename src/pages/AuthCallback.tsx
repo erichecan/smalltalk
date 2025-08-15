@@ -44,11 +44,42 @@ const AuthCallback: React.FC = () => {
           console.log('✅ 检测到授权码，正在处理OAuth回调...');
           
           try {
+            // 修复流程状态问题：先尝试获取当前会话
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            
+            if (currentSession) {
+              console.log('✅ 检测到现有会话，用户已认证');
+              setStatus('success');
+              setTimeout(() => {
+                navigate('/topic', { replace: true });
+              }, 1000);
+              return;
+            }
+            
             // 使用授权码交换访问令牌
             const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
             
             if (exchangeError) {
               console.error('❌ 授权码交换失败:', exchangeError);
+              
+              // 特殊处理流程状态错误
+              if (exchangeError.message.includes('invalid flow state') || 
+                  exchangeError.message.includes('no valid flow state')) {
+                console.log('🔄 检测到流程状态错误，尝试重新初始化认证...');
+                
+                // 清除可能的无效状态
+                await supabase.auth.signOut();
+                
+                // 重定向到登录页面重新开始
+                setTimeout(() => {
+                  navigate('/login', { replace: true });
+                }, 2000);
+                
+                setErrorMessage('OAuth流程状态已过期，请重新登录');
+                setStatus('error');
+                return;
+              }
+              
               setErrorMessage(`授权码交换失败: ${exchangeError.message}`);
               setStatus('error');
               return;
@@ -205,8 +236,20 @@ const AuthCallback: React.FC = () => {
             2. 检查网络连接
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            3. 联系技术支持
+            3. 清除浏览器缓存和Cookie
           </Typography>
+          <Typography variant="body2" color="text.secondary">
+            4. 联系技术支持
+          </Typography>
+          
+          {errorMessage.includes('流程状态已过期') && (
+            <Alert severity="info" sx={{ mt: 2, maxWidth: 600 }}>
+              <Typography variant="body2">
+                <strong>OAuth流程状态错误说明：</strong><br/>
+                这通常是因为OAuth流程中断或超时导致的。系统将自动重定向到登录页面，请重新尝试Google登录。
+              </Typography>
+            </Alert>
+          )}
         </Box>
       </Box>
     );

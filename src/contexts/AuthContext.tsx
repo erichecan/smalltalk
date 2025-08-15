@@ -108,15 +108,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const googleLogin = async () => {
-      // Google OAuth 登录 - 使用Supabase标准流程，根据官方文档修复 - 2025-01-14 00:45:00
+      // 修复Google OAuth流程状态问题 - 2025-01-30 16:48:00
       try {
         console.log('🚀 启动Google OAuth登录...');
         
-        // 根据Supabase官方文档，使用最简单的OAuth调用
-        // 不需要指定redirectTo，让Supabase处理完整的重定向流程
+        // 清理可能的旧OAuth状态
+        await supabase.auth.signOut();
+        console.log('🧹 已清理旧的认证状态');
+        
+        // 确保重定向到正确的回调URL
+        const redirectTo = `${window.location.origin}/auth-callback`;
+        console.log('📍 重定向URL:', redirectTo);
+        
         const { error } = await supabase.auth.signInWithOAuth({ 
           provider: 'google',
           options: {
+            redirectTo: redirectTo,
             queryParams: {
               access_type: OAUTH_CONFIG.GOOGLE.ACCESS_TYPE,
               prompt: OAUTH_CONFIG.GOOGLE.PROMPT,
@@ -130,7 +137,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         
         console.log('✅ Supabase Google OAuth initiated successfully');
-        console.log('ℹ️ 用户将被重定向到Google登录页面，然后回到Supabase回调URL');
+        console.log('ℹ️ 用户将被重定向到Google登录页面，然后回到:', redirectTo);
         
       } catch (error) {
         console.error('❌ Google OAuth login failed:', error);
